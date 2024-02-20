@@ -15,3 +15,9 @@ function adminUserDetailsUpdate( authUserId, email, nameFirst, nameLast ) {
         
     }
 }
+
+function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
+    return {
+        
+    }
+}
