@@ -18,3 +18,10 @@ function adminQuizCreate(authUserId, name, description) {
         quizId: 2
     }
 }
+
+//Stub for adminQuizRemove
+function adminQuizRemove(authUserId, quizId) {
+    return {
+        
+    }
+}
