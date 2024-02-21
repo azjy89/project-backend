@@ -26,13 +26,14 @@ function adminQuizRemove(authUserId, quizId) {
     }
 }
 
-<<<<<<< 86525daffaed87b5d66f43925c13615b6a1a8909
 // Stub for adminQuizDescriptionUpdate
 // Please put last
 function adminQuizDescriptionUpdate( authUserId, quizId, description){
     return {
 
-=======
+    }
+}
+
 function adminQuizInfo( authUserId, quizId ) {
     return {
         quizId: 1,
@@ -45,7 +46,6 @@ function adminQuizInfo( authUserId, quizId ) {
 
 function adminQuizNameUpdate( authUserId, quizId, description ) {
     return { 
-        
->>>>>>> aae1b5ac02b3e1392c04733958dc17684625a2c5
+
     }
 }
