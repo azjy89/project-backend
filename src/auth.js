@@ -39,7 +39,7 @@ function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
     }
 }
 
-function adminQuizzInfo ( authUserId, quizId ) {
+function adminQuizInfo( authUserId, quizId ) {
     return {
         quizId: 1,
         name: 'My Quiz',
@@ -49,3 +49,11 @@ function adminQuizzInfo ( authUserId, quizId ) {
     }
 }
 
+<<<<<<< HEAD
+=======
+function adminQuizNameUpdate( authUserId, quizId, description ) {
+    return { 
+        
+    }
+}
+>>>>>>> 807c9466ecd8765bea5a582ce20016b45590c7e0
