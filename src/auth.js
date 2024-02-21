@@ -26,7 +26,7 @@ function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
     }
 }
 
-function adminQuizzInfo( authUserId, quizId ) {
+function adminQuizInfo( authUserId, quizId ) {
     return {
         quizId: 1,
         name: 'My Quiz',
