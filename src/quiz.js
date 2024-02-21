@@ -5,7 +5,8 @@
  * 
  * @returns {object}
  */
-function adminQuizList(authUserId) {
+
+function adminQuizList( authUserId ) {
     return { 
         quizzes: [
             {
@@ -25,7 +26,8 @@ function adminQuizList(authUserId) {
  * 
  * @returns {int}
  */
-function adminQuizCreate(authUserId, name, description) {
+
+function adminQuizCreate( authUserId, name, description ) {
     return {
         quizId: 2
     }
@@ -39,7 +41,8 @@ function adminQuizCreate(authUserId, name, description) {
  * 
  * @returns {object}
  */
-function adminQuizRemove(authUserId, quizId) {
+
+function adminQuizRemove( authUserId, quizId ) {
     return {
         
     }
@@ -53,6 +56,7 @@ function adminQuizRemove(authUserId, quizId) {
  * 
  * @returns {object}
  */
+
 function adminQuizInfo( authUserId, quizId ) {
     return {
         quizId: 1,
@@ -72,6 +76,7 @@ function adminQuizInfo( authUserId, quizId ) {
  * 
  * @returns {}
  */
+
 function adminQuizNameUpdate( authUserId, quizId, name ) {
     return { 
 
@@ -87,6 +92,7 @@ function adminQuizNameUpdate( authUserId, quizId, name ) {
  * 
  * @returns {}
  */
+
 function adminQuizDescriptionUpdate( authUserId, quizId, description){
     return {
 
