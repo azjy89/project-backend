@@ -1,4 +1,5 @@
 
+
 function adminAuthRegister(email, password, nameFirst, nameLast) {
   return {
     authUserId: 1
@@ -31,6 +32,7 @@ function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
         
 
     }
+<<<<<<< HEAD
 }
 
 function adminQuizInfo( authUserId, quizId ) {
@@ -51,3 +53,6 @@ function adminQuizNameUpdate( authUserId, quizId, description ) {
     }
 }
 >>>>>>> 807c9466ecd8765bea5a582ce20016b45590c7e0
+=======
+}
+>>>>>>> aae1b5ac02b3e1392c04733958dc17684625a2c5
