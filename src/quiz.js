@@ -31,7 +31,7 @@ function adminQuizInfo( authUserId, quizId ) {
     }
 }
 
-function adminQuizNameUpdate( authUserId, quizId, description ) {
+function adminQuizNameUpdate( authUserId, quizId, name ) {
     return { 
 
     }
