@@ -25,3 +25,11 @@ function adminQuizRemove(authUserId, quizId) {
         
     }
 }
+
+// Stub for adminQuizDescriptionUpdate
+// Please put last
+function adminQuizDescriptionUpdate( authUserId, quizId, description){
+    return {
+
+    }
+}
