@@ -1,3 +1,14 @@
+
+
+function adminAuthRegister(email, password, nameFirst, nameLast) {
+  return {
+    authUserId: 1
+  };
+}
+
+
+
+
 function adminUserDetails( authUserId ) {
     return { user:
         {
@@ -19,6 +30,5 @@ function adminUserDetailsUpdate( authUserId, email, nameFirst, nameLast ) {
 function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
     return {
         
-
     }
 }
