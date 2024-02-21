@@ -1,5 +1,3 @@
-
-
 function adminUserDetails( authUserId ) {
     return { user:
         {
