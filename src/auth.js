@@ -30,29 +30,7 @@ function adminUserDetailsUpdate( authUserId, email, nameFirst, nameLast ) {
 function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
     return {
         
-
     }
-<<<<<<< HEAD
-}
 
-function adminQuizInfo( authUserId, quizId ) {
-    return {
-        quizId: 1,
-        name: 'My Quiz',
-        timeCreated: 1683125870,
-        timeLastEdited: 1683125871,
-        description: 'This is my quiz',
-    }
 }
 
-<<<<<<< HEAD
-=======
-function adminQuizNameUpdate( authUserId, quizId, description ) {
-    return { 
-        
-    }
-}
->>>>>>> 807c9466ecd8765bea5a582ce20016b45590c7e0
-=======
-}
->>>>>>> aae1b5ac02b3e1392c04733958dc17684625a2c5
