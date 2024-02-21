@@ -1,6 +1,3 @@
-
-
-
 function adminUserDetails( authUserId ) {
     return { user:
         {
@@ -23,21 +20,5 @@ function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
     return {
         
 
-    }
-}
-
-function adminQuizInfo( authUserId, quizId ) {
-    return {
-        quizId: 1,
-        name: 'My Quiz',
-        timeCreated: 1683125870,
-        timeLastEdited: 1683125871,
-        description: 'This is my quiz',
-    }
-}
-
-function adminQuizNameUpdate( authUserId, quizId, description ) {
-    return { 
-        
     }
 }
