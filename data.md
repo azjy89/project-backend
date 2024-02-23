@@ -1,30 +1,24 @@
 ```javascript
 let data = {
-    users: 
-    [
-        user: 
-        {
-            userId: 1
-            name: 'Hayden Smith',
-            email: 'hayden.smith@unsw.edu.au',
-            password: 'ilikepotatoes',
-            numSuccessfulLogins: 3,
-            numFailedPasswordsSinceLastLogin: 1,            
+    users: {
+        1: {
+            userId: 1,
+            nameFirst: 'Bobby',
+            nameLast: 'Lee',
+            email: 'bobbythedinosaurus@gmail.com',
+            password: 'bobbyisthebest123',
+            numSuccessfulLogins: 4,
+            numFailedPasswordsSinceLastLogin: 1,
         }
-    ],
-    quizzes: 
-    [
-        quiz:
-        {
+    },
+    quizzes: {
+        1: {
             quizId: 1,
-            name: 'My Quiz',
-            timeCreated: 1683125870,
-            timeLastEdited: 1683125871,
-            description: 'This is my quiz',
+            name: 'COMP1511 Linked Lists',
+            timeCreated: 920349285,
+            timeLastEdited: 425256,
+            description: 'A short quiz about linked lists and their conventions',
         }
-    ],
+    }
 }
 ```
-
-short description: data object containing array of user objects and array of
-quiz objects (only an example user/quiz have been included currently)
