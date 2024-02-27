@@ -1,6 +1,12 @@
-//Stub for adminQuizList
+/**
+ * Provide a list of all quizzes that are owned by the currently logged in user.
+ * 
+ * @param {int} authUserId 
+ * 
+ * @returns {object}
+ */
 
-function adminQuizList(authUserId) {
+function adminQuizList( authUserId ) {
     return { 
         quizzes: [
             {
@@ -11,20 +17,45 @@ function adminQuizList(authUserId) {
     }
 }
 
+/**
+ * Given basic details about a new quiz, create one for the logged in user.
+ * 
+ * @param {int} authUserId 
+ * @param {string} name 
+ * @param {string} description 
+ * 
+ * @returns {int}
+ */
 
-//Stub for adminQuizCreate
-function adminQuizCreate(authUserId, name, description) {
+function adminQuizCreate( authUserId, name, description ) {
     return {
         quizId: 2
     }
 }
 
-//Stub for adminQuizRemove
-function adminQuizRemove(authUserId, quizId) {
+/**
+ * Given a particular quiz, permanently remove the quiz.
+ * 
+ * @param {int} authUserId 
+ * @param {int} quizId 
+ * 
+ * @returns {object}
+ */
+
+function adminQuizRemove( authUserId, quizId ) {
     return {
         
     }
 }
+
+/**
+ * Get all of the relevant information about the current quiz.
+ * 
+ * @param {int} authUserId 
+ * @param {int} quizId 
+ * 
+ * @returns {object}
+ */
 
 function adminQuizInfo( authUserId, quizId ) {
     return {
@@ -36,8 +67,34 @@ function adminQuizInfo( authUserId, quizId ) {
     }
 }
 
-function adminQuizNameUpdate( authUserId, quizId, description ) {
+/**
+ * Update the name of the relevant quiz.
+ * 
+ * @param {int} authUserId 
+ * @param {int} quizId 
+ * @param {string} name 
+ * 
+ * @returns {}
+ */
+
+function adminQuizNameUpdate( authUserId, quizId, name ) {
     return { 
-        
+
+    }
+}
+
+/**
+ * Update the description of the relevant quiz.
+ * 
+ * @param {int} authUserId 
+ * @param {int} quizId 
+ * @param {string} description 
+ * 
+ * @returns {}
+ */
+
+function adminQuizDescriptionUpdate( authUserId, quizId, description){
+    return {
+
     }
 }
