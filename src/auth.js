@@ -1,3 +1,4 @@
+import {getData, setData} from './dataStore.js'
 /**
   * Register a user with an email, password, and names, 
   * then returns their authUserId value.
@@ -11,8 +12,15 @@
 */
 
 function adminAuthRegister(email, password, nameFirst, nameLast) {
+  let data = getData();
+
+  data.users.push({
+    email: email,
+    password: password,
+    name: '$(nameFirst) $(nameLast)',
+  });
   return {
-    authUserId: 1
+    authUserId: data.users.length,
   }
 }
 
