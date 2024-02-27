@@ -14,6 +14,12 @@ import {getData, setData} from './dataStore.js'
 function adminAuthRegister(email, password, nameFirst, nameLast) {
   let data = getData();
 
+  for (const user of data.users) {
+    if (user.email === email) {
+      return {"error": "Email have been used"};
+    }
+  }
+  
   data.users.push({
     email: email,
     password: password,
