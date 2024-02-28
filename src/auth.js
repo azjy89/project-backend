@@ -42,6 +42,10 @@ function adminAuthRegister(email, password, nameFirst, nameLast) {
     return { error: "NameLast must be between 2 and 20 characters long" };
   }
 
+  if (password.length < 8) {
+    return { error: "Password is too short" };
+  }
+
   data.users.push({
     email: email,
     password: password,

@@ -64,3 +64,31 @@ test('Check NameLast is between 2 and 20 characters long', () => {
   , 'FirstName', 'ABCDEFGHIJKLMNOPQRSTU');
   expect(user2).toStrictEqual({ error: "NameLast must be between 2 and 20 characters long"});
 });
+
+test('Check fail on short passwords', () => {
+  clear();
+  let user1 = adminAuthRegister('users@unsw.edu.au', ''
+  , 'FirstName', 'LastName');
+  expect(user1).toStrictEqual({ error: "Password is too short"});
+  let user2 = adminAuthRegister('users@unsw.edu.au', '1'
+  , 'FirstName', 'LastName');
+  expect(user2).toStrictEqual({ error: "Password is too short"});
+  let user3 = adminAuthRegister('users@unsw.edu.au', '12'
+  , 'FirstName', 'LastName');
+  expect(user3).toStrictEqual({ error: "Password is too short"});
+  let user4 = adminAuthRegister('users@unsw.edu.au', '123'
+  , 'FirstName', 'LastName');
+  expect(user4).toStrictEqual({ error: "Password is too short"});
+  let user5 = adminAuthRegister('users@unsw.edu.au', '1234'
+  , 'FirstName', 'LastName');
+  expect(user5).toStrictEqual({ error: "Password is too short"});
+  let user6 = adminAuthRegister('users@unsw.edu.au', '12345'
+  , 'FirstName', 'LastName');
+  expect(user6).toStrictEqual({ error: "Password is too short"});
+  let user7 = adminAuthRegister('users@unsw.edu.au', '123456'
+  , 'FirstName', 'LastName');
+  expect(user7).toStrictEqual({ error: "Password is too short"});
+  let user8 = adminAuthRegister('users@unsw.edu.au', '1234567'
+  , 'FirstName', 'LastName');
+  expect(user8).toStrictEqual({ error: "Password is too short"});
+});
