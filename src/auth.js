@@ -34,6 +34,10 @@ function adminAuthRegister(email, password, nameFirst, nameLast) {
     return { error: "NameFirst must be between 2 and 20 characters long" };
   }
 
+  if (!/^[a-zA-Z\-']/.test(nameLast)) {
+    return { error: "NameLast contains unexpected characters" };
+  }
+
   data.users.push({
     email: email,
     password: password,
