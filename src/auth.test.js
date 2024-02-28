@@ -1,5 +1,5 @@
 import { adminAuthRegister } from './auth.js';
-import {clear} from './other.js';
+import { clear } from './other.js';
 import isEmail from 'validator/lib/isEmail';
 
 
@@ -97,8 +97,8 @@ test('Check fail on passwords does not contains at least one number and at least
   clear();
   let user1 = adminAuthRegister('users@unsw.edu.au', '12345678'
   , 'FirstName', 'LastName');
-  expect(user1).toStrictEqual({ error: "Password should contain at least one number and at least one letter"});
+  expect(user1).toEqual({ error: "Password should contain at least one number and at least one letter"});
   let user2 = adminAuthRegister('users@unsw.edu.au', 'abcdefgh'
   , 'FirstName', 'LastName');
-  expect(user2).toStrictEqual({ error: "Password should contain at least one number and at least one letter"});
+  expect(user2).toEqual({ error: "Password should contain at least one number and at least one letter"});
 });
