@@ -38,6 +38,10 @@ function adminAuthRegister(email, password, nameFirst, nameLast) {
     return { error: "NameLast contains unexpected characters" };
   }
 
+  if (nameLast.length < 2 || nameLast.length > 20) {
+    return { error: "NameLast must be between 2 and 20 characters long" };
+  }
+
   data.users.push({
     email: email,
     password: password,

@@ -54,3 +54,13 @@ test('Check unexpected characters in NameLast', () => {
   , 'FirstName', '!@#$%^&*()_+=|?><');
   expect(user2).toStrictEqual({ error: "NameLast contains unexpected characters"});
 });
+
+test('Check NameLast is between 2 and 20 characters long', () => {
+  clear();
+  let user1 = adminAuthRegister('users@unsw.edu.au', '1234abcd!@#$'
+  , 'FirstName', 'A');
+  expect(user1).toStrictEqual({ error: "NameLast must be between 2 and 20 characters long"});
+  let user2 = adminAuthRegister('users@unsw.edu.au', '1234abcd!@#$'
+  , 'FirstName', 'ABCDEFGHIJKLMNOPQRSTU');
+  expect(user2).toStrictEqual({ error: "NameLast must be between 2 and 20 characters long"});
+});
