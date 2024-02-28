@@ -1,4 +1,6 @@
-import {getData, setData} from './dataStore.js'
+import { getData, setData } from './dataStore.js'
+import isEmail from 'validator/lib/isEmail.js';
+
 /**
   * Register a user with an email, password, and names, 
   * then returns their authUserId value.
@@ -16,15 +18,21 @@ function adminAuthRegister(email, password, nameFirst, nameLast) {
 
   for (const user of data.users) {
     if (user.email === email) {
-      return {"error": "Email have been used"};
+      return {"error": "Email has been used"};
     }
   }
-  
+
+  if (!isEmail(email)) {
+    return { "error": "Invalid email format" };
+  }
+
   data.users.push({
     email: email,
     password: password,
     name: '$(nameFirst) $(nameLast)',
   });
+
+  setData(data);
   return {
     authUserId: data.users.length,
   }

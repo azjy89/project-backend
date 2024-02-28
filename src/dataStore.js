@@ -1,26 +1,6 @@
 // YOU SHOULD MODIFY THIS OBJECT BELOW ONLY
 let data = {
-  users: [
-    {
-        id: 1,
-        nameFirst: 'user1',
-    },
-    {
-        id: 2,
-        nameFirst: 'user2',
-    },
-],
-quizzes: [
-    {
-        id: 1,
-        name: 'quiz1',
-    },
-    {
-        id: 2,
-        name: 'quiz2',
-    },
-],
-
+  users: [],
 };
 
 // YOU SHOULD MODIFY THIS OBJECT ABOVE ONLY
