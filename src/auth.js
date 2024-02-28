@@ -26,6 +26,14 @@ function adminAuthRegister(email, password, nameFirst, nameLast) {
     return { "error": "Invalid email format" };
   }
 
+  if (!/^[a-zA-Z\-']/.test(nameFirst)) {
+    return { error: "NameFirst contains unexpected characters" };
+  }
+
+  if (nameFirst.length < 2 || nameFirst.length > 20) {
+    return { error: "NameFirst must be between 2 and 20 characters long" };
+  }
+
   data.users.push({
     email: email,
     password: password,

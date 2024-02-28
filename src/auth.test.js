@@ -18,11 +18,29 @@ test('Check duplicate email', () => {
   expect(user2).toStrictEqual({ error: "Email has been used"});
 });
 
-test('Invalid email format', () => {
+test('Check email format', () => {
   clear();
   let user = adminAuthRegister('invalidemail', '1234abcd!@#$'
   , 'FirstName', 'LastName');
   expect(user).toStrictEqual({ error: "Invalid email format"});
 });
 
+test('Check unexpected characters in NameFirst', () => {
+  clear();
+  let user1 = adminAuthRegister('users@unsw.edu.au', '1234abcd!@#$'
+  , '1234567890', 'LastName');
+  expect(user1).toStrictEqual({ error: "NameFirst contains unexpected characters"});
+  let user2 = adminAuthRegister('users@unsw.edu.au', '1234abcd!@#$'
+  , '!@#$%^&*()_+=|?><', 'LastName');
+  expect(user2).toStrictEqual({ error: "NameFirst contains unexpected characters"});
+});
 
+test('Check NameFirst is between 2 and 20 characters long', () => {
+  clear();
+  let user1 = adminAuthRegister('users@unsw.edu.au', '1234abcd!@#$'
+  , 'A', 'LastName');
+  expect(user1).toStrictEqual({ error: "NameFirst must be between 2 and 20 characters long"});
+  let user2 = adminAuthRegister('users@unsw.edu.au', '1234abcd!@#$'
+  , 'ABCDEFGHIJKLMNOPQRSTU', 'LastName');
+  expect(user2).toStrictEqual({ error: "NameFirst must be between 2 and 20 characters long"});
+});
