@@ -92,3 +92,13 @@ test('Check fail on short passwords', () => {
   , 'FirstName', 'LastName');
   expect(user8).toStrictEqual({ error: "Password is too short"});
 });
+
+test('Check fail on passwords does not contains at least one number and at least one letter', () => {
+  clear();
+  let user1 = adminAuthRegister('users@unsw.edu.au', '12345678'
+  , 'FirstName', 'LastName');
+  expect(user1).toStrictEqual({ error: "Password should contain at least one number and at least one letter"});
+  let user2 = adminAuthRegister('users@unsw.edu.au', 'abcdefgh'
+  , 'FirstName', 'LastName');
+  expect(user2).toStrictEqual({ error: "Password should contain at least one number and at least one letter"});
+});

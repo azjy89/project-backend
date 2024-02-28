@@ -46,6 +46,10 @@ function adminAuthRegister(email, password, nameFirst, nameLast) {
     return { error: "Password is too short" };
   }
 
+  if (!/([A-Za-z] && (0-9))/) {
+    return { error: "Password should contain at least one number and at least one letter" };
+  }
+
   data.users.push({
     email: email,
     password: password,
