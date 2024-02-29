@@ -18,6 +18,7 @@ describe('adminAuthRegister', () => {
     });
 
     test('email is not valid', () => {
+        clear();
         let authUserId = adminAuthRegister('123', '1234abcd!@#$'
         , 'FirstName', 'LastName');
         expect(authUserId).toEqual({ error: expect.any(String)})
