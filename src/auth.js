@@ -29,10 +29,20 @@ function adminAuthRegister(email, password, nameFirst, nameLast) {
   const data = getData();
   const result = adminAuthRegisterErrors(email, password, nameFirst, 
                                          nameLast, data);
-  const newUser = new user    
-  data.users.push()
+  const newUserId = data.users.length + 1;
+  const newUser = {
+    userId: newUserId,
+    nameFirst: nameFirst,
+    nameLast: nameLast,
+    email: email,
+    password: password,
+    numSuccessfulLogins: 0,
+    numFailedPasswordsSinceLastLogin: 0,
+  }
+  data.users.push(newUser);
+
   return {
-    authUserId: 1
+    authUserId: newUserId
   }
 }
 
