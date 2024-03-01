@@ -1,10 +1,8 @@
 // YOU SHOULD MODIFY THIS OBJECT BELOW ONLY
 let data = {
   users: [
-
   ],
   quizzes: [
-
   ],
 };
 
