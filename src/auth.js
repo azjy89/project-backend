@@ -1,3 +1,4 @@
+import { getData, setData } from './dataStore.js';
 import isEmail from 'validator/es/lib/isEmail';
 
 /**
@@ -13,6 +14,7 @@ import isEmail from 'validator/es/lib/isEmail';
 */
 
 function adminAuthRegister(email, password, nameFirst, nameLast) {
+  const data = getData();
   
   return {
     authUserId: 1
