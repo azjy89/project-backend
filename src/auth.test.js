@@ -4,15 +4,16 @@ import { clear } from './other.js';
 describe('adminAuthRegister', () => { 
     test('successful registration', () => {
         clear();
-        let authUserId = adminAuthRegister('users@unsw.edu.au', '1234abcd!@#$'
+        let authUserId = adminAuthRegister('users@unsw.edu.au', '1234abcd'
         , 'FirstName', 'LastName');
+        expect(authUserId).toEqual( { authUserId: expect.any(Number) });
     });
 
     test('duplicate email', () => {
         clear();
-        let authUserId1 = adminAuthRegister('users@unsw.edu.au', '1234abcd!@#$'
+        let authUserId1 = adminAuthRegister('users@unsw.edu.au', '1234abcd'
         , 'FirstName', 'LastName');
-        let authUserId2 = adminAuthRegister('users@unsw.edu.au', '1234abcd!@#$'
+        let authUserId2 = adminAuthRegister('users@unsw.edu.au', '1234abcd'
         , 'FirstName', 'LastName');
         expect(authUserId2).toEqual({ error: expect.any(String)});
     });
@@ -26,40 +27,42 @@ describe('adminAuthRegister', () => {
 
     test('invalid characters in nameFirst', () => {
         clear();
-        let authUserId1 = adminAuthRegister('users@unsw.edu.au', '1234abcd!@#$'
+        let authUserId1 = adminAuthRegister('users@unsw.edu.au', '1234abcd'
         , '1234567890', 'LastName');
         expect(authUserId1).toEqual({ error: expect.any(String)});
-        let authUserId2 = adminAuthRegister('users@unsw.edu.au', '1234abcd!@#$'
+        let authUserId2 = adminAuthRegister('users@unsw.edu.au', '1234abcd'
         , '!@#$%^&*()_+=|?><', 'LastName');
         expect(authUserId2).toEqual({ error: expect.any(String)});
     });
 
     test('invalid nameFirst length', () => {
         clear();
-        let authUserId1 = adminAuthRegister('users@unsw.edu.au', '1234abcd!@#$'
+        let authUserId1 = adminAuthRegister('users@unsw.edu.au', '1234abcd'
         , 'A', 'LastName');
         expect(authUserId1).toEqual({ error: expect.any(String)});
-        let user2 = adminAuthRegister('users@unsw.edu.au', '1234abcd!@#$'
+        clear();
+        let authUserId2 = adminAuthRegister('users@unsw.edu.au', '1234abcd'
         , 'ABCDEFGHIJKLMNOPQRSTU', 'LastName');
         expect(authUserId2).toEqual({ error: expect.any(String)});
     });
 
     test('invalid characters in nameLast', () => {
         clear();
-        let authUserId1 = adminAuthRegister('users@unsw.edu.au', '1234abcd!@#$'
+        let authUserId1 = adminAuthRegister('users@unsw.edu.au', '1234abcd'
         , 'FirstName', '1234567890');
         expect(authUserId1).toEqual({ error: expect.any(String)});
-        let authUserId2 = adminAuthRegister('users@unsw.edu.au', '1234abcd!@#$'
+        let authUserId2 = adminAuthRegister('users@unsw.edu.au', '1234abcd'
         , 'FirstName', '!@#$%^&*()_+=|?><');
         expect(authUserId2).toEqual({ error: expect.any(String)});
     });
 
     test('invalid nameLast length', () => {
         clear();
-        let authUserId1 = adminAuthRegister('users@unsw.edu.au', '1234abcd!@#$'
+        let authUserId1 = adminAuthRegister('users@unsw.edu.au', '1234abcd'
         , 'FirstName', 'A');
         expect(authUserId1).toEqual({ error: expect.any(String)});
-        let authUserId2 = adminAuthRegister('users@unsw.edu.au', '1234abcd!@#$'
+        clear();
+        let authUserId2 = adminAuthRegister('users@unsw.edu.au', '1234abcd'
         , 'FirstName', 'ABCDEFGHIJKLMNOPQRSTU');
         expect(authUserId2).toEqual({ error: expect.any(String)});
     });
