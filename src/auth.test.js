@@ -1,4 +1,4 @@
-import { adminAuthRegister } from './auth.js';
+import { adminAuthRegister, adminAuthLogin } from './auth.js';
 import { clear } from './other.js';
 
 describe('adminAuthRegister', () => { 
@@ -103,5 +103,29 @@ describe('adminAuthRegister', () => {
         let user2 = adminAuthRegister('users@unsw.edu.au', 'abcdefgh'
         , 'FirstName', 'LastName');
         expect(user2).toEqual({ error: expect.any(String)});
+    });
+});
+
+describe('adminAuthLogin', () => {
+    test('successful login', () => {
+        clear();
+        adminAuthRegister('users@unsw.edu.au', '1234abcd'
+        , 'FirstName', 'LastName');
+        let authUserId = adminAuthLogin('users@unsw.edu.au', '1234abcd');
+        expect(authUserId).toEqual({ authUserId: expect.any(Number) });
+    });
+
+    test('Email does not exist', () => {
+        clear();
+        let authUserId = adminAuthLogin('users@unsw.edu.au', '1234abcd');
+        expect(authUserId).toEqual({ error: expect.any(String) });
+    });
+
+    test('Incorrect password', () => {
+        clear();
+        adminAuthRegister('users@unsw.edu.au', '1234abcd'
+        , 'FirstName', 'LastName');
+        let authUserId = adminAuthLogin('users@unsw.edu.au', '1234abce');
+        expect(authUserId).toEqual({ error: expect.any(String) });
     });
 });
