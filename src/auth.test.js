@@ -176,7 +176,6 @@ describe('adminUserDetailsUpdate', () => {
         clear();
         expect(adminUserDetailsUpdate(user.userId, user.email, user.nameLast, 'ABcdefghijklmnopqrstu')).toStrictEqual({ error: expect.any(String) });
     });
-    
 });
 
 
