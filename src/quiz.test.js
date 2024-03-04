@@ -1,6 +1,8 @@
 import { clear } from './other.js';
 import { adminQuizList, adminQuizCreate, adminQuizRemove } from './quiz.js';
 import { adminAuthRegister } from './auth.js';
+import { adminQuizInfo } from './quiz.js';
+import { adminQuizNameUpdate } from './quiz.js';
 
 
 beforeEach(() => {
@@ -137,5 +139,50 @@ describe('adminQuizRemove', () => {
     });
 });
 
+describe('adminQuizInfo', () => {
+
+    beforeEach(() => {
+        clear();
+    })
+
+    // Successful check
+
+    test('Quiz info retrieved successfully', () => {
+        let authUserId = adminAuthRegister('quiz@unsw.edu.au', 
+            'abcd1234', 'Bobby', 'Dickens');
+            let quizId = adminQuizInfo(authUserId, 'COMP1531', 'Welcome!');
+            expect(quizId).toStrictEqual( {quizId: expect.any(Number)} );
+
+            // to fix
+            expect(name).toStrictEqual({ name: expect.any(string)} );
+
+            // fix
+            expect(timeCreated).toStrictEqual({timeCreated: expect.any(number)} );
+
+            // fix
+            expect(timeLastEdited).toStrictEqual({timeLastEdited: expect.any(number)} );
+
+            // fix
+            expect(description).toStrictEqual({ description: expect.any(string)} );
+    });
+
+
+
+    // Error checks
+    test('AuthUserId is not a valid user', () =>{
+        expect(adminQuizInfo(authUserId + 1, quizId)).toStrictEqual({error: 'Invalid authorUserId'});
+    });
+
+    test('Quiz ID does not refer to a valid quiz', () =>{
+        expect(adminQuizInfo(authUserId, quizId + 1)).toStrictEqual({error: 'Invalid quizId'});
+    });
+
+    test('quiz doesnt belong to this user', () => {
+        let authUserId1 = adminAuthRegister('quiz1@unsw.edu.au', 
+        'abcd1234', 'Robby', 'Smith');
+        let quizId1 = adminQuizCreate(authUserId1, 'HAHA1531', 'Welcome!');
+        expect(adminQuizRemove(authUserId, quizId1)).toStrictEqual( {error: 'Quiz does not belong to this user.'});
+    });
+})
 
 
