@@ -174,7 +174,7 @@ describe('adminUserDetailsUpdate', () => {
         clear();
         expect(adminUserDetailsUpdate(user.userId, user.email, user.nameFirst, 'A')).toStrictEqual({ error: expect.any(String) });
         clear();
-        expect(adminUserDetailsUpdate(user.userId, user.email, user.nameLast, 'ABcdefghijklmnopqrstu')).toStrictEqual({ error: expect.any(String) });
+        expect(adminUserDetailsUpdate(user.userId, user.email, user.nameFirst, 'ABcdefghijklmnopqrstu')).toStrictEqual({ error: expect.any(String) });
     });
 });
 
