@@ -1,4 +1,4 @@
-import { adminAuthRegister, adminAuthLogin } from './auth.js';
+import { adminAuthRegister, adminAuthLogin, adminUserDetailsUpdate} from './auth.js';
 import { clear } from './other.js';
 
 describe('adminAuthRegister', () => { 

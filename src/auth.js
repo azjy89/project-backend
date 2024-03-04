@@ -196,6 +196,57 @@ function adminUserDetails( authUserId ) {
  */
 
 function adminUserDetailsUpdate( authUserId, email, nameFirst, nameLast ) {
+	const data = getData();
+    const userIndex = data.users.findIndex(user => user.userId === authUserId);
+    if (userIndex === -1) {
+        return {
+            error: 'AuthUserId is not a valid user'
+        };
+    };
+
+    if (data.users.some(user => user.email === email && user.userId !== authUserId)) {
+        return {
+            error: 'Email is currently used by another user'
+        };
+    };
+
+    if (!isEmail(email)) {
+        return {
+            error: 'Email is not valid'
+        }
+    }
+    if (!adminAuthRegisterValidNameCharacters(nameFirst)) {
+        return {
+            error: 'First name contains invalid characters'
+        }
+    }
+    if (!adminAuthRegisterValidNameCharacters(nameLast)) {
+        return {
+            error: 'Last name contains invalid characters'
+        }
+    }
+    if (!adminAuthRegisterValidNameLength(nameFirst)) {
+        return {
+            error: 'First name is too long or too short'
+        }
+    }
+    if (!adminAuthRegisterValidNameLength(nameLast)) {
+        return {
+            error: 'Last name is too long or too short'
+        }
+    }
+
+    data.users[userIndex].name = nameFirst + ' ' + nameLast;
+    data.users[userIndex].email = email;
+
+
+    const UpdateFindUser = {
+        userId: authUserId,
+        name: data.users[userIndex].name,
+        email: data.users[userIndex].email
+    };
+
+    setData(UpdateFindUser);
 	return {
 		
 	}
@@ -218,4 +269,4 @@ function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
 	}
 }
 
-export { adminAuthRegister, adminAuthLogin }; 
+export { adminAuthRegister, adminAuthLogin, adminUserDetailsUpdate}; 
