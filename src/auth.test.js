@@ -1,4 +1,4 @@
-import { adminAuthRegister, adminAuthLogin, adminUserDetailsUpdate} from './auth.js';
+import { adminAuthRegister, adminAuthLogin } from './auth.js';
 import { clear } from './other.js';
 
 describe('adminAuthRegister', () => { 
@@ -161,6 +161,7 @@ describe('adminUserDetailsUpdate', () => {
     test('invalid nameFirst length', () => {
         clear();
         expect(adminUserDetailsUpdate(user.userId, user.email, 'A', user.nameLast)).toStrictEqual({ error: expect.any(String) });
+        clear();
         expect(adminUserDetailsUpdate(user.userId, user.email, 'ABcdefghijklmnopqrstu', user.nameLast)).toStrictEqual({ error: expect.any(String) });
     });
 
@@ -172,7 +173,10 @@ describe('adminUserDetailsUpdate', () => {
     test('invalid nameLast length', () => {
         clear();
         expect(adminUserDetailsUpdate(user.userId, user.email, user.nameFirst, 'A')).toStrictEqual({ error: expect.any(String) });
+        clear();
         expect(adminUserDetailsUpdate(user.userId, user.email, user.nameLast, 'ABcdefghijklmnopqrstu')).toStrictEqual({ error: expect.any(String) });
     });
+    
 });
+
 
