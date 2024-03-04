@@ -1,3 +1,6 @@
+import { getData, setData } from './dataStore.js';
+
+
 /**
  * Provide a list of all quizzes that are owned by the currently logged in user.
  * 
