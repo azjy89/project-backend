@@ -1,19 +1,136 @@
+import { getData, setData } from './dataStore.js';
+const isEmail = require('validator/lib/isEmail');
+
+// Global Variables
+const a = 97;
+const z = 122;
+const A = 65;
+const Z = 90;
+const hyphen = 45;
+const space = 35;
+const apostrophe = 39;
+const minNameLength = 2;
+const maxNameLength = 20;
+const minPasswordLength = 8;
+
 /**
-  * Register a user with an email, password, and names, 
-  * then returns their authUserId value.
-  * 
-  * @param {string} email
-  * @param {string} password
-  * @param {string} nameFirst
-  * @param {string} nameLast
-  * 
-  * @returns {int}
+ * Register a user with an email, password, and names, 
+ * then returns their authUserId value.
+ * 
+ * @param {string} email
+ * @param {string} password
+ * @param {string} nameFirst
+ * @param {string} nameLast
+ * 
+ * @returns {int}
 */
 
 function adminAuthRegister(email, password, nameFirst, nameLast) {
-  return {
-    authUserId: 1
-  }
+	const data = getData();
+	let result = adminAuthRegisterErrors(email, password, nameFirst, 
+											nameLast, data);
+	const newUserId = data.users.length + 1;
+	const newUser = {
+		userId: newUserId,
+		nameFirst: nameFirst,
+		nameLast: nameLast,
+		email: email,
+		password: password,
+		numSuccessfulLogins: 0,
+		numFailedPasswordsSinceLastLogin: 0,
+	}
+	data.users.push(newUser);
+	if (Object.keys(result).length === 0) {
+		result = {
+		authUserId: newUserId,
+		}
+	}
+
+	return result;
+}
+
+function adminAuthRegisterErrors(email, password, nameFirst, nameLast, data) {
+	if (data.users.some(user => user.email === email)) {
+		return {
+			error: 'User with this email already exists'
+		}
+	}
+	if (!isEmail(email)) {
+		return {
+			error: 'Email is not valid'
+		}
+	}
+	if (!adminAuthRegisterValidNameCharacters(nameFirst)) {
+		return {
+			error: 'First name contains invalid characters'
+		}
+	}
+	if (!adminAuthRegisterValidNameCharacters(nameLast)) {
+		return {
+			error: 'Last name contains invalid characters'
+		}
+	}
+	if (!adminAuthRegisterValidNameLength(nameFirst)) {
+		return {
+			error: 'First name is too long or too short'
+		}
+	}
+	if (!adminAuthRegisterValidNameLength(nameLast)) {
+		return {
+			error: 'Last name is too long or too short'
+		}
+	}
+	if (password.length < minPasswordLength) {
+		return {
+			error: 'Password is too short'
+		}
+	}
+	if (!adminAuthRegisterValidPassword(password)) {
+		return {
+			error: 'Unsatisfactory password strength'
+		}
+	}
+	return {};
+}
+
+function adminAuthRegisterValidNameCharacters(name) {
+for (let i = 0; i < structuredClone.length; i++) {
+	const charAscii = name.charCodeAt(i);
+	if (!((charAscii >= a && charAscii <= z) ||
+		(charAscii >= A && charAscii <= Z) ||
+		charAscii === hyphen ||
+		charAscii === apostrophe ||
+		charAscii === space)) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function adminAuthRegisterValidNameLength(name) {
+	if (name.length <= maxNameLength && name.length >= minNameLength) {
+		return true;
+	}
+	return false;
+}
+
+function adminAuthRegisterValidPassword(password) {
+	let containsNumber = false;
+	let containsLetter = false;
+	for (const char of password) {
+		if (char.toLowerCase() !== char.toUpperCase()) {
+			containsLetter = true;
+		}
+		if (!isNaN(parseInt(char))) {
+			containsNumber = true;
+		}
+		if (containsNumber &&
+			containsLetter && 
+			password.length >= minPasswordLength) {
+			return true;
+		}
+	}
+	return false;
 }
 
 /**
@@ -26,10 +143,24 @@ function adminAuthRegister(email, password, nameFirst, nameLast) {
  */
 
 function adminAuthLogin(email, password) {
-    return {
-      authUserId: 1
-    }
-}
+	const data = getData();
+	if (!data.users.some(user => user.email === email)) {
+		return {
+			error: 'Email does not exist'
+		};
+	};
+
+	const index = data.users.findIndex(user => user.email === email);
+	if (data.users[index].password !== password) {
+		return {
+			error: 'Incorrect password'
+		};
+	};
+
+	return {
+		authUserId: data.users[index].userId
+	};
+};
 
 /**
  * Given an admin user's authUserId, return details about the user. "name" is 
@@ -41,15 +172,15 @@ function adminAuthLogin(email, password) {
  */
 
 function adminUserDetails( authUserId ) {
-    return { user:
-        {
-            userId: 1,
-            name: 'Hayden Smith',
-            email: 'hayden.smith@unsw.edu.au',
-            numSuccessfulLogins: 3,
-            numFailedPasswordsSinceLastLogin: 1,
-        }
-    }
+	return { user:
+		{
+			userId: 1,
+			name: 'Hayden Smith',
+			email: 'hayden.smith@unsw.edu.au',
+			numSuccessfulLogins: 3,
+			numFailedPasswordsSinceLastLogin: 1,
+		}
+	}
 }
 
 /**
@@ -65,9 +196,9 @@ function adminUserDetails( authUserId ) {
  */
 
 function adminUserDetailsUpdate( authUserId, email, nameFirst, nameLast ) {
-    return {
-        
-    }
+	return {
+		
+	}
 }
 
 /**
@@ -82,7 +213,9 @@ function adminUserDetailsUpdate( authUserId, email, nameFirst, nameLast ) {
  */
 
 function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
-    return {
-        
-    }
+	return {
+		
+	}
 }
+
+export { adminAuthRegister, adminAuthLogin }; 
