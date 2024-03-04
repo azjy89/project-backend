@@ -129,3 +129,49 @@ describe('adminAuthLogin', () => {
         expect(authUserId).toEqual({ error: expect.any(String) });
     });
 });
+
+describe('adminUserDetailsUpdate', () => {
+    let user, updateUser;
+    beforeEach(() => {
+        user = adminAuthRegister('users@unsw.edu.au', '1234abcd'
+        , 'FirstName', 'LastName')
+    });
+
+    test('AuthUserId is not a valid user', () => {
+        clear();
+        expect(adminUserDetailsUpdate(user.userId + 1, user.email, user.nameFirst, user.nameLast)).toEqual({ error: expect.any(String) });
+    });
+
+    test('Email is currently used by another user', () => {
+        clear();
+        adminAuthRegister('ZoeChens@unsw.edu.au', '1234abcd', 'Zoe', 'Chen');
+        expect(adminUserDetailsUpdate(user.userId, 'ZoeChens@unsw.edu.au', user.nameFirst, user.nameLast)).toEual({ error: expect.any(String) });
+    });
+
+    test('Email is invalid', () => {
+        clear();
+        expect(adminUserDetailsUpdate(user.userId, '123', user.nameFirst, user.nameLast)).toEqual({ error: expect.any(String)})
+    });
+
+    test('invalid characters in nameFirst', () => {
+        clear();
+        expect(adminUserDetailsUpdate(user.userId, user.email, '!@#$%^&1234', user.nameLast)).toEual({ error: expect.any(String) });
+    });
+
+    test('invalid nameFirst length', () => {
+        clear();
+        expect(adminUserDetailsUpdate(user.userId, user.email, 'A', user.nameLast)).toEual({ error: expect.any(String) });
+        expect(adminUserDetailsUpdate(user.userId, user.email, 'ABcdefghijklmnopqrstu', user.nameLast)).toEual({ error: expect.any(String) });
+    });
+
+    test('invalid characters in nameLast', () => {
+        clear();
+        expect(adminUserDetailsUpdate(user.userId, user.email, user.nameFirst, '!@#$%^&1234')).toEual({ error: expect.any(String) });
+    });
+
+    test('invalid nameLast length', () => {
+        clear();
+        expect(adminUserDetailsUpdate(user.userId, user.email, user.nameFirst, 'A')).toEual({ error: expect.any(String) });
+        expect(adminUserDetailsUpdate(user.userId, user.email, user.nameLast, 'ABcdefghijklmnopqrstu')).toEual({ error: expect.any(String) });
+    });
+});
