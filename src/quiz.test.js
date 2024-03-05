@@ -179,7 +179,7 @@ describe('adminQuizInfo', () => {
     test('Quiz ID does not refer to a valid quiz', () =>{
         let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
         let quizId = adminQuizCreate(authUserId.userId, 'COMP1531', 'Welcome!');
-        expect(adminQuizInfo(authUserId.userId, quizId.quizId+ 1)).toStrictEqual({error: expect.any(String)});
+        expect(adminQuizInfo(authUserId.userId, quizId.quizId + 1)).toStrictEqual({error: expect.any(String)});
     });
 
     test('quiz doesnt belong to this user', () => {
