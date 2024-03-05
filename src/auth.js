@@ -140,10 +140,14 @@ function adminAuthLogin(email, password) {
 
 	const index = data.users.findIndex(user => user.email === email);
 	if (data.users[index].password !== password) {
+		data.users[index].numFailedPasswordsSinceLastLogin++;
 		return {
 			error: 'Incorrect password'
 		};
 	};
+
+	data.users[index].numFailedPasswordsSinceLastLogin = 0;
+	data.users[index].numSuccessfulLogins++;
 
 	return {
 		authUserId: data.users[index].userId
