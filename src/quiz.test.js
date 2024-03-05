@@ -150,30 +150,34 @@ describe('adminQuizInfo', () => {
     test('Quiz info retrieved successfully', () => {
         let authUserId = adminAuthRegister('quiz@unsw.edu.au', 
             'abcd1234', 'Bobby', 'Dickens');
-            let quizId = adminQuizInfo(authUserId, 'COMP1531', 'Welcome!');
-            expect(quizId).toStrictEqual( {quizId: expect.any(Number)} );
+            let quizInfo = adminQuizInfo(authUserId, 'COMP1531', 'Welcome!');
+            expect(quizInfo.quizId).toStrictEqual( {quizId: expect.any(Number)} );
 
             // to fix
-            expect(name).toStrictEqual({ name: expect.any(string)} );
+            expect(quizInfo.name).toStrictEqual({ name: expect.any(string)} );
 
             // fix
-            expect(timeCreated).toStrictEqual({timeCreated: expect.any(number)} );
+            expect(quizInfo.timeCreated).toStrictEqual({timeCreated: expect.any(number)} );
 
             // fix
-            expect(timeLastEdited).toStrictEqual({timeLastEdited: expect.any(number)} );
+            expect(quizInfo.timeLastEdited).toStrictEqual({timeLastEdited: expect.any(number)} );
 
             // fix
-            expect(description).toStrictEqual({ description: expect.any(string)} );
+            expect(quizInfo.description).toStrictEqual({ description: expect.any(string)} );
     });
 
 
 
     // Error checks
     test('AuthUserId is not a valid user', () =>{
-        expect(adminQuizInfo(authUserId + 1, quizId)).toStrictEqual({error: 'Invalid authorUserId'});
+        let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
+        let quizId = adminQuizCreate(authUserId, 'COMP1531', 'Welcome!');
+        expect(adminQuizInfo(authUserId + 1, quizId)).toStrictEqual({error: 'Invalid authUserId'});
     });
 
     test('Quiz ID does not refer to a valid quiz', () =>{
+        let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
+        let quizId = adminQuizCreate(authUserId, 'COMP1531', 'Welcome!');
         expect(adminQuizInfo(authUserId, quizId + 1)).toStrictEqual({error: 'Invalid quizId'});
     });
 
