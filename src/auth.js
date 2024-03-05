@@ -115,22 +115,10 @@ function adminAuthRegisterValidNameLength(name) {
 }
 
 function adminAuthRegisterValidPassword(password) {
-	let containsNumber = false;
-	let containsLetter = false;
-	for (const char of password) {
-		if (char.toLowerCase() !== char.toUpperCase()) {
-			containsLetter = true;
-		}
-		if (!isNaN(parseInt(char))) {
-			containsNumber = true;
-		}
-		if (containsNumber &&
-			containsLetter && 
-			password.length >= minPasswordLength) {
-			return true;
-		}
-	}
-	return false;
+	const containsLetterAndNumber = /[a-zA-Z]/.test(password) && /[0-9]/.test(password);
+	const isLengthValid = password.length >= 8;
+
+	return isLengthValid && containsLetterAndNumber;
 }
 
 /**
