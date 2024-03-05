@@ -198,4 +198,81 @@ describe('adminUserDetailsUpdate', () => {
     });
 });
 
+describe('adminUserPasswordUpdate', () => {
+
+    test('AuthUserId is not a valid user', () => {
+        clear();
+        let user = adminAuthRegister('users@unsw.edu.au', '1234abcd'
+        , 'FirstName', 'LastName');
+        expect(adminUserPasswordUpdate(user.authUserId + 1, '1234abcd', 'abcd1234')).toEqual({ error: expect.any(String) });
+    });
+ 
+ 
+    test('Old Password is not the correct old password', () => {
+        clear();
+        let user = adminAuthRegister('users@unsw.edu.au', '1234abcd'
+        , 'FirstName', 'LastName');
+        expect(adminUserPasswordUpdate(user.authUserId, 'wrong1234', 'abcd1234')).toEqual({ error: expect.any(String) });
+    });
+ 
+ 
+    test('New Password has already been used before by this user', () => {
+        clear();
+        let user1 = adminAuthRegister('users@unsw.edu.au', '1234abcd'
+        , 'FirstName', 'LastName');
+        let user2 = adminAuthRegister('users@unsw.edu.au', 'abcd1234'
+        , 'FirstName', 'LastName');
+        expect(adminUserPasswordUpdate(user1.authUserId, '1234abcd', 'abcd1234')).toEqual({ error: expect.any(String) });
+    });
+ 
+ 
+    test('invalid password length', () => {
+        clear();
+        let user1 = adminAuthRegister('users@unsw.edu.au', '1234abcd'
+        , 'FirstName', 'LastName');
+        expect(adminUserPasswordUpdate(user1.authUserId, 'abcd1234', '')).toEqual({ error: expect.any(String)});
+        let user2 = adminAuthRegister('users@unsw.edu.au', '1234abcd'
+        , 'FirstName', 'LastName');
+        expect(adminUserPasswordUpdate(user2.authUserId, 'abcd1234', '1')).toEqual({ error: expect.any(String)});
+        let user3 = adminAuthRegister('users@unsw.edu.au', '1234abcd'
+        , 'FirstName', 'LastName');
+        expect(adminUserPasswordUpdate(user3.authUserId, 'abcd1234', '12')).toEqual({ error: expect.any(String)});
+        let user4 = adminAuthRegister('users@unsw.edu.au', '1234abcd'
+        , 'FirstName', 'LastName');
+        expect(adminUserPasswordUpdate(user4.authUserId, 'abcd1234', '123')).toEqual({ error: expect.any(String)});
+        let user5 = adminAuthRegister('users@unsw.edu.au', '1234abcd'
+        , 'FirstName', 'LastName');
+        expect(adminUserPasswordUpdate(user5.authUserId, 'abcd1234', '1234')).toEqual({ error: expect.any(String)});
+        let user6 = adminAuthRegister('users@unsw.edu.au', '1234abcd'
+        , 'FirstName', 'LastName');
+        expect(adminUserPasswordUpdate(user6.authUserId, 'abcd1234', '12345')).toEqual({ error: expect.any(String)});
+        let user7 = adminAuthRegister('users@unsw.edu.au', '1234abcd'
+        , 'FirstName', 'LastName');
+        expect(adminUserPasswordUpdate(user7.authUserId, 'abcd1234', '123456')).toEqual({ error: expect.any(String)});
+        let user8 = adminAuthRegister('users@unsw.edu.au', '1234abcd'
+        , 'FirstName', 'LastName');
+        expect(adminUserPasswordUpdate(user8.authUserId, 'abcd1234', '1234567')).toEqual({ error: expect.any(String)});
+    });
+ 
+ 
+    test('unsatisfactory password', () => {
+        clear();
+        let user1 = adminAuthRegister('users@unsw.edu.au', '1234abcd'
+        , 'FirstName', 'LastName');
+        expect(adminUserPasswordUpdate(user1.authUserId, 'abcd1234', '12345678')).toEqual({ error: expect.any(String)});
+        let user2 = adminAuthRegister('users@unsw.edu.au', '1234abcd'
+        , 'FirstName', 'LastName');
+        expect(adminUserPasswordUpdate(user2.authUserId, 'abcd1234', 'abcdefgh')).toEqual({ error: expect.any(String)});
+    });
+ 
+ 
+    test('successful update password', () => {
+        clear();
+        let user = adminAuthRegister('users@unsw.edu.au', '1234abcd'
+        , 'FirstName', 'LastName');
+        expect(adminUserPasswordUpdate(user.authUserId, '1234abcd', 'abcd1234')).toEqual({});
+    });
+});
+ 
+
 
