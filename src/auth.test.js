@@ -261,7 +261,6 @@ describe('adminUserPasswordUpdate', () => {
         expect(adminUserPasswordUpdate(user2.authUserId, 'abcd1234', 'abcdefgh')).toEqual({ error: expect.any(String)});
     });
  
- 
     test('successful update password', () => {
         clear();
         let user = adminAuthRegister('users@unsw.edu.au', '1234abcd'
