@@ -1,4 +1,4 @@
-import { adminAuthRegister, adminAuthLogin, adminUserDetailsUpdate} from './auth.js';
+import { adminAuthRegister, adminAuthLogin, adminUserDetailsUpdate, adminUserPasswordUpdate} from './auth.js';
 import { clear } from './other.js';
 
 describe('adminAuthRegister', () => { 
@@ -218,9 +218,9 @@ describe('adminUserPasswordUpdate', () => {
         clear();
         let user1 = adminAuthRegister('users@unsw.edu.au', '1234abcd'
         , 'FirstName', 'LastName');
-        let user2 = adminAuthRegister('users@unsw.edu.au', 'abcd1234'
-        , 'FirstName', 'LastName');
-        expect(adminUserPasswordUpdate(user1.authUserId, '1234abcd', 'abcd1234')).toEqual({ error: expect.any(String) });
+        adminUserPasswordUpdate(user1.authUserId, '1234abcd', 'new12345');
+        adminUserPasswordUpdate(user1.authUserId, 'new12345', 'new123456');
+        expect(adminUserPasswordUpdate(user1.authUserId, 'new123456', '1234abcd')).toEqual({ error: expect.any(String) });
     });
  
     test('invalid password length', () => {
