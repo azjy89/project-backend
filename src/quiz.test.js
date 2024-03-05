@@ -149,20 +149,22 @@ describe('adminQuizInfo', () => {
 
     test('Quiz info retrieved successfully', () => {
             let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
-            let quizInfo = adminQuizInfo(authUserId, 'COMP1531', 'Welcome!');
-            expect(quizInfo.quizId).toStrictEqual( {quizId: expect.any(Number)} );
+            let quizId = adminQuizCreate(authUserId.userId, 'COMP1531', 'Welcome!');
+            let quizInfo = adminQuizInfo(authUserId.userId, quizId.quizId);
+
+            expect(quizInfo.quizId).toStrictEqual( quizId.quizId );
 
             // to fix
-            expect(quizInfo.name).toStrictEqual({ name: expect.any(String)} );
+            expect(quizInfo.name).toStrictEqual( 'COMP1531' );
 
             // fix
-            expect(quizInfo.timeCreated).toStrictEqual({timeCreated: expect.any(Number)} );
+            expect(quizInfo.timeCreated).toStrictEqual(expect.any(Number) );
 
             // fix
-            expect(quizInfo.timeLastEdited).toStrictEqual({timeLastEdited: expect.any(Number)} );
+            expect(quizInfo.timeLastEdited).toStrictEqual(expect.any(Number));
 
             // fix
-            expect(quizInfo.description).toStrictEqual({ description: expect.any(String)} );
+            expect(quizInfo.description).toStrictEqual('Welcome!' );
     });
 
 
