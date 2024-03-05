@@ -266,6 +266,9 @@ describe('adminUserPasswordUpdate', () => {
         let user = adminAuthRegister('users@unsw.edu.au', '1234abcd'
         , 'FirstName', 'LastName');
         expect(adminUserPasswordUpdate(user.authUserId, '1234abcd', 'abcd1234')).toEqual({});
+
+        let authUserId = adminAuthLogin('users@unsw.edu.au', 'abcd1234');
+        expect(authUserId.authUserId).toEqual(user.authUserId);
     });
 });
  
