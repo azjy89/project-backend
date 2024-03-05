@@ -2,13 +2,6 @@ import { getData, setData } from './dataStore.js';
 const isEmail = require('validator/lib/isEmail');
 
 // Global Variables
-const a = 97;
-const z = 122;
-const A = 65;
-const Z = 90;
-const hyphen = 45;
-const space = 35;
-const apostrophe = 39;
 const minNameLength = 2;
 const maxNameLength = 20;
 const minPasswordLength = 8;
@@ -42,7 +35,7 @@ function adminAuthRegister(email, password, nameFirst, nameLast) {
 	data.users.push(newUser);
 	if (Object.keys(result).length === 0) {
 		result = {
-		authUserId: newUserId,
+			userId: newUserId,
 		}
 	}
 
@@ -94,17 +87,8 @@ function adminAuthRegisterErrors(email, password, nameFirst, nameLast, data) {
 }
 
 function adminAuthRegisterValidNameCharacters(name) {
-for (let i = 0; i < structuredClone.length; i++) {
-	const charAscii = name.charCodeAt(i);
-	if (!((charAscii >= a && charAscii <= z) ||
-		(charAscii >= A && charAscii <= Z) ||
-		charAscii === hyphen ||
-		charAscii === apostrophe ||
-		charAscii === space)) {
-			return false;
-		}
-	}
-	return true;
+	const validCharacters = /^[A-Za-z \-'']+$/.test(name);
+	return validCharacters;
 }
 
 function adminAuthRegisterValidNameLength(name) {
@@ -116,9 +100,8 @@ function adminAuthRegisterValidNameLength(name) {
 
 function adminAuthRegisterValidPassword(password) {
 	const containsLetterAndNumber = /[a-zA-Z]/.test(password) && /[0-9]/.test(password);
-	const isLengthValid = password.length >= 8;
 
-	return isLengthValid && containsLetterAndNumber;
+	return containsLetterAndNumber;
 }
 
 /**
