@@ -235,6 +235,8 @@ describe('adminUserDetailsUpdate', () => {
         let user = adminAuthRegister('users@unsw.edu.au', '1234abcd'
         , 'FirstName', 'LastName');
         expect( adminUserDetailsUpdate(user.userId, 'users@unsw.edu.au', 'FirstName', 'Chen')).toEqual({});
+        expect( adminUserDetails(user.userId).name).toEqual('FirstName Chen');
+        expect( adminUserDetails(user.userId).email).toEqual('users@unsw.edu.au');
     });
 });
 
