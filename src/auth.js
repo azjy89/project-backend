@@ -36,7 +36,7 @@ function adminAuthRegister(email, password, nameFirst, nameLast) {
 		nameLast: nameLast,
 		email: email,
 		password: password,
-		numSuccessfulLogins: 0,
+		numSuccessfulLogins: 1,
 		numFailedPasswordsSinceLastLogin: 0,
 	}
 	data.users.push(newUser);
@@ -115,22 +115,10 @@ function adminAuthRegisterValidNameLength(name) {
 }
 
 function adminAuthRegisterValidPassword(password) {
-	let containsNumber = false;
-	let containsLetter = false;
-	for (const char of password) {
-		if (char.toLowerCase() !== char.toUpperCase()) {
-			containsLetter = true;
-		}
-		if (!isNaN(parseInt(char))) {
-			containsNumber = true;
-		}
-		if (containsNumber &&
-			containsLetter && 
-			password.length >= minPasswordLength) {
-			return true;
-		}
-	}
-	return false;
+	const containsLetterAndNumber = /[a-zA-Z]/.test(password) && /[0-9]/.test(password);
+	const isLengthValid = password.length >= 8;
+
+	return isLengthValid && containsLetterAndNumber;
 }
 
 /**
@@ -152,10 +140,14 @@ function adminAuthLogin(email, password) {
 
 	const index = data.users.findIndex(user => user.email === email);
 	if (data.users[index].password !== password) {
+		data.users[index].numFailedPasswordsSinceLastLogin++;
 		return {
 			error: 'Incorrect password'
 		};
 	};
+
+	data.users[index].numFailedPasswordsSinceLastLogin = 0;
+	data.users[index].numSuccessfulLogins++;
 
 	return {
 		authUserId: data.users[index].userId
