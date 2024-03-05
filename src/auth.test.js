@@ -207,14 +207,12 @@ describe('adminUserPasswordUpdate', () => {
         expect(adminUserPasswordUpdate(user.authUserId + 1, '1234abcd', 'abcd1234')).toEqual({ error: expect.any(String) });
     });
  
- 
     test('Old Password is not the correct old password', () => {
         clear();
         let user = adminAuthRegister('users@unsw.edu.au', '1234abcd'
         , 'FirstName', 'LastName');
         expect(adminUserPasswordUpdate(user.authUserId, 'wrong1234', 'abcd1234')).toEqual({ error: expect.any(String) });
     });
- 
  
     test('New Password has already been used before by this user', () => {
         clear();
@@ -224,7 +222,6 @@ describe('adminUserPasswordUpdate', () => {
         , 'FirstName', 'LastName');
         expect(adminUserPasswordUpdate(user1.authUserId, '1234abcd', 'abcd1234')).toEqual({ error: expect.any(String) });
     });
- 
  
     test('invalid password length', () => {
         clear();
@@ -253,7 +250,6 @@ describe('adminUserPasswordUpdate', () => {
         , 'FirstName', 'LastName');
         expect(adminUserPasswordUpdate(user8.authUserId, 'abcd1234', '1234567')).toEqual({ error: expect.any(String)});
     });
- 
  
     test('unsatisfactory password', () => {
         clear();
