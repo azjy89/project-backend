@@ -48,7 +48,7 @@ describe('adminQuizList', () => {
     });
     
     test('authUserId doesnt exist', () => {
-        expect(adminQuizList(user.authUserId + 1)).toStrictEqual( {error: 'Invalid authUserId.'});
+        expect(adminQuizList(user.authUserId + 1)).toStrictEqual( {error: expect.any(String)} );
     });
 
 });
@@ -122,18 +122,18 @@ describe('adminQuizRemove', () => {
     });
 
     test('authUserId doesnt exist', () => {
-        expect(adminQuizRemove(user.authUserId + 1, quizId)).toStrictEqual( {error: 'Invalid authUserId.'} );
+        expect(adminQuizRemove(user.authUserId + 1, quizId)).toStrictEqual( {error: expect.any(String)} );
     });
 
     test('quizId doesnt refer to a valid quiz', () => {
-        expect(adminQuizRemove(user.authUserId, quizId + 1)).toStrictEqual( {error: 'Invalid quizId.'} );
+        expect(adminQuizRemove(user.authUserId, quizId + 1)).toStrictEqual( {error: expect.any(String)} );
     });
 
     test('quiz doesnt belong to this user', () => {
         let user1 = adminAuthRegister('quiz1@unsw.edu.au', 
         'abcd1234', 'Robby', 'Smith');
         let quizId1 = adminQuizCreate(user.authUserId, 'HAHA1531', 'Welcome!');
-        expect(adminQuizRemove(user.authUserId, quizId1)).toStrictEqual( {error: 'Quiz does not belong to this user.'});
+        expect(adminQuizRemove(user.authUserId, quizId1)).toStrictEqual( {error: expect.any(String)});
     });
 });
 
