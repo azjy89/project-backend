@@ -19,7 +19,7 @@ describe('adminAuthRegister', () => {
         expect(userDetails.nameLast).toStrictEqual(expect('LastName'));
         expect(userDetails.email).toStrictEqual(expect('users@unsw.edu.au'));
         expect(userDetails.password).toStrictEqual(expect('1234abcd'));
-        expect(userDetails.numSuccessfulLogins).toStrictEqual(0);
+        expect(userDetails.numSuccessfulLogins).toStrictEqual(1);
         expect(userDetails.numFailedPasswordsSinceLastLogin).toStrictEqual(0);
     });
 
@@ -135,7 +135,7 @@ describe('adminAuthLogin', () => {
         , 'FirstName', 'LastName');
         let authUserId = adminAuthLogin('users@unsw.edu.au', '1234abcd');
         let userDetails = adminUserDetails(authUserId);
-        expect(userDetails.numSuccessfulLogins).toStrictEqual(1);
+        expect(userDetails.numSuccessfulLogins).toStrictEqual(2);
         expect(userDetails.numFailedPasswordsSinceLastLogin).toStrictEqual(0);
     });
 
