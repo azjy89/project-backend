@@ -190,7 +190,6 @@ describe ('adminUserDetails', () => {
     beforeEach(
         clear()
     );
-    // Succesful Return
     test('successful return details', () => {
         let user = adminAuthRegister('users@unsw.edu.au', '1234abcd',
         'FirstName', 'LastName');
@@ -206,7 +205,6 @@ describe ('adminUserDetails', () => {
         })
     }); 
 
-    // Error Test
     test('AuthUserId is not a valid user', () => { 
         clear()
         let user = adminAuthRegister('users@unsw.edu.au', '1234abcd',
@@ -215,7 +213,6 @@ describe ('adminUserDetails', () => {
             {error: expect.any(String)}
         )
     });
-
 });
 
 describe('adminUserDetailsUpdate', () => {
