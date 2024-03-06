@@ -9,6 +9,9 @@ let data = {
             password: 'bobbyisthebest123',
             numSuccessfulLogins: 4,
             numFailedPasswordsSinceLastLogin: 1,
+            oldPasswords: [
+                
+            ]
         }
     ],
     quizzes: [
