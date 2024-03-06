@@ -1,6 +1,5 @@
 import { getData, setData } from './dataStore.js';
 
-
 /**
  * Provide a list of all quizzes that are owned by the currently logged in user.
  * 
@@ -12,7 +11,11 @@ import { getData, setData } from './dataStore.js';
 function adminQuizList( authUserId ) {
     const data = getData();
 
-    const userQuizzes = data.quizzes.filter(quiz => quiz.ownerId === authUserId);
+    const userExists = data.users.some(user => user.userId === authUserId);
+    if (!userExists) {
+        return { error: 'authUserId does not refer to a valid user' };
+    }
+    const userQuizzes = data.quizzes.filter(quiz => quiz.quizCreatorId === authUserId);
 
     const quizList = userQuizzes.map(quiz => ({
         quizId: quiz.quizId,
@@ -20,9 +23,6 @@ function adminQuizList( authUserId ) {
     }));
     return { quizzes: quizList };
 }
-
-
-
 
 /**
  * Given basic details about a new quiz, create one for the logged in user.

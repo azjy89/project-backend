@@ -114,7 +114,7 @@ describe('adminQuizCreate', () => {
         expect(quiz).toStrictEqual( {error: expect.any(String)} );
     });
 });
-/*
+
 describe('adminQuizRemove', () => {
     beforeEach(() => {
         let user = adminAuthRegister('quiz@unsw.edu.au', 
@@ -258,4 +258,3 @@ describe('adminQuizNameUpdate', () => {
 
 
 });
-*/
