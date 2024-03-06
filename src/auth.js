@@ -2,13 +2,6 @@ import { getData, setData } from './dataStore.js';
 const isEmail = require('validator/lib/isEmail');
 
 // Global Variables
-const a = 97;
-const z = 122;
-const A = 65;
-const Z = 90;
-const hyphen = 45;
-const space = 35;
-const apostrophe = 39;
 const minNameLength = 2;
 const maxNameLength = 20;
 const minPasswordLength = 8;
@@ -36,13 +29,14 @@ function adminAuthRegister(email, password, nameFirst, nameLast) {
 		nameLast: nameLast,
 		email: email,
 		password: password,
-		numSuccessfulLogins: 0,
+		numSuccessfulLogins: 1,
 		numFailedPasswordsSinceLastLogin: 0,
+		oldPasswords: [],
 	}
 	data.users.push(newUser);
 	if (Object.keys(result).length === 0) {
 		result = {
-		authUserId: newUserId,
+			authUserId: newUserId,
 		}
 	}
 
@@ -94,17 +88,8 @@ function adminAuthRegisterErrors(email, password, nameFirst, nameLast, data) {
 }
 
 function adminAuthRegisterValidNameCharacters(name) {
-for (let i = 0; i < structuredClone.length; i++) {
-	const charAscii = name.charCodeAt(i);
-	if (!((charAscii >= a && charAscii <= z) ||
-		(charAscii >= A && charAscii <= Z) ||
-		charAscii === hyphen ||
-		charAscii === apostrophe ||
-		charAscii === space)) {
-			return false;
-		}
-	}
-	return true;
+	const validCharacters = /^[A-Za-z \-'']+$/.test(name);
+	return validCharacters;
 }
 
 function adminAuthRegisterValidNameLength(name) {
@@ -115,22 +100,9 @@ function adminAuthRegisterValidNameLength(name) {
 }
 
 function adminAuthRegisterValidPassword(password) {
-	let containsNumber = false;
-	let containsLetter = false;
-	for (const char of password) {
-		if (char.toLowerCase() !== char.toUpperCase()) {
-			containsLetter = true;
-		}
-		if (!isNaN(parseInt(char))) {
-			containsNumber = true;
-		}
-		if (containsNumber &&
-			containsLetter && 
-			password.length >= minPasswordLength) {
-			return true;
-		}
-	}
-	return false;
+	const containsLetterAndNumber = /[a-zA-Z]/.test(password) && /[0-9]/.test(password);
+
+	return containsLetterAndNumber;
 }
 
 /**
@@ -152,10 +124,14 @@ function adminAuthLogin(email, password) {
 
 	const index = data.users.findIndex(user => user.email === email);
 	if (data.users[index].password !== password) {
+		data.users[index].numFailedPasswordsSinceLastLogin++;
 		return {
 			error: 'Incorrect password'
 		};
 	};
+
+	data.users[index].numFailedPasswordsSinceLastLogin = 0;
+	data.users[index].numSuccessfulLogins++;
 
 	return {
 		authUserId: data.users[index].userId
@@ -196,9 +172,53 @@ function adminUserDetails( authUserId ) {
  */
 
 function adminUserDetailsUpdate( authUserId, email, nameFirst, nameLast ) {
-	return {
-		
-	}
+	const data = getData();
+    const userIndex = data.users.findIndex(user => user.userId === authUserId);
+    if (userIndex === -1) {
+        return {
+            error: 'AuthUserId is not a valid user'
+        };
+    };
+
+    if (data.users.some(user => user.email === email && user.userId !== authUserId)) {
+        return {
+            error: 'Email is currently used by another user'
+        };
+    };
+
+    if (!isEmail(email)) {
+        return {
+            error: 'Email is not valid'
+        }
+    }
+    if (!adminAuthRegisterValidNameCharacters(nameFirst)) {
+        return {
+            error: 'First name contains invalid characters'
+        }
+    }
+    if (!adminAuthRegisterValidNameCharacters(nameLast)) {
+        return {
+            error: 'Last name contains invalid characters'
+        }
+    }
+    if (!adminAuthRegisterValidNameLength(nameFirst)) {
+        return {
+            error: 'First name is too long or too short'
+        }
+    }
+    if (!adminAuthRegisterValidNameLength(nameLast)) {
+        return {
+            error: 'Last name is too long or too short'
+        }
+    }
+
+    data.users[userIndex].nameFirst = nameFirst;
+	data.users[userIndex].nameLast = nameLast
+    data.users[userIndex].email = email;
+	
+	setData(data);
+
+	return {};
 }
 
 /**
@@ -213,9 +233,62 @@ function adminUserDetailsUpdate( authUserId, email, nameFirst, nameLast ) {
  */
 
 function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
-	return {
-		
+	const data = getData();
+	const userIndex = data.users.findIndex(user => user.userId === authUserId);
+	if (userIndex === -1) {
+		return {
+			error: 'AuthUserId is not a valid user'
+		}
 	}
+	if (oldPassword !== data.users[userIndex].password) {
+		return {
+			error: 'Old Password is not the correct old password'
+		}
+	}
+	if (newPassword === data.users[userIndex].password) {
+		return {
+			error: 'Old Password and New Password match exactly'
+		}
+	}
+	const GetPassword = findPassword(newPassword, userIndex);
+	if (!GetPassword) {
+		return {
+			error: 'New Password has already been used before by this user'
+		}
+	}
+	if (newPassword.length < minPasswordLength) {
+		return {
+			error: 'Password is too short'
+		}
+	}
+	if (!adminAuthRegisterValidPassword(newPassword)) {
+		return {
+			error: 'Unsatisfactory password strength'
+		}
+	}
+	data.users[userIndex].password = newPassword;
+ 
+ 
+	data.users[userIndex].oldPasswords.push(oldPassword);
+	data.users[userIndex].oldPasswords.push(newPassword);
+   
+	setData(data);
+	return {}
+ }
+ 
+ 
+function findPassword(password, userIndex) {
+	let data = getData();
+	let user = data.users[userIndex];
+ 
+ 
+	for ( let oldpassword of user.oldPasswords) {
+		if (password === oldpassword) {
+			return false;
+		}
+	}
+	return true;
 }
+ 
 
-export { adminAuthRegister, adminAuthLogin }; 
+export { adminAuthRegister, adminAuthLogin, adminUserDetails, adminUserDetailsUpdate, adminUserPasswordUpdate}; 
