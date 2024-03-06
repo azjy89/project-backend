@@ -35,7 +35,7 @@ function adminAuthRegister(email, password, nameFirst, nameLast) {
 	data.users.push(newUser);
 	if (Object.keys(result).length === 0) {
 		result = {
-			userId: newUserId,
+			authUserId: newUserId,
 		}
 	}
 
