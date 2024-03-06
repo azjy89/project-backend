@@ -148,13 +148,24 @@ function adminAuthLogin(email, password) {
  */
 
 function adminUserDetails( authUserId ) {
+	let data = getData();
+
+	const userIndex = data.users.findIndex(user => user.userId === authUserId);
+	if ( userIndex === -1 ) {
+		return {
+			error: 'AuthUserId is not a valid user'
+		}
+	}
+
+	let user = data.users.find(user => user.userId === authUserId);
+	setData(data);
 	return { user:
 		{
-			userId: 1,
-			name: 'Hayden Smith',
-			email: 'hayden.smith@unsw.edu.au',
-			numSuccessfulLogins: 3,
-			numFailedPasswordsSinceLastLogin: 1,
+			userId: user.userId,
+			name: user.nameFirst + ' ' + user.nameLast,
+			email: user.email,
+			numSuccessfulLogins: user.numSuccessfulLogins,
+			numFailedPasswordsSinceLastLogin: user.numFailedPasswordsSinceLastLogin,
 		}
 	}
 }
