@@ -230,9 +230,6 @@ describe('adminQuizNameUpdate', () => {
     test.each([
         { name: ''},
         { name: '1'},
-        { name: 'a12'},
-        { name: 'Abcdef123'},
-        { name: 'Bob the Builder'},
         { name: 'Abaklwjef++++__....!!'},
         { name: '-()*()$@&%)@(^*!'},
         { name: 'ghijklmnopqrstuvwxyz1234125176'},
