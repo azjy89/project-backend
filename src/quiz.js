@@ -1,5 +1,7 @@
 import { getData, setData } from './dataStore.js';
-
+const maxNameLength = 30;
+const minNameLength = 3;
+const maxDescriptionLength = 100;
 /**
  * Provide a list of all quizzes that are owned by the currently logged in user.
  * 
@@ -49,7 +51,7 @@ function adminQuizCreate( authUserId, name, description ) {
     }
 
     // Check if the name is within the character limits
-    if (name.length < 3 || name.length > 30) {
+    if (name.length < minNameLength || name.length > maxNameLength) {
         return { error: 'Quiz name must be between 3 and 30 characters long' };
     }
 
@@ -60,7 +62,7 @@ function adminQuizCreate( authUserId, name, description ) {
     }
 
     // Check if the description is within the character limit
-    if (description.length > 100) {
+    if (description.length > maxDescriptionLength) {
         return { error: 'Description must be 100 characters or less' };
     }
     
