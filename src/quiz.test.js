@@ -11,11 +11,12 @@ beforeEach(() => {
 
 
 describe('adminQuizList', () => {
+    let user, quiz1, quiz2;
     beforeEach(() => {
-        let user = adminAuthRegister('quiz@unsw.edu.au', 
+        user = adminAuthRegister('quiz@unsw.edu.au', 
         'abcd1234', 'Bobby', 'Dickens');
-        let quiz1 = adminQuizCreate(user.authUserId, 'COMP1531', 'Welcome!');
-        let quiz2 = adminQuizCreate(user.authUserId, 'asdfasdf', 'Welcome!');
+        quiz1 = adminQuizCreate(user.authUserId, 'COMP1531', 'Welcome!');
+        quiz2 = adminQuizCreate(user.authUserId, 'asdfasdf', 'Welcome!');
     });
 
     test('correct output of list of quizzes', () => {
@@ -58,10 +59,11 @@ describe('adminQuizList', () => {
 
 
 describe('adminQuizCreate', () => {
+    let user, quiz;
     test('successful quiz creation', () => {
-        let user = adminAuthRegister('quiz@unsw.edu.au', 
+        user = adminAuthRegister('quiz@unsw.edu.au', 
         'abcd1234', 'Bobby', 'Dickens');
-        let quiz = adminQuizCreate(user.authUserId, 'COMP1531', 'Welcome!');
+        quiz = adminQuizCreate(user.authUserId, 'COMP1531', 'Welcome!');
         expect(quiz).toStrictEqual( {quizId: expect.any(Number)} );
     });
 
