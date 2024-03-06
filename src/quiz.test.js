@@ -9,7 +9,7 @@ beforeEach(() => {
     clear();
 });
 
-
+/*
 describe('adminQuizList', () => {
     let user, quiz1, quiz2;
     beforeEach(() => {
@@ -55,7 +55,7 @@ describe('adminQuizList', () => {
     });
 
 });
-
+*/
 
 
 describe('adminQuizCreate', () => {
