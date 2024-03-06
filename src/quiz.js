@@ -58,14 +58,35 @@ function adminQuizRemove( authUserId, quizId ) {
  */
 
 function adminQuizInfo( authUserId, quizId ) {
-    return {
-        quizId: 1,
-        name: 'My Quiz',
-        timeCreated: 1683125870,
-        timeLastEdited: 1683125871,
-        description: 'This is my quiz',
+    const data = getData();
+
+    const quiz = data.quizzes.find(q => q.id === quizId);
+
+    if (!authUserId){
+
+        return { error: 'AuthUserId is not a valid user.'};
+
+    } if (!quiz) {
+
+        return { error:' Quiz ID does not refer to valid quiz.'};
+
+    } if (authUserId !== quiz.quizCreatorId) {
+
+        return { error:' Quiz ID does not refer to a quiz that this user owns.'};
+
     }
+
+    const { quizId1, name, timeCreated, timeLastEdited, description } = quiz;
+
+    return {
+        quizId,
+        name,
+        timeCreated,
+        timeLastEdited,
+        description
+    };
 }
+
 
 /**
  * Update the name of the relevant quiz.
