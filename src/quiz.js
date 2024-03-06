@@ -137,7 +137,7 @@ function adminQuizRemove( authUserId, quizId ) {
 function adminQuizInfo( authUserId, quizId ) {
     const data = getData();
 
-    const quiz = data.quizzes.find(q => q.id === quizId);
+    const quiz = data.quizzes.find(q => q.quizId === quizId);
 
     if (!authUserId){
 
