@@ -56,6 +56,8 @@ function adminQuizCreate( authUserId, name, description ) {
     };
 
     data.quizzes.push(newQuiz);
+    setData(data);
+
     return { quizId: newQuizId };
 }
 
