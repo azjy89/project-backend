@@ -1,3 +1,6 @@
+const maxNameLength = 30;
+const minNameLength = 3;
+
 /**
  * Provide a list of all quizzes that are owned by the currently logged in user.
  * 
@@ -99,6 +102,33 @@ function adminQuizInfo( authUserId, quizId ) {
  */
 
 function adminQuizNameUpdate( authUserId, quizId, name ) {
+
+    const data = getData();
+
+    if (!authUserId){
+
+        return { error: 'AuthUserId is not a valid user.'};
+
+    } if (!quiz) {
+
+        return { error:' Quiz ID does not refer to valid quiz.'};
+
+    } if (authUserId !== quiz.quizCreatorId) {
+
+        return { error:' Quiz ID does not refer to a quiz that this user owns.'};
+
+    } 
+    const regex = /^[a-zA-Z0-9\s]*$/;
+    if (!regex.test(name)) {
+
+        return {error:'Name contains invalid characters. Valid characters are alphanumeric and spaces.'};
+    } if (name.length > maxNameLength || name.length < minNameLength){
+        return {error: 'Name is either less than 3 characters long or more than 30 characters long.'};
+
+    } if (data.quizzes.find(q => q.name === name)){
+        return {error:'Name is already used by the current logged in user for another quiz.' };
+    }
+
     return { 
 
     }
