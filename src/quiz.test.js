@@ -149,8 +149,8 @@ describe('adminQuizInfo', () => {
 
     test('Quiz info retrieved successfully', () => {
             let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
-            let quizId = adminQuizCreate(authUserId.userId, 'COMP1531', 'Welcome!');
-            let quizInfo = adminQuizInfo(authUserId.userId, quizId.quizId);
+            let quizId = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Welcome!');
+            let quizInfo = adminQuizInfo(authUserId.authUserId, quizId.quizId);
 
             expect(quizInfo.quizId).toStrictEqual( quizId.quizId );
 
@@ -172,21 +172,21 @@ describe('adminQuizInfo', () => {
     // Error checks
     test('AuthUserId is not a valid user', () =>{
         let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
-        let quizId = adminQuizCreate(authUserId.userId, 'COMP1531', 'Welcome!');
-        expect(adminQuizInfo(authUserId.userId + 1, quizId.quizId)).toStrictEqual({error: expect.any(String)});
+        let quizId = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Welcome!');
+        expect(adminQuizInfo(authUserId.authUserId + 1, quizId.quizId)).toStrictEqual({error: expect.any(String)});
     });
 
     test('Quiz ID does not refer to a valid quiz', () =>{
         let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
-        let quizId = adminQuizCreate(authUserId.userId, 'COMP1531', 'Welcome!');
-        expect(adminQuizInfo(authUserId.userId, quizId.quizId + 1)).toStrictEqual({error: expect.any(String)});
+        let quizId = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Welcome!');
+        expect(adminQuizInfo(authUserId.authUserId, quizId.quizId + 1)).toStrictEqual({error: expect.any(String)});
     });
 
     test('quiz doesnt belong to this user', () => {
         let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Smith');
         let authUserId1 = adminAuthRegister('quiz1@unsw.edu.au', 'abcd1234', 'Robby', 'Smith');
-        let quizId1 = adminQuizCreate(authUserId1.userId, 'COMP1531', 'Welcome!');
-        expect(adminQuizInfo(authUserId.userId, quizId1.quizId)).toStrictEqual( {error: expect.any(String)});
+        let quizId1 = adminQuizCreate(authUserId1.authUserId, 'COMP1531', 'Welcome!');
+        expect(adminQuizInfo(authUserId.authUserId, quizId1.quizId)).toStrictEqual( {error: expect.any(String)});
     });
 })
 
@@ -200,9 +200,9 @@ describe('adminQuizNameUpdate', () => {
     // Successful Check
     test('Successful Quiz Name Update', () => {
         let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
-        let quizId = adminQuizCreate(authUserId.userId, 'COMP1531', 'Welcome!');
-        expect(adminQuizNameUpdate(authUserId.userId, quizId.quizId, 'newName')).toEqual( {} );
-        let quizInfo = adminQuizInfo(authUserId.userId, quizId.quizId);
+        let quizId = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Welcome!');
+        expect(adminQuizNameUpdate(authUserId.authUserId, quizId.quizId, 'newName')).toEqual( {} );
+        let quizInfo = adminQuizInfo(authUserId.authUserId, quizId.quizId);
         expect(quizInfo.name).toStrictEqual( 'newName' );
     });
 
@@ -210,21 +210,21 @@ describe('adminQuizNameUpdate', () => {
 
     test('AuthUserId is not a valid user', () =>{
         let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
-        let quizId = adminQuizCreate(authUserId.userId, 'COMP1531', 'Welcome!');
-        expect(adminQuizNameUpdate(authUserId.userId + 1, quizId.quizId)).toStrictEqual({error: expect.any(String)});
+        let quizId = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Welcome!');
+        expect(adminQuizNameUpdate(authUserId.authUserId + 1, quizId.quizId)).toStrictEqual({error: expect.any(String)});
     });
 
     test('Quiz ID does not refer to a valid quiz', () =>{
         let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
-        let quizId = adminQuizCreate(authUserId.userId, 'COMP1531', 'Welcome!');
-        expect(adminQuizNameUpdate(authUserId.userId, quizId.quizId + 1)).toStrictEqual({error: expect.any(String)});
+        let quizId = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Welcome!');
+        expect(adminQuizNameUpdate(authUserId.authUserId, quizId.quizId + 1)).toStrictEqual({error: expect.any(String)});
     });
 
     test('quiz doesnt belong to this user', () => {
         let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Smith');
         let authUserId1 = adminAuthRegister('quiz1@unsw.edu.au', 'abcd1234', 'Robby', 'Smith');
-        let quizId1 = adminQuizNameUpdate(authUserId1.userId, 'COMP1531', 'Welcome!');
-        expect(adminQuizNameUpdate(authUserId.userId, quizId1.quizId)).toStrictEqual( {error: expect.any(String)});
+        let quizId1 = adminQuizNameUpdate(authUserId1.authUserId, 'COMP1531', 'Welcome!');
+        expect(adminQuizNameUpdate(authUserId.authUserId, quizId1.quizId)).toStrictEqual( {error: expect.any(String)});
     });
 
     test.each([
@@ -240,15 +240,15 @@ describe('adminQuizNameUpdate', () => {
     ])("checking name restrictions: '$name'", ({ name }) => {
         let authUserId = adminAuthRegister('quiz@unsw.edu.au', 
         'abcd1234', 'Bobby', 'Dickens');
-        let quizId = adminQuizCreate(authUserId.userId, name, 'Welcome!');
+        let quizId = adminQuizCreate(authUserId.authUserId, name, 'Welcome!');
         expect(quizId).toStrictEqual( {error: expect.any(String)} );
     });
 
     test('name is already being used', () => {
         let authUserId = adminAuthRegister('quiz@unsw.edu.au', 
         'abcd1234', 'Bobby', 'Dickens');
-        let quizId1 = adminQuizCreate(authUserId.userId, 'COMP1531', 'Welcome!');
-        let quizId2 = adminQuizCreate(authUserId.userId, 'COMP1531', 'Blahblah!');
+        let quizId1 = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Welcome!');
+        let quizId2 = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Blahblah!');
         expect(quizId2).toStrictEqual( {error: expect.any(String)} );
     });
 
