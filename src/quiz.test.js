@@ -153,7 +153,7 @@ describe('adminQuizInfo', () => {
         clear();
     })
 
-    // Successful check
+    // Successful check wa
 
     test('Quiz info retrieved successfully', () => {
             let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
