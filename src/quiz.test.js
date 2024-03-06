@@ -218,20 +218,20 @@ describe('adminQuizNameUpdate', () => {
     test('AuthUserId is not a valid user', () =>{
         let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
         let quizId = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Welcome!');
-        expect(adminQuizNameUpdate(authUserId.authUserId + 1, quizId.quizId)).toStrictEqual({error: expect.any(String)});
+        expect(adminQuizNameUpdate(authUserId.authUserId + 1, quizId.quizId, 'name')).toStrictEqual({error: expect.any(String)});
     });
 
     test('Quiz ID does not refer to a valid quiz', () =>{
         let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
         let quizId = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Welcome!');
-        expect(adminQuizNameUpdate(authUserId.authUserId, quizId.quizId + 1)).toStrictEqual({error: expect.any(String)});
+        expect(adminQuizNameUpdate(authUserId.authUserId, quizId.quizId + 1, 'name')).toStrictEqual({error: expect.any(String)});
     });
 
     test('quiz doesnt belong to this user', () => {
         let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Smith');
         let authUserId1 = adminAuthRegister('quiz1@unsw.edu.au', 'abcd1234', 'Robby', 'Smith');
         let quizId1 = adminQuizNameUpdate(authUserId1.authUserId, 'COMP1531', 'Welcome!');
-        expect(adminQuizNameUpdate(authUserId.authUserId, quizId1.quizId)).toStrictEqual( {error: expect.any(String)});
+        expect(adminQuizNameUpdate(authUserId.authUserId, quizId1.quizId, 'name')).toStrictEqual( {error: expect.any(String)});
     });
 
     test.each([
@@ -246,6 +246,9 @@ describe('adminQuizNameUpdate', () => {
         'abcd1234', 'Bobby', 'Dickens');
         let quizId = adminQuizCreate(authUserId.authUserId, name, 'Welcome!');
         expect(quizId).toStrictEqual( {error: expect.any(String)} );
+
+        let updateQuizName = adminQuizNameUpdate(authUserId.authUserId, quizId.quizId, name);
+    expect(updateQuizName).toStrictEqual({ error: expect.any(String) });
     });
 
     test('name is already being used', () => {

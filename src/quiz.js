@@ -197,8 +197,6 @@ function adminQuizNameUpdate(authUserId, quizId, name) {
         return { error: 'Name contains invalid characters. Valid characters are alphanumeric and spaces.' };
     }
 
-    const maxNameLength = 30;
-    const minNameLength = 3;
     if (name.length > maxNameLength || name.length < minNameLength) {
         return { error: 'Name is either less than 3 characters long or more than 30 characters long.' };
     }
