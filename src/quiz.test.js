@@ -59,11 +59,10 @@ describe('adminQuizList', () => {
 
 
 describe('adminQuizCreate', () => {
-    let user, quiz;
     test('successful quiz creation', () => {
-        user = adminAuthRegister('quiz@unsw.edu.au', 
+        let user = adminAuthRegister('quiz@unsw.edu.au', 
         'abcd1234', 'Bobby', 'Dickens');
-        quiz = adminQuizCreate(user.authUserId, 'COMP1531', 'Welcome!');
+        let quiz = adminQuizCreate(user.authUserId, 'COMP1531', 'Welcome!');
         expect(quiz).toStrictEqual( {quizId: expect.any(Number)} );
     });
 
