@@ -35,7 +35,27 @@ function adminQuizList( authUserId ) {
  */
 
 function adminQuizCreate( authUserId, name, description ) {
-    
+    const data = getData();
+
+    const newQuizId = data.quizzes.length > 0 ? 
+    Math.max(...data.quizzes.map(quiz => quiz.quizId)) + 1 : 1;
+
+    const newQuiz = {
+        quizId: newQuizId,
+        name: name,
+        quizCreatorId: authUserId,
+        timeCreated: Date.now(),
+        timeLastEdited: Date.now(),
+        description: description,
+        questions: [
+
+        ],
+        answers: [
+
+        ],
+    };
+
+    data.quizzes.push(newQuiz);
 }
 
 /**
