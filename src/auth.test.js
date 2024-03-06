@@ -15,8 +15,7 @@ describe('adminAuthRegister', () => {
         , 'FirstName', 'LastName');
         const userDetails = adminUserDetails(authUserId.authUserId);
         expect(userDetails.userId).toEqual(expect.any(Number));
-        expect(userDetails.nameFirst).toStrictEqual(expect('FirstName'));
-        expect(userDetails.nameLast).toStrictEqual(expect('LastName'));
+        expect(userDetails.name).toStrictEqual(expect('FirstName LastName'));
         expect(userDetails.email).toStrictEqual(expect('users@unsw.edu.au'));
         expect(userDetails.password).toStrictEqual(expect('1234abcd'));
         expect(userDetails.numSuccessfulLogins).toStrictEqual(1);
