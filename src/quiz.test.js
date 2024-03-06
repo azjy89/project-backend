@@ -9,7 +9,7 @@ beforeEach(() => {
     clear();
 });
 
-/*
+
 describe('adminQuizList', () => {
     let user, quiz1, quiz2;
     beforeEach(() => {
@@ -55,7 +55,7 @@ describe('adminQuizList', () => {
     });
 
 });
-*/
+
 
 
 describe('adminQuizCreate', () => {
@@ -78,7 +78,6 @@ describe('adminQuizCreate', () => {
         { name: '1'},
         { name: 'Abaklwjef++++__....!!'},
         { name: '-()*()$@&%)@(^*!'},
-        { name: 'ghijklmnopqrstuvwxyz1234125176'},
         { name: 'ghijklmnopqrstuvwxyz1234125176123512351235'},
     ])("checking name restrictions: '$name'", ({ name }) => {
         let user = adminAuthRegister('quiz@unsw.edu.au', 
@@ -106,9 +105,9 @@ describe('adminQuizCreate', () => {
     });
 
     test('description is over 100 characters long', () => {
-        let description = 'Twinkle twinkle little star, how I wonder what you are. '
-        'Up above the world so high. Like a diamond in the sky. Twinkle twinkle '
-        'little star, how I wonder what you are.';
+        let description = `Twinkle twinkle little star, how I wonder what you are. 
+        Up above the world so high. Like a diamond in the sky. Twinkle twinkle 
+        little star, how I wonder what you are.`;
         let user = adminAuthRegister('quiz@unsw.edu.au', 
         'abcd1234', 'Bobby', 'Dickens');
         let quiz = adminQuizCreate(user.authUserId, 'COMP1531', description);

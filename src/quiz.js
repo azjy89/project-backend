@@ -37,6 +37,33 @@ function adminQuizList( authUserId ) {
 function adminQuizCreate( authUserId, name, description ) {
     const data = getData();
 
+    // Check if the authUserId is valid
+    const userExists = data.users.some(user => user.userId === authUserId);
+    if (!userExists) {
+        return { error: 'authUserId does not refer to a valid user' };
+    }
+
+    //Check if name contains valid characters
+    if (!/^[a-zA-Z0-9 ]+$/.test(name)) {
+        return { error: 'Quiz name must contain only alphanumeric characters and spaces' };
+    }
+
+    // Check if the name is within the character limits
+    if (name.length < 3 || name.length > 30) {
+        return { error: 'Quiz name must be between 3 and 30 characters long' };
+    }
+
+    // Check if the name is already being used
+    const nameExists = data.quizzes.some(quiz => quiz.name === name && quiz.quizCreatorId === authUserId);
+    if (nameExists) {
+        return { error: 'Quiz name is already being used' };
+    }
+
+    // Check if the description is within the character limit
+    if (description.length > 100) {
+        return { error: 'Description must be 100 characters or less' };
+    }
+    
     const newQuizId = data.quizzes.length > 0 ? 
     Math.max(...data.quizzes.map(quiz => quiz.quizId)) + 1 : 1;
 
