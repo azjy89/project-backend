@@ -103,13 +103,15 @@ function adminQuizInfo( authUserId, quizId ) {
 
 function adminQuizNameUpdate( authUserId, quizId, name ) {
 
-    const data = getData();
+    const userIndex = data.users.findIndex(user => user.userId === authUserId);
 
-    if (!authUserId){
+    if (userIndex === -1){
 
         return { error: 'AuthUserId is not a valid user.'};
 
-    } if (!quiz) {
+    const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
+
+    } if (quizIndex === -1) {
 
         return { error:' Quiz ID does not refer to valid quiz.'};
 
