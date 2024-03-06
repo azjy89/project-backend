@@ -186,6 +186,38 @@ describe('adminAuthLogin', () => {
     });
 });
 
+describe ('adminUserDetails', () => {
+    beforeEach(
+        clear()
+    );
+    // Succesful Return
+    test('successful return details', () => {
+        let authUserId = adminAuthRegister('users@unsw.edu.au', '1234abcd',
+        'FirstName', 'LastName');
+
+        expect(adminUserDetails(authUserId.userId)).toStrictEqual({
+            user: {
+                userId: authUserId.userId,
+                name: 'FirstName LastName',
+                email:'users@unsw.edu.au',
+                numSuccessfulLogins: authUserId.numSuccessfulLogins,
+                numFailedPasswordsSinceLastLogin: authUserId.numFailedPasswordsSinceLastLogin,
+            }
+        })
+    }); 
+
+    // Error Test
+    test('AuthUserId is not a valid user', () => { 
+        clear()
+        let authUserId = adminAuthRegister('users@unsw.edu.au', '1234abcd',
+        'FirstName', 'LastName');
+        expect(adminUserDetails(authUserId.userId + 1)).toEqual(
+            {error: expect.any(String)}
+        )
+    });
+
+});
+
 describe('adminUserDetailsUpdate', () => {
 
     test('AuthUserId is not a valid user', () => {
