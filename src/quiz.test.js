@@ -1,6 +1,8 @@
 import { clear } from './other.js';
 import { adminQuizList, adminQuizCreate, adminQuizRemove } from './quiz.js';
 import { adminAuthRegister } from './auth.js';
+import { adminQuizInfo } from './quiz.js';
+import { adminQuizNameUpdate } from './quiz.js';
 
 
 beforeEach(() => {
@@ -73,9 +75,6 @@ describe('adminQuizCreate', () => {
     test.each([
         { name: ''},
         { name: '1'},
-        { name: 'a12'},
-        { name: 'Abcdef123'},
-        { name: 'Bob the Builder'},
         { name: 'Abaklwjef++++__....!!'},
         { name: '-()*()$@&%)@(^*!'},
         { name: 'ghijklmnopqrstuvwxyz1234125176'},
@@ -147,5 +146,115 @@ describe('adminQuizRemove', () => {
     });
 });
 
+describe('adminQuizInfo', () => {
+
+    beforeEach(() => {
+        clear();
+    })
+
+    // Successful check
+
+    test('Quiz info retrieved successfully', () => {
+            let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
+            let quizId = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Welcome!');
+            let quizInfo = adminQuizInfo(authUserId.authUserId, quizId.quizId);
+
+            expect(quizInfo.quizId).toStrictEqual( quizId.quizId );
+
+            // to fix
+            expect(quizInfo.name).toStrictEqual( 'COMP1531' );
+
+            // fix
+            expect(quizInfo.timeCreated).toStrictEqual(expect.any(Number) );
+
+            // fix
+            expect(quizInfo.timeLastEdited).toStrictEqual(expect.any(Number));
+
+            // fix
+            expect(quizInfo.description).toStrictEqual('Welcome!' );
+    });
 
 
+
+    // Error checks
+    test('AuthUserId is not a valid user', () =>{
+        let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
+        let quizId = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Welcome!');
+        expect(adminQuizInfo(authUserId.authUserId + 1, quizId.quizId)).toStrictEqual({error: expect.any(String)});
+    });
+
+    test('Quiz ID does not refer to a valid quiz', () =>{
+        let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
+        let quizId = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Welcome!');
+        expect(adminQuizInfo(authUserId.authUserId, quizId.quizId + 1)).toStrictEqual({error: expect.any(String)});
+    });
+
+    test('quiz doesnt belong to this user', () => {
+        let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Smith');
+        let authUserId1 = adminAuthRegister('quiz1@unsw.edu.au', 'abcd1234', 'Robby', 'Smith');
+        let quizId1 = adminQuizCreate(authUserId1.authUserId, 'COMP1531', 'Welcome!');
+        expect(adminQuizInfo(authUserId.authUserId, quizId1.quizId)).toStrictEqual( {error: expect.any(String)});
+    });
+})
+
+
+describe('adminQuizNameUpdate', () => {
+
+    beforeEach(() => {
+        clear();
+    })
+        
+    // Successful Check
+    test('Successful Quiz Name Update', () => {
+        let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
+        let quizId = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Welcome!');
+        expect(adminQuizNameUpdate(authUserId.authUserId, quizId.quizId, 'newName')).toEqual( {} );
+        let quizInfo = adminQuizInfo(authUserId.authUserId, quizId.quizId);
+        expect(quizInfo.name).toStrictEqual( 'newName' );
+    });
+
+    // Error Checks
+
+    test('AuthUserId is not a valid user', () =>{
+        let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
+        let quizId = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Welcome!');
+        expect(adminQuizNameUpdate(authUserId.authUserId + 1, quizId.quizId)).toStrictEqual({error: expect.any(String)});
+    });
+
+    test('Quiz ID does not refer to a valid quiz', () =>{
+        let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
+        let quizId = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Welcome!');
+        expect(adminQuizNameUpdate(authUserId.authUserId, quizId.quizId + 1)).toStrictEqual({error: expect.any(String)});
+    });
+
+    test('quiz doesnt belong to this user', () => {
+        let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Smith');
+        let authUserId1 = adminAuthRegister('quiz1@unsw.edu.au', 'abcd1234', 'Robby', 'Smith');
+        let quizId1 = adminQuizNameUpdate(authUserId1.authUserId, 'COMP1531', 'Welcome!');
+        expect(adminQuizNameUpdate(authUserId.authUserId, quizId1.quizId)).toStrictEqual( {error: expect.any(String)});
+    });
+
+    test.each([
+        { name: ''},
+        { name: '1'},
+        { name: 'Abaklwjef++++__....!!'},
+        { name: '-()*()$@&%)@(^*!'},
+        { name: 'ghijklmnopqrstuvwxyz1234125176'},
+        { name: 'ghijklmnopqrstuvwxyz1234125176123512351235'},
+    ])("checking name restrictions: '$name'", ({ name }) => {
+        let authUserId = adminAuthRegister('quiz@unsw.edu.au', 
+        'abcd1234', 'Bobby', 'Dickens');
+        let quizId = adminQuizCreate(authUserId.authUserId, name, 'Welcome!');
+        expect(quizId).toStrictEqual( {error: expect.any(String)} );
+    });
+
+    test('name is already being used', () => {
+        let authUserId = adminAuthRegister('quiz@unsw.edu.au', 
+        'abcd1234', 'Bobby', 'Dickens');
+        let quizId1 = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Welcome!');
+        let quizId2 = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Blahblah!');
+        expect(quizId2).toStrictEqual( {error: expect.any(String)} );
+    });
+
+
+});
