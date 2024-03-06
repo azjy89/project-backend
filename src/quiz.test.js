@@ -104,6 +104,16 @@ describe('adminQuizCreate', () => {
         let quiz2 = adminQuizCreate(user2.authUserId, 'COMP1531', 'BLAHBLAH');
         expect(quiz2).toStrictEqual( {quizId: expect.any(Number)} );
     });
+
+    test('description is over 100 characters long', () => {
+        let description = 'Twinkle twinkle little star, how I wonder what you are. '
+        'Up above the world so high. Like a diamond in the sky. Twinkle twinkle '
+        'little star, how I wonder what you are.';
+        let user = adminAuthRegister('quiz@unsw.edu.au', 
+        'abcd1234', 'Bobby', 'Dickens');
+        let quiz = adminQuizCreate(user.authUserId, 'COMP1531', description);
+        expect(quiz).toStrictEqual( {error: expect.any(String)} );
+    });
 });
 
 describe('adminQuizRemove', () => {
