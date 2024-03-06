@@ -10,8 +10,19 @@ import { getData, setData } from './dataStore.js';
  */
 
 function adminQuizList( authUserId ) {
-    
+    const data = getData();
+
+    const userQuizzes = data.quizzes.filter(quiz => quiz.ownerId === authUserId);
+
+    const quizList = userQuizzes.map(quiz => ({
+        quizId: quiz.quizId,
+        name: quiz.name,
+    }));
+    return { quizzes: quizList };
 }
+
+
+
 
 /**
  * Given basic details about a new quiz, create one for the logged in user.
@@ -24,9 +35,7 @@ function adminQuizList( authUserId ) {
  */
 
 function adminQuizCreate( authUserId, name, description ) {
-    return {
-        quizId: 2
-    }
+    
 }
 
 /**
