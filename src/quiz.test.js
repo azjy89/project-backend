@@ -9,7 +9,7 @@ beforeEach(() => {
     clear();
 });
 
-/*
+
 describe('adminQuizList', () => {
     let user, quiz1, quiz2;
     beforeEach(() => {
@@ -114,7 +114,7 @@ describe('adminQuizCreate', () => {
         expect(quiz).toStrictEqual( {error: expect.any(String)} );
     });
 });
-*/
+
 describe('adminQuizRemove', () => {
     let user, quiz;
     beforeEach(() => {
@@ -146,7 +146,7 @@ describe('adminQuizRemove', () => {
         expect(adminQuizRemove(user.authUserId, quiz1.quizId)).toStrictEqual( {error: expect.any(String)});
     });
 });
-/*
+
 describe('adminQuizInfo', () => {
 
     beforeEach(() => {
@@ -259,4 +259,3 @@ describe('adminQuizNameUpdate', () => {
 
 
 });
-*/
