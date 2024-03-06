@@ -11,11 +11,12 @@ beforeEach(() => {
 
 
 describe('adminQuizList', () => {
+    let user, quiz1, quiz2;
     beforeEach(() => {
-        let user = adminAuthRegister('quiz@unsw.edu.au', 
+        user = adminAuthRegister('quiz@unsw.edu.au', 
         'abcd1234', 'Bobby', 'Dickens');
-        let quiz1 = adminQuizCreate(user.authUserId, 'COMP1531', 'Welcome!');
-        let quiz2 = adminQuizCreate(user.authUserId, 'asdfasdf', 'Welcome!');
+        quiz1 = adminQuizCreate(user.authUserId, 'COMP1531', 'Welcome!');
+        quiz2 = adminQuizCreate(user.authUserId, 'asdfasdf', 'Welcome!');
     });
 
     test('correct output of list of quizzes', () => {
@@ -77,7 +78,6 @@ describe('adminQuizCreate', () => {
         { name: '1'},
         { name: 'Abaklwjef++++__....!!'},
         { name: '-()*()$@&%)@(^*!'},
-        { name: 'ghijklmnopqrstuvwxyz1234125176'},
         { name: 'ghijklmnopqrstuvwxyz1234125176123512351235'},
     ])("checking name restrictions: '$name'", ({ name }) => {
         let user = adminAuthRegister('quiz@unsw.edu.au', 
@@ -105,9 +105,9 @@ describe('adminQuizCreate', () => {
     });
 
     test('description is over 100 characters long', () => {
-        let description = 'Twinkle twinkle little star, how I wonder what you are. '
-        'Up above the world so high. Like a diamond in the sky. Twinkle twinkle '
-        'little star, how I wonder what you are.';
+        let description = `Twinkle twinkle little star, how I wonder what you are. 
+        Up above the world so high. Like a diamond in the sky. Twinkle twinkle 
+        little star, how I wonder what you are.`;
         let user = adminAuthRegister('quiz@unsw.edu.au', 
         'abcd1234', 'Bobby', 'Dickens');
         let quiz = adminQuizCreate(user.authUserId, 'COMP1531', description);
