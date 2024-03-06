@@ -98,8 +98,28 @@ function adminQuizCreate( authUserId, name, description ) {
  */
 
 function adminQuizRemove( authUserId, quizId ) {
+    const data = getData();
+
+    //Check if authUserId refers to a valid user
+    const userExists = data.users.some(user => user.userId === authUserId);
+    if (!userExists) {
+        return { error: 'authUserId does not refer to a valid user' };
+    }
+
+    // Check if quizId refers to a valid quiz
+    const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
+    if (quizIndex === -1) {
+        return { error: 'quizId does not refer to a valid quiz' };
+    }
+
+    // Check if the quiz belongs to the user with authUserId
+    if (data.quizzes[quizIndex].quizCreatorId !== authUserId) {
+        return { error: 'quizId does not refer to a quiz this user owns' };
+    }
+
+    data.quizzes.splice(quizIndex, 1);
+    setData(data);
     return {
-        
     }
 }
 
@@ -176,4 +196,11 @@ function adminQuizDescriptionUpdate( authUserId, quizId, description){
 }
 
 
-export { adminQuizList, adminQuizCreate }; 
+export { 
+    adminQuizList, 
+    adminQuizCreate, 
+    adminQuizRemove,
+    adminQuizInfo,
+    adminQuizNameUpdate,
+    adminQuizDescriptionUpdate
+}; 
