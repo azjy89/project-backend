@@ -153,27 +153,26 @@ describe('adminQuizInfo', () => {
         clear();
     })
 
-    // Successful check
+    // Successful check wa
 
     test('Quiz info retrieved successfully', () => {
-            let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
-            let quizId = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Welcome!');
-            let quizInfo = adminQuizInfo(authUserId.authUserId, quizId.quizId);
-
-            expect(quizInfo.quizId).toStrictEqual( quizId.quizId );
-
-            // to fix
-            expect(quizInfo.name).toStrictEqual( 'COMP1531' );
-
-            // fix
-            expect(quizInfo.timeCreated).toStrictEqual(expect.any(Number) );
-
-            // fix
-            expect(quizInfo.timeLastEdited).toStrictEqual(expect.any(Number));
-
-            // fix
-            expect(quizInfo.description).toStrictEqual('Welcome!' );
+        let authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
+        let quizId = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Welcome!');
+        let quizInfo = adminQuizInfo(authUserId.authUserId, quizId.quizId);
+    
+        // Define the expected quiz information structure
+        const expectedQuizInfo = {
+            quizId: expect.any(Number),
+            name: 'COMP1531', // Assuming 'name' property is available in quizInfo
+            timeCreated: expect.any(Number),
+            timeLastEdited: expect.any(Number),
+            description: 'Welcome!'
+        };
+    
+        // Compare quizInfo object with the expected quiz information structure
+        expect(quizInfo).toStrictEqual(expectedQuizInfo);
     });
+
 
 
 
