@@ -142,7 +142,7 @@ describe('adminQuizRemove', () => {
         let user1 = adminAuthRegister('quiz1@unsw.edu.au', 
         'abcd1234', 'Robby', 'Smith');
         let quiz1 = adminQuizCreate(user.authUserId, 'HAHA1531', 'Welcome!');
-        expect(adminQuizRemove(user.authUserId, quiz.quizId)).toStrictEqual( {error: expect.any(String)});
+        expect(adminQuizRemove(user.authUserId, quiz1.quizId)).toStrictEqual( {error: expect.any(String)});
     });
 });
 
