@@ -123,3 +123,6 @@ function adminQuizDescriptionUpdate( authUserId, quizId, description){
 
     }
 }
+
+
+export { adminQuizList, adminQuizCreate }; 
