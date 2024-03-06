@@ -175,39 +175,43 @@ function adminQuizInfo( authUserId, quizId ) {
  * @returns {}
  */
 
-function adminQuizNameUpdate( authUserId, quizId, name ) {
+function adminQuizNameUpdate(authUserId, quizId, name) {
+    const data = getData();
 
     const userIndex = data.users.findIndex(user => user.userId === authUserId);
-
-    if (userIndex === -1){
-
-        return { error: 'AuthUserId is not a valid user.'};
+    if (userIndex === -1) {
+        return { error: 'AuthUserId is not a valid user.' };
+    }
 
     const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
+    if (quizIndex === -1) {
+        return { error: 'Quiz ID does not refer to valid quiz.' };
+    }
 
-    } if (quizIndex === -1) {
+    if (authUserId !== data.quizzes[quizIndex].quizCreatorId) {
+        return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
+    }
 
-        return { error:' Quiz ID does not refer to valid quiz.'};
-
-    } if (authUserId !== quiz.quizCreatorId) {
-
-        return { error:' Quiz ID does not refer to a quiz that this user owns.'};
-
-    } 
     const regex = /^[a-zA-Z0-9\s]*$/;
     if (!regex.test(name)) {
-
-        return {error:'Name contains invalid characters. Valid characters are alphanumeric and spaces.'};
-    } if (name.length > maxNameLength || name.length < minNameLength){
-        return {error: 'Name is either less than 3 characters long or more than 30 characters long.'};
-
-    } if (data.quizzes.find(q => q.name === name)){
-        return {error:'Name is already used by the current logged in user for another quiz.' };
+        return { error: 'Name contains invalid characters. Valid characters are alphanumeric and spaces.' };
     }
 
-    return { 
-
+    const maxNameLength = 30;
+    const minNameLength = 3;
+    if (name.length > maxNameLength || name.length < minNameLength) {
+        return { error: 'Name is either less than 3 characters long or more than 30 characters long.' };
     }
+
+    if (data.quizzes.find(q => q.name === name && q.quizCreatorId === authUserId)) {
+        return { error: 'Name is already used by the current logged in user for another quiz.' };
+    }
+
+    // Update the quiz name in the data store
+    data.quizzes[quizIndex].name = name;
+
+    // Return success response
+    return {};
 }
 
 
