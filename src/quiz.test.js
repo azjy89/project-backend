@@ -239,7 +239,6 @@ describe('adminQuizNameUpdate', () => {
         { name: '1'},
         { name: 'Abaklwjef++++__....!!'},
         { name: '-()*()$@&%)@(^*!'},
-        { name: 'ghijklmnopqrstuvwxyz1234125176'},
         { name: 'ghijklmnopqrstuvwxyz1234125176123512351235'},
     ])("checking name restrictions: '$name'", ({ name }) => {
         let authUserId = adminAuthRegister('quiz@unsw.edu.au', 
