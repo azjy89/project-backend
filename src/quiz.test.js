@@ -3,6 +3,7 @@ import { adminQuizList, adminQuizCreate, adminQuizRemove } from './quiz.js';
 import { adminAuthRegister } from './auth.js';
 import { adminQuizInfo } from './quiz.js';
 import { adminQuizNameUpdate } from './quiz.js';
+import { adminQuizDescriptionUpdate } from './quiz.js';
 
 
 beforeEach(() => {
@@ -259,4 +260,48 @@ describe('adminQuizNameUpdate', () => {
     });
 
 
+});
+describe('adminQuizDescriptionUpdate', () => {
+    let user, quiz;
+    beforeEach(() => {
+        clear()
+        user = adminAuthRegister('quiz@unsw.edu.au', 
+        'abcd1234', 'John', 'Dickens');
+        quiz = adminQuizCreate(user.authUserId, 'COMP1531', 
+        'Write a descrition for this quiz.');
+    });
+
+    test('Check successful update quiz descrition', () => {
+        const quizDescription = adminQuizDescriptionUpdate( user.authUserId, 
+        quiz.quizId, 'New Description.')
+        expect(quizDescription).toStrictEqual({})
+        let quizInfo = adminQuizInfo(user.authUserId, quiz.quizId)
+        expect(quizInfo.description).toStrictEqual('New Description.')
+    });
+
+    test('AuthUserId is not a valid user', () => {
+        expect(adminQuizDescriptionUpdate(user.authUserId + 1, quiz.quizId,
+        'Description.')).toStrictEqual({error: expect.any(String)})
+    });
+
+    test('Quiz ID does not refer to a valid quiz', () => {
+        expect(adminQuizDescriptionUpdate( user.authUserId, quiz.quizId + 1, 
+        'Description.')).toStrictEqual({error: expect.any(String)})
+    });
+
+    test('Quiz ID does not refer to a quiz that this user owns', () => {
+        let user2 = adminAuthRegister('xyz@unsw.edu.au', 
+        'abcd1234', 'Henry', 'Duckens');
+        let quiz2 = adminQuizCreate(user2.authUserId, 'COMP1531', 
+        'Write a descrition for the quiz.');
+        expect(adminQuizDescriptionUpdate( user.authUserId, quiz2.quizId, 
+        'Description.')).toStrictEqual({error: expect.any(String)})
+    });
+
+    test('Description is more than 100 characters in length.', () => {
+        expect(adminQuizDescriptionUpdate( user.authUserId, quiz.quizId, 
+        `How much wood can a wood chucker chuck wood? I don't actually know 
+        but that was a great character count filler.`
+        )).toStrictEqual({error: expect.any(String)})
+    });
 });
