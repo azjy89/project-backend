@@ -23,6 +23,7 @@ function adminAuthRegister(email, password, nameFirst, nameLast) {
 	let result = adminAuthRegisterErrors(email, password, nameFirst, 
 											nameLast, data);
 	const newUserId = data.users.length + 1;
+
 	const newUser = {
 		userId: newUserId,
 		nameFirst: nameFirst,
@@ -39,7 +40,7 @@ function adminAuthRegister(email, password, nameFirst, nameLast) {
 			authUserId: newUserId,
 		}
 	}
-
+	setData(data);
 	return result;
 }
 
@@ -125,6 +126,8 @@ function adminAuthLogin(email, password) {
 	const index = data.users.findIndex(user => user.email === email);
 	if (data.users[index].password !== password) {
 		data.users[index].numFailedPasswordsSinceLastLogin++;
+		setData(data);
+		const newData = getData();
 		return {
 			error: 'Incorrect password'
 		};
@@ -133,6 +136,7 @@ function adminAuthLogin(email, password) {
 	data.users[index].numFailedPasswordsSinceLastLogin = 0;
 	data.users[index].numSuccessfulLogins++;
 
+	setData(data);
 	return {
 		authUserId: data.users[index].userId
 	};
@@ -158,7 +162,6 @@ function adminUserDetails( authUserId ) {
 	}
 
 	let user = data.users.find(user => user.userId === authUserId);
-	setData(data);
 	return { user:
 		{
 			userId: user.userId,
