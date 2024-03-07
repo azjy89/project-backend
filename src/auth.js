@@ -18,10 +18,10 @@ const minPasswordLength = 8;
  * @returns {int}
 */
 
-function adminAuthRegister(email, password, nameFirst, nameLast) {
+function adminAuthRegister( email, password, nameFirst, nameLast ) {
 	const data = getData();
 	let result = adminAuthRegisterErrors(email, password, nameFirst, 
-											nameLast, data);
+	nameLast, data);
 	const newUserId = data.users.length + 1;
 
 	const newUser = {
@@ -115,7 +115,7 @@ function adminAuthRegisterValidPassword(password) {
  * @returns {int}
  */
 
-function adminAuthLogin(email, password) {
+function adminAuthLogin( email, password ) {
 	const data = getData();
 	if (!data.users.some(user => user.email === email)) {
 		return {
@@ -291,7 +291,7 @@ function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
  }
  
  
-function findPassword(password, userIndex) {
+function findPassword( password, userIndex ) {
 	let data = getData();
 	let user = data.users[userIndex];
  
@@ -305,4 +305,4 @@ function findPassword(password, userIndex) {
 }
  
 
-export { adminAuthRegister, adminAuthLogin, adminUserDetails, adminUserDetailsUpdate, adminUserPasswordUpdate}; 
+export { adminAuthRegister, adminAuthLogin, adminUserDetails, adminUserDetailsUpdate, adminUserPasswordUpdate }; 
