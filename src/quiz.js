@@ -136,18 +136,26 @@ function adminQuizRemove( authUserId, quizId ) {
 
 function adminQuizInfo( authUserId, quizId ) {
     const data = getData();
-
-    const quiz = data.quizzes.find(q => q.quizId === quizId);
-
-    if (!authUserId){
+    const userIndex = data.users.findIndex(user => user.userId === authUserId);
+    const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
+   
+    // Checks dataStore.users to find if a userId matches; else is invalid user.
+    if (userIndex === -1){
 
         return { error: 'AuthUserId is not a valid user.'};
 
-    } if (!quiz) {
+    } 
+    
+    // Checks dataStore.quizzes to find if a quizId matches; else is invalid quiz.
+    if (quizIndex === -1) {
 
         return { error:' Quiz ID does not refer to valid quiz.'};
 
-    } if (authUserId !== quiz.quizCreatorId) {
+    } 
+
+    // Checks dataStore.quizzes for a quiz.quizCreatorId that doesn't match authUserId.
+    let quiz = data.quizzes[quizIndex];
+    if (authUserId !== quiz.quizCreatorId) {
 
         return { error:' Quiz ID does not refer to a quiz that this user owns.'};
 
@@ -251,6 +259,7 @@ function adminQuizDescriptionUpdate( authUserId, quizId, description){
     }
 
     data.quizzes[quizIndex].description = description;
+    data.quizzes[quizIndex].timeLastEdited = Date.now();
 
     setData(data);
     return { };
