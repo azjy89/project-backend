@@ -215,6 +215,8 @@ function adminQuizNameUpdate(authUserId, quizId, name) {
 
     // Update the quiz name in the data store
     data.quizzes[quizIndex].name = name;
+    data.quizzes[quizIndex].timeLastEdited = Date.now();
+    setData(data);
 
     // Return success response
     return {};
