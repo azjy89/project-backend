@@ -1,20 +1,20 @@
 {
     "scripts": {
         "test": "jest",
-        "tsc": "tsc --project tsconfig.json",
         "lint": "eslint 'src/**/*.{ts,js}'",
         "lint-fix": "eslint --fix 'src/**/*.{ts,js}'",
         "start": "ts-node -T src/server.ts",
         "cleanup-sync-request": "pkill -f node_modules/sync-rpc/lib/worker.js > /dev/null 2>&1",
-        "posttest": "npm run cleanup-sync-request || true"
+        "posttest": "npm run cleanup-sync-request || true",
+        "ts-node": "ts-node",
+        "tsc": "tsc --noImplicitAny"
+
     },
     "dependencies": {
         "cors": "^2.8.5",
         "express": "^4.18.0",
         "morgan": "^1.10.0",
         "rewire": "^6.0.0",
-        "ts-node": "^10.7.0",
-        "typescript": "^4.6.3",
         "validator": "^13.7.0"
     },
     "devDependencies": {
@@ -34,7 +34,8 @@
         "swagger-ui-express": "^4.6.2",
         "sync-request-curl": "^2.1.5",
         "ts-jest": "^28.0.2",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.4.2",
         "yaml": "^2.2.2"
     }
 }
-
