@@ -26,16 +26,16 @@ export interface Data {
 }
 
 let data: Data = {
-    users: [],
-    quizzes: []
+  users: [],
+  quizzes: []
 };
 
 // Use get() to access the data
 export const getData = (): Data => {
-    return data;
-}
+  return data;
+};
 
 // Use set(newData) to pass in the entire data object, with modifications made
 export const setData = (newData: Data): void => {
-    data = newData;
-}
+  data = newData;
+};
