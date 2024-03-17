@@ -1,7 +1,16 @@
 // This file is a hub for all interfaces (typescript).
+// Add other interfaces below.
 
+// ERROR:
+export interface ErrorObject {
+  error: string;
+}
 
 // USER:
+export interface OldPasswords {
+  oldPasswords: string;
+}
+
 export interface User {
   userId: number;
   nameFirst: string;
@@ -13,11 +22,15 @@ export interface User {
   oldPasswords: OldPasswords[];
 }
 
-export interface OldPasswords {
-  oldPasswords: string;
+// QUIZ:
+export interface Questions {
+  questions: string;
 }
 
-// QUIZ:
+export interface Answers {
+  answers: string;
+}
+
 export interface Quiz {
   quizId: number;
   name: string;
@@ -29,12 +42,19 @@ export interface Quiz {
   answers: Answers[];
 }
 
-export interface Questions {
-  questions: string;
+
+// AdminUserDetailsReturn
+export interface AdminUserDetails {
+  userId: number;
+  name: string;
+  email: string;
+  numSuccessfulLogins: number;
+  numFailedPasswordsSinceLastLogin: number;
 }
 
-export interface Answers {
-  answers: string;
+export interface AdminUserDetailsReturn {
+  user: AdminUserDetails;
 }
-  
+
+// EMPTY OBJECT:
 export type EmptyObject = Record<string, never>;
