@@ -281,21 +281,17 @@ function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
 		}
 	}
 	data.users[userIndex].password = newPassword;
- 
- 
 	data.users[userIndex].oldPasswords.push(oldPassword);
 	data.users[userIndex].oldPasswords.push(newPassword);
    
 	setData(data);
 	return {}
- }
- 
- 
+}
+
 function findPassword( password, userIndex ) {
 	let data = getData();
 	let user = data.users[userIndex];
- 
- 
+	
 	for ( let oldpassword of user.oldPasswords) {
 		if (password === oldpassword) {
 			return false;
@@ -303,6 +299,5 @@ function findPassword( password, userIndex ) {
 	}
 	return true;
 }
- 
 
 export { adminAuthRegister, adminAuthLogin, adminUserDetails, adminUserDetailsUpdate, adminUserPasswordUpdate }; 
