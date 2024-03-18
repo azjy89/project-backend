@@ -1,4 +1,5 @@
-import { User, Quiz, Data, getData, setData } from './dataStore';
+import { tokenToString } from 'typescript';
+import { Token, TokenInfo, AuthUserId, User, Quiz, Data, getData, setData } from './dataStore';
 const isEmail = require('validator/lib/isEmail');
 
 // Global Variables
@@ -11,11 +12,7 @@ interface ErrorObject {
 	error: string;
 }
 
-interface AdminAuthReturn {
-	authUserId: number;
-}
-
-interface AdminUserDetailsReturn {
+export interface AdminUserDetailsReturn {
 	user: {
 		userId: number,
 		name: string,
@@ -23,6 +20,30 @@ interface AdminUserDetailsReturn {
 		numSuccessfulLogins: number,
 		numFailedPasswordsSinceLastLogin: number
 	}
+}
+
+// Exported to server to allow token creation for sessions
+export const createToken = ( authUserId: number ): Token => {
+  const data = getData();
+  const token: string = (-authUserId).toString();
+  const newTokenInfo = {
+    token: token,
+    userId: authUserId,
+    activity: true
+  }
+  data.tokens.push(newTokenInfo)
+  setData(data);
+  const returnToken = { token: newTokenInfo.token };
+  return returnToken;
+}
+
+// This funciton is exported to server and allows the userId of a user to be
+// retrieved from a token
+export const idFromToken = ( token: string ): AuthUserId => {
+  const data = getData();
+  const tokenInfo = data.tokens.find(dataToken => token === dataToken.token);
+  const user = data.users.find(user => user.userId === tokenInfo.userId);
+  return { authUserId: user.userId };
 }
 
 /**
@@ -37,29 +58,30 @@ interface AdminUserDetailsReturn {
  * @returns {int}
 */
 
-export const adminAuthRegister = (email: string, password: string, nameFirst: string, nameLast:string): AdminAuthReturn | ErrorObject => {
+export const adminAuthRegister = (email: string, password: string, nameFirst: string, nameLast:string): AuthUserId | ErrorObject => {
   const data = getData();
   const result = adminAuthRegisterErrors(email, password, nameFirst,
     nameLast, data);
-  const newUserId = data.users.length + 1;
-
-  const newUser: User = {
-    userId: newUserId,
-    nameFirst: nameFirst,
-    nameLast: nameLast,
-    email: email,
-    password: password,
-    numSuccessfulLogins: 1,
-    numFailedPasswordsSinceLastLogin: 0,
-    oldPasswords: [],
-  };
-  data.users.push(newUser);
   if (result.error === 'No Error') {
+    const newUserId = data.users.length + 1;
+    const newUser: User = {
+      userId: newUserId,
+      nameFirst: nameFirst,
+      nameLast: nameLast,
+      email: email,
+      password: password,
+      numSuccessfulLogins: 1,
+      numFailedPasswordsSinceLastLogin: 0,
+      oldPasswords: [],
+    };
+    data.users.push(newUser);
+
     const successfulResult = {
       authUserId: newUserId,
     };
     return successfulResult;
   }
+
   setData(data);
   return result;
 };
@@ -134,7 +156,7 @@ const adminAuthRegisterValidPassword = (password: string): boolean => {
  * @returns {int}
  */
 
-export const adminAuthLogin = (email: string, password: string): AdminAuthReturn | ErrorObject => {
+export const adminAuthLogin = (email: string, password: string): AuthUserId | ErrorObject => {
   const data = getData();
   if (!data.users.some(user => user.email === email)) {
     return {
@@ -146,7 +168,6 @@ export const adminAuthLogin = (email: string, password: string): AdminAuthReturn
   if (data.users[index].password !== password) {
     data.users[index].numFailedPasswordsSinceLastLogin++;
     setData(data);
-    const newData = getData();
     return {
       error: 'Incorrect password'
     };
