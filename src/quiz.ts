@@ -302,7 +302,7 @@ export const adminQuizDescriptionUpdate = ( authUserId: number, quizId: number, 
  * @returns {}
  */
 
-function AdminQuizQuestionRemove(quizId: number, questionId: number, token: string): {} {
+function adminQuizQuestionRemove(quizId: number, questionId: number, token: string): {} {
 
     return {};
 }
@@ -318,7 +318,7 @@ function AdminQuizQuestionRemove(quizId: number, questionId: number, token: stri
  * @returns {void}
  */
 
-function AdminQuizQuestionMove(quizId: number, questionId: number, body: object): {} {
+function adminQuizQuestionMove(quizId: number, questionId: number, body: object): {} {
 
     return {};
 }
