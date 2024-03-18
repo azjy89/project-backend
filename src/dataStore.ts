@@ -1,3 +1,5 @@
+import fs from 'fs';
+
 export interface User {
     userId: number,
     nameFirst: string,
@@ -39,3 +41,19 @@ export const getData = (): Data => {
 export const setData = (newData: Data): void => {
   data = newData;
 };
+
+export const retrieveData = (): void => {
+  if (fs.existsSync('database.json')) {
+    const json = fs.readFileSync('./dataBase.json', 'utf-8');
+    const jsonData = JSON.parse(json);
+    setData(jsonData);
+  } else {
+    fs.writeFileSync('database.json', '');
+  }
+}
+
+// Save data to database.json
+export const saveData = (): void => {
+  fs.writeFileSync('./database.json', JSON.stringify(data));
+}
+

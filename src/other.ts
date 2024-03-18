@@ -13,5 +13,4 @@ export const clear = (): object => {
   };
   setData(data);
   return {};
-}
-
+};
