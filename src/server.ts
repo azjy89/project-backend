@@ -34,6 +34,35 @@ app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
   return res.json(echo(data));
 });
+app.put('/v1/admin/quiz/:quizid/description', (req: Request, res: Response) => {
+  const {authUserId, description} = req.body;
+  const quizId = parseInt(req.params.quizid);
+  // Substitute 'authUserId' with 'token' later!!!
+  const result = adminQuizDescriptionUpdate(authUserId, quizId, description);
+
+  if ('error' in result) {
+    // status(400) i.e.  description > 100 characters.
+    if (res.statusCode === 400) {
+      return res.status(400).json(result);
+    }
+    // status(401) i.e. token/authUserId is empty/invalid.
+    if (res.statusCode === 401) {
+      return res.status(400).json(result);
+    }
+    // status(403) i.e. valid token, but user does not own quiz. 
+    if (res.statusCode === 403) {
+      return res.status(403).json(result);
+    }
+  }
+
+  // status(200) i.e. OK
+  res.json(result);
+});
+
+app.delete('/v1/clear', (req:Request, res: Response) => {
+  // Note: clear() should return an empty objects, i.e. {}
+  res.json(clear())
+});
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
