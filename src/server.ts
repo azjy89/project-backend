@@ -23,7 +23,9 @@ import {
   adminQuizRemove,
   adminQuizInfo,
   adminQuizNameUpdate,
-  adminQuizDescriptionUpdate
+  adminQuizDescriptionUpdate,
+  adminQuizQuestionRemove,
+  adminQuizQuestionMove
 } from './quiz';
 
 import {
