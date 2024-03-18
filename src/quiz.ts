@@ -15,7 +15,7 @@ interface QuizListNameId {
     name: string
 }
 
-interface AdminQuizListReturn {
+export interface AdminQuizListReturn {
     quizzes: QuizListNameId[]
 }
 
