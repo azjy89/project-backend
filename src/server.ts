@@ -264,6 +264,7 @@ app.put('/v1/admin/quiz/:quizid/name', (req: Request, res: Response) => {
 /**PUT
  * Route for /v1/admin/quiz/:quizid/description - PUT
  * 
+ * Update the description of the relevant quiz
  */
 app.put('/v1/admin/quiz/:quizid/description', (req: Request, res: Response) => {
   // Parses quizId to int
