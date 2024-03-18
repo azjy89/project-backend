@@ -302,6 +302,9 @@ export const adminQuizDescriptionUpdate = ( authUserId: number, quizId: number, 
  * @returns {}
  */
 
+function deleteQuestionFromQuiz(quizId: number, questionId: number, token: string): void {
+
+}
 
 /**
  * Move a question from one particular position in the quiz to another
@@ -313,3 +316,7 @@ export const adminQuizDescriptionUpdate = ( authUserId: number, quizId: number, 
  *
  * @returns {void}
  */
+
+function moveQuestionInQuiz(quizId: number, questionId: number, body: object): void {
+
+}
