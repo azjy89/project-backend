@@ -289,6 +289,26 @@ app.delete('/v1/clear', (req:Request, res: Response) => {
   return res.status(200).json(clear());
 });
 
+
+/**POST 
+ * Route for /v1/admin/auth/logout - POST
+ *
+ * Should be called with a token that is returned after either a 
+ * login or register has been made.
+ */
+app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
+  // Request parameter from body
+  const { token } = req.body;
+  // Some sort of error checking???? 
+  idFromToken(token);
+  // NEED TO IMPLEMENT THIS FUNCTION IN AUTH.TS
+  deleteToken(token);
+  res.status(200).json({});
+});
+
+
+
+
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
