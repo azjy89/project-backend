@@ -286,3 +286,30 @@ export const adminQuizDescriptionUpdate = ( authUserId: number, quizId: number, 
   setData(data);
   return {};
 }
+
+
+
+
+
+
+/**
+ * Delete a particular question from a quiz
+ *
+ * @param {int} quizId
+ * @param {int} questionId
+ * @param {string} token
+ *
+ * @returns {}
+ */
+
+
+/**
+ * Move a question from one particular position in the quiz to another
+ * When this route is called, the timeLastEdited is updated
+ *
+ * @param {number} quizId - The ID of the quiz.
+ * @param {number} questionId - The ID of the question to delete.
+ * @param {object} body - The request body.
+ *
+ * @returns {void}
+ */
