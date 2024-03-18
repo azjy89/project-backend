@@ -302,8 +302,9 @@ export const adminQuizDescriptionUpdate = ( authUserId: number, quizId: number, 
  * @returns {}
  */
 
-function deleteQuestionFromQuiz(quizId: number, questionId: number, token: string): void {
+function AdminQuizQuestionRemove(quizId: number, questionId: number, token: string): {} {
 
+    return {};
 }
 
 /**
@@ -317,6 +318,7 @@ function deleteQuestionFromQuiz(quizId: number, questionId: number, token: strin
  * @returns {void}
  */
 
-function moveQuestionInQuiz(quizId: number, questionId: number, body: object): void {
+function AdminQuizQuestionMove(quizId: number, questionId: number, body: object): {} {
 
+    return {};
 }
