@@ -9,7 +9,8 @@ import {
   Data,
   QuestionBody,
   QuestionId,
-  DupedQuestionId
+  DupedQuestionId,
+  EmptyObject
 } from './types';
 // Global Variables
 const maxNameLength = 30;
@@ -275,14 +276,64 @@ export const adminQuizDescriptionUpdate = (authUserId: number, quizId: number, d
 /**
  * Transfer ownership of a quiz to a different user based on their email
  * 
- * @param {int} authUserId 
- * @param {int} quizId 
- * @param {string} userEmail 
+ * @param {int} authUserId    - The authUserId of the current user (derived from token in server.ts)
+ * @param {int} quizId        - The quiz of current user that is being transferred.
+ * @param {string} userEmail  - The target of transfer
  * @returns {}
  */
-export function adminQuizTransfer(authUserId: number, quizId: number, userEmail: string): {} {
+export const adminQuizTransfer = (authUserId: number, quizId: number, userEmail: string): ErrorObject | EmptyObject => {
+  const data = getData();
+
+  // Error: 400 Bad Request
+  // Error: userEmail not found.
+  const targetUser = data.users.find(user => user.email === userEmail);
+  if (!targetUser) {
+    return {error: "userEmail is not a real user"}
+  }
+  // Error: The one holding the userId and the one with the target email (userEmail)
+  // are the same person.
+  const currentUser = data.users.find(user => user.userId === authUserId);
+  if (currentUser === targetUser) {
+    return {error: "userEmail is the current logged in user"};
+  }
+  // Error: current quiz name is same as target quiz name.
+  const currentQuiz = data.quizzes.find(quiz => quiz.quizCreatorId === authUserId)
+  const targetQuiz = data.quizzes.find(quiz => quiz.quizCreatorId === currentUser.userId)
+  if (currentQuiz.name === targetQuiz.name) {
+    return {error: "Quiz ID refers to a quiz that has a name that is already used by the target user"};
+  }
+  // Error: invalid userId (changed to token in server.ts)
+  const userIndex = data.users.findIndex(user => user.userId === authUserId);
+  if (userIndex === -1) {
+    return {
+      error: 'AuthUserId is not a valid user'
+    };
+  }
+  // Error: valid userId (changed to token in server.ts) but wrong quiz owner.
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (quiz.quizCreatorId != authUserId) {
+    return {
+      error: 'Quiz ID does not refer to a quiz that this user own'
+    };
+  }
+
+  // Succesful Transfer
+  // FIX: the Quiz interface key "quizCreatorId" is a bit conflicting.
+  //
+  // I can only change the ownership of the quiz by changing the creator Id, which
+  // is a big confusing semantically.
+  //
+  // So, probs either: (1) rename quizCreatorId to maybe "quizOwnerId",
+  // or (2) create a new key to track the owner of each quiz in the array quizzes.
+  // quizzes.find(email) // transfer target
+  
+  // find quiz by email, then set the quizcreator Id to target creator id
+
+  // Note: This updates by reference, so don't need setData().
+  currentQuiz.quizCreatorId = targetUser.userId;
+
   return {};
-}
+};
 
 /**Given a particular quiz, add a question to that quiz
  * 
@@ -348,5 +399,5 @@ export function adminQuizQuestionMove(quizId: number, questionId: number, newPos
  * @returns {}
  */
 export function adminQuizQuestionDuplicate(quizId: number, questionId: number, authUserId: number): Error | DupedQuestionId {
-  return {};
+    return {};
 }

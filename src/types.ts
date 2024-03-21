@@ -106,3 +106,5 @@ export interface Data {
   quizzes: Quiz[],
   tokens: Token[]
 }
+
+export type EmptyObject = Record<string, never>;
