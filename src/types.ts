@@ -37,6 +37,10 @@ export interface AuthUserId {
   authUserId: number
 }
 
+//QuizId interface
+export interface QuizId {
+  quizId: number
+};
 //UserDetails interface (return type)
 export interface UserDetails {
 	user: {
@@ -51,6 +55,26 @@ export interface UserDetails {
 //Token return type
 export interface TokenReturn {
   token: string
+}
+
+//Quiz summarised in this form
+interface QuizListNameId {
+  quizId: number,
+  name: string
+}
+
+//adminQuizList return type
+interface AdminQuizListReturn {
+  quizzes: QuizListNameId[]
+}
+
+//adminQuizInfo return type
+interface AdminQuizInfoReturn {
+  quizId: number,
+  name: string,
+  timeCreated: number,
+  timeLastEdited: number,
+  description: string
 }
 
 

@@ -1,35 +1,18 @@
-import { User, Quiz, Data, getData, setData } from './dataStore';
+import { getTrash, setTrash, getData, setData } from './dataStore';
 
+import {
+  ErrorObject,
+  QuizListNameId,
+  AdminQuizListReturn,
+  QuizId,
+  AdminQuizInfoReturn,
+  Data
+} from './types';
 // Global Variables
 const maxNameLength = 30;
 const minNameLength = 3;
 const maxDescriptionLength = 100;
 
-// Return Interfaces
-interface ErrorObject {
-    error: string
-}
-
-interface QuizListNameId {
-    quizId: number,
-    name: string
-}
-
-interface AdminQuizListReturn {
-    quizzes: QuizListNameId[]
-}
-
-interface AdminQuizCreateReturn {
-    quizId: number
-}
-
-interface AdminQuizInfoReturn {
-    quizId: number,
-    name: string,
-    timeCreated: number,
-    timeLastEdited: number,
-    description: string
-}
 
 /**
  * Provide a list of all quizzes that are owned by the currently logged in user.
