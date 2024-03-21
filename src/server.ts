@@ -34,7 +34,9 @@ import {
 
 import {
   AuthUserId,
-} from './dataStore';
+} from './types';
+
+
 
 // Set up web app
 const app = express();
