@@ -39,7 +39,7 @@ interface AdminQuizInfoReturn {
  * @returns {object}
  */
 
-export const adminQuizList = ( authUserId: number ): AdminQuizListReturn | ErrorObject => {
+export const adminQuizList = (authUserId: number): AdminQuizListReturn | ErrorObject => {
   const data = getData();
 
   const userExists = data.users.some(user => user.userId === authUserId);
@@ -53,7 +53,7 @@ export const adminQuizList = ( authUserId: number ): AdminQuizListReturn | Error
     name: quiz.name,
   }));
   return { quizzes: quizList };
-}
+};
 
 /**
  * Given basic details about a new quiz, create one for the logged in user.
@@ -65,7 +65,7 @@ export const adminQuizList = ( authUserId: number ): AdminQuizListReturn | Error
  * @returns {int}
  */
 
-export const adminQuizCreate = ( authUserId: number, name: string, description:string ): AdminQuizCreateReturn | ErrorObject => {
+export const adminQuizCreate = (authUserId: number, name: string, description:string): AdminQuizCreateReturn | ErrorObject => {
   const data = getData();
 
   // Check if the authUserId is valid
@@ -114,7 +114,7 @@ export const adminQuizCreate = ( authUserId: number, name: string, description:s
   setData(data);
 
   return { quizId: newQuizId };
-}
+};
 
 /**
  * Given a particular quiz, permanently remove the quiz.
@@ -125,7 +125,7 @@ export const adminQuizCreate = ( authUserId: number, name: string, description:s
  * @returns {object}
  */
 
-export const adminQuizRemove = ( authUserId: number, quizId: number ): object | ErrorObject => {
+export const adminQuizRemove = (authUserId: number, quizId: number): object | ErrorObject => {
   const data = getData();
 
   // Check if authUserId refers to a valid user
@@ -148,7 +148,7 @@ export const adminQuizRemove = ( authUserId: number, quizId: number ): object | 
   data.quizzes.splice(quizIndex, 1);
   setData(data);
   return {};
-}
+};
 
 /**
  * Get all of the relevant information about the current quiz.
@@ -159,7 +159,7 @@ export const adminQuizRemove = ( authUserId: number, quizId: number ): object | 
  * @returns {object}
  */
 
-export const adminQuizInfo = ( authUserId: number , quizId: number ): AdminQuizInfoReturn | ErrorObject => {
+export const adminQuizInfo = (authUserId: number, quizId: number): AdminQuizInfoReturn | ErrorObject => {
   const data = getData();
   const userIndex = data.users.findIndex(user => user.userId === authUserId);
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
@@ -192,7 +192,7 @@ export const adminQuizInfo = ( authUserId: number , quizId: number ): AdminQuizI
     timeLastEdited,
     description
   };
-}
+};
 
 /**
  * Update the name of the relevant quiz.
@@ -204,7 +204,7 @@ export const adminQuizInfo = ( authUserId: number , quizId: number ): AdminQuizI
  * @returns {}
  */
 
-export const adminQuizNameUpdate = ( authUserId: number, quizId: number, name: string): object | ErrorObject => {
+export const adminQuizNameUpdate = (authUserId: number, quizId: number, name: string): object | ErrorObject => {
   const data = getData();
 
   const userIndex = data.users.findIndex(user => user.userId === authUserId);
@@ -241,7 +241,7 @@ export const adminQuizNameUpdate = ( authUserId: number, quizId: number, name: s
 
   // Return success response
   return {};
-}
+};
 
 /**
  * Update the description of the relevant quiz.
@@ -253,7 +253,7 @@ export const adminQuizNameUpdate = ( authUserId: number, quizId: number, name: s
  * @returns {}
  */
 
-export const adminQuizDescriptionUpdate = ( authUserId: number, quizId: number, description: string): object | ErrorObject => {
+export const adminQuizDescriptionUpdate = (authUserId: number, quizId: number, description: string): object | ErrorObject => {
   const data = getData();
   const userIndex = data.users.findIndex(user => user.userId === authUserId);
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
