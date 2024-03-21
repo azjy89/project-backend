@@ -1,4 +1,4 @@
-import { User, Quiz, Data, getData, setData } from './dataStore';
+import { Data, getData, setData } from './dataStore';
 const isEmail = require('validator/lib/isEmail');
 
 // Global Variables
@@ -6,10 +6,12 @@ const minNameLength = 2;
 const maxNameLength = 20;
 const minPasswordLength = 8;
 
-// Return Interfaces
-interface ErrorObject {
-	error: string;
-}
+import {
+	ErrorObject,
+	User,
+	Quiz
+} from './types';
+
 
 interface AdminAuthReturn {
 	authUserId: number;
