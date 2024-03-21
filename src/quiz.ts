@@ -13,7 +13,6 @@ const maxNameLength = 30;
 const minNameLength = 3;
 const maxDescriptionLength = 100;
 
-
 /**
  * Provide a list of all quizzes that are owned by the currently logged in user.
  *
