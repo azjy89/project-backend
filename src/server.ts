@@ -389,7 +389,7 @@ app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
 });
 
 /**POST
- * Route for /v1/admin/quiz/:quizid/question
+ * Route for /v1/admin/quiz/:quizid/question - POST
  * 
  * Create a new stub question for a particular quiz.
  */
@@ -403,6 +403,26 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const authUserId = userId as AuthUserId;
   // Call and return adminQuizQuestionCreate
   const response = adminQuizQuestionCreate(quizId, authUserId.authUserId, questionBody);
+  return res.status(200).json(response);
+});
+
+/**PUT
+ * Route for /v1/admin/quiz/:quizid/question/:questionid - PUT
+ * 
+ * Update the relevant details of a particular question within a quiz.
+ */
+app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
+  // Parse quizid to int
+  const quizId = parseInt(req.params.quizid);
+  // Parse questionid to int
+  const questionId = parseInt(req.params.questionid);
+  // Request params from body
+  const { token, questionBody } = req.body;
+  // Retrieve userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+  // Call and return adminQuizQuestionUpdate
+  const response = adminQuizQuestionUpdate(quizId, questionId, authUserId.authUserId, questionBody);
   return res.status(200).json(response);
 });
 

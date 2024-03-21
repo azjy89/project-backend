@@ -295,6 +295,20 @@ export function adminQuizQuestionCreate(quizId: number, authUserId: number, ques
 }
 
 /**
+ * Update the relevant details of a particular question within a quiz. 
+ * @param {int} quizId 
+ * @param {int} questionId 
+ * @param {int} authUserId 
+ * @param {QuestionBody} questionBody 
+ * @returns {}
+ */
+export function adminQuizQuestionUpdate(quizId: number, questionId: number, authUserId: number, questionBody: QuestionBody): ErrorObject | object {
+  return {};
+}
+
+
+
+/**
  * Delete a particular question from a quiz
  *
  * @param {int} quizId
