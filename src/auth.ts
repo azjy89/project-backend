@@ -1,10 +1,29 @@
-import { getData, setData } from './dataStore.js';
+import { User, Quiz, Data, getData, setData } from './dataStore';
 const isEmail = require('validator/lib/isEmail');
 
 // Global Variables
 const minNameLength = 2;
 const maxNameLength = 20;
 const minPasswordLength = 8;
+
+// Return Interfaces
+interface ErrorObject {
+	error: string;
+}
+
+interface AdminAuthReturn {
+	authUserId: number;
+}
+
+interface AdminUserDetailsReturn {
+	user: {
+		userId: number,
+		name: string,
+		email: string,
+		numSuccessfulLogins: number,
+		numFailedPasswordsSinceLastLogin: number
+	}
+}
 
 /**
  * Register a user with an email, password, and names, 
@@ -18,12 +37,13 @@ const minPasswordLength = 8;
  * @returns {int}
 */
 
-function adminAuthRegister(email, password, nameFirst, nameLast) {
+export const adminAuthRegister = ( email: string, password: string, nameFirst: string, nameLast:string ): AdminAuthReturn | ErrorObject => {
 	const data = getData();
-	let result = adminAuthRegisterErrors(email, password, nameFirst, 
-											nameLast, data);
+	const result = adminAuthRegisterErrors(email, password, nameFirst, 
+	nameLast, data);
 	const newUserId = data.users.length + 1;
-	const newUser = {
+
+	const newUser: User = {
 		userId: newUserId,
 		nameFirst: nameFirst,
 		nameLast: nameLast,
@@ -34,16 +54,17 @@ function adminAuthRegister(email, password, nameFirst, nameLast) {
 		oldPasswords: [],
 	}
 	data.users.push(newUser);
-	if (Object.keys(result).length === 0) {
-		result = {
+	if (result.error === 'No Error') {
+		const successfulResult = {
 			authUserId: newUserId,
 		}
+		return successfulResult;
 	}
-
+	setData(data);
 	return result;
 }
 
-function adminAuthRegisterErrors(email, password, nameFirst, nameLast, data) {
+const adminAuthRegisterErrors = ( email: string, password: string, nameFirst: string, nameLast: string, data: Data): ErrorObject => {
 	if (data.users.some(user => user.email === email)) {
 		return {
 			error: 'User with this email already exists'
@@ -84,24 +105,23 @@ function adminAuthRegisterErrors(email, password, nameFirst, nameLast, data) {
 			error: 'Unsatisfactory password strength'
 		}
 	}
-	return {};
+	return { error: 'No Error' };
 }
 
-function adminAuthRegisterValidNameCharacters(name) {
+const adminAuthRegisterValidNameCharacters = (name: string): boolean => {
 	const validCharacters = /^[A-Za-z \-'']+$/.test(name);
 	return validCharacters;
 }
 
-function adminAuthRegisterValidNameLength(name) {
+const adminAuthRegisterValidNameLength = (name: string): boolean => {
 	if (name.length <= maxNameLength && name.length >= minNameLength) {
 		return true;
 	}
 	return false;
 }
 
-function adminAuthRegisterValidPassword(password) {
+const adminAuthRegisterValidPassword = (password: string): boolean => {
 	const containsLetterAndNumber = /[a-zA-Z]/.test(password) && /[0-9]/.test(password);
-
 	return containsLetterAndNumber;
 }
 
@@ -114,7 +134,7 @@ function adminAuthRegisterValidPassword(password) {
  * @returns {int}
  */
 
-function adminAuthLogin(email, password) {
+export const adminAuthLogin = ( email: string, password: string ): AdminAuthReturn | ErrorObject => {
 	const data = getData();
 	if (!data.users.some(user => user.email === email)) {
 		return {
@@ -125,6 +145,8 @@ function adminAuthLogin(email, password) {
 	const index = data.users.findIndex(user => user.email === email);
 	if (data.users[index].password !== password) {
 		data.users[index].numFailedPasswordsSinceLastLogin++;
+		setData(data);
+		const newData = getData();
 		return {
 			error: 'Incorrect password'
 		};
@@ -133,6 +155,7 @@ function adminAuthLogin(email, password) {
 	data.users[index].numFailedPasswordsSinceLastLogin = 0;
 	data.users[index].numSuccessfulLogins++;
 
+	setData(data);
 	return {
 		authUserId: data.users[index].userId
 	};
@@ -147,14 +170,24 @@ function adminAuthLogin(email, password) {
  * @returns {object}
  */
 
-function adminUserDetails( authUserId ) {
+export const adminUserDetails = ( authUserId: number ): AdminUserDetailsReturn | ErrorObject => {
+	let data = getData();
+
+	const userIndex = data.users.findIndex(user => user.userId === authUserId);
+	if ( userIndex === -1 ) {
+		return {
+			error: 'AuthUserId is not a valid user'
+		}
+	}
+
+	let user = data.users.find(user => user.userId === authUserId);
 	return { user:
 		{
-			userId: 1,
-			name: 'Hayden Smith',
-			email: 'hayden.smith@unsw.edu.au',
-			numSuccessfulLogins: 3,
-			numFailedPasswordsSinceLastLogin: 1,
+			userId: user.userId,
+			name: user.nameFirst + ' ' + user.nameLast,
+			email: user.email,
+			numSuccessfulLogins: user.numSuccessfulLogins,
+			numFailedPasswordsSinceLastLogin: user.numFailedPasswordsSinceLastLogin
 		}
 	}
 }
@@ -171,7 +204,7 @@ function adminUserDetails( authUserId ) {
  * @returns {}
  */
 
-function adminUserDetailsUpdate( authUserId, email, nameFirst, nameLast ) {
+export const adminUserDetailsUpdate = ( authUserId: number, email: string, nameFirst: string, nameLast:string ): object | ErrorObject => {
 	const data = getData();
     const userIndex = data.users.findIndex(user => user.userId === authUserId);
     if (userIndex === -1) {
@@ -232,7 +265,7 @@ function adminUserDetailsUpdate( authUserId, email, nameFirst, nameLast ) {
  * @returns {}
  */
 
-function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
+export const adminUserPasswordUpdate = ( authUserId: number, oldPassword: string, newPassword: string ): object | ErrorObject => {
 	const data = getData();
 	const userIndex = data.users.findIndex(user => user.userId === authUserId);
 	if (userIndex === -1) {
@@ -277,7 +310,7 @@ function adminUserPasswordUpdate( authUserId, oldPassword, newPassword ) {
  }
  
  
-function findPassword(password, userIndex) {
+const findPassword = ( password: string, userIndex: number ): boolean => {
 	let data = getData();
 	let user = data.users[userIndex];
  
@@ -289,6 +322,3 @@ function findPassword(password, userIndex) {
 	}
 	return true;
 }
- 
-
-export { adminAuthRegister, adminAuthLogin, adminUserDetails, adminUserDetailsUpdate, adminUserPasswordUpdate}; 
