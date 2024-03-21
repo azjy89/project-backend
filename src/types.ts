@@ -96,6 +96,10 @@ export interface QuestionId {
   question: number
 }
 
+export interface DupedQuestionId {
+  dupedQuestionId: number
+}
+
 //DataStore interface
 export interface Data {
   users: User[],

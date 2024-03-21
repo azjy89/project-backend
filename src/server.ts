@@ -24,6 +24,8 @@ import {
   adminQuizInfo,
   adminQuizNameUpdate,
   adminQuizDescriptionUpdate,
+  adminQuizQuestionCreate,
+  adminQuizQuestionUpdate,
   adminQuizQuestionRemove,
   adminQuizQuestionMove,
   adminQuizTransfer
@@ -426,6 +428,66 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Respo
   return res.status(200).json(response);
 });
 
+/**DELETE
+ * Route for /v1/admin/quiz/:quizid/question/:questionid - DELETE
+ * 
+ * Delete a particular question from a quiz
+ */
+app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
+  // Parse quizid to int
+  const quizId = parseInt(req.params.quizid);
+  // Parse questionid to int
+  const questionId = parseInt(req.params.questionid);
+  // Request token as query
+  const token = req.query.token as string;
+  // Retrieve userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+  // Call and return adminQuizQuestionRemove
+  const response = adminQuizQuestionRemove(quizId, questionId, authUserId.authUserId);
+  return res.status(200).json(response);
+});
+
+/**PUT
+ * Route for /v1/admin/quiz/:quizid/question/:questionid/move - PUT
+ * 
+ * Move a question from one particular position in the quiz to another
+ */
+app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: Response) => {
+  // Parse quizid to int
+  const quizId = parseInt(req.params.quizid);
+  // Parse questionid to int
+  const questionId = parseInt(req.params.questionid);
+  // Request params from body
+  const { token, newPosition } = req.body;
+  // Retrieve userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+  // Call and return adminQuizQuestionMove
+  const response = adminQuizQuestionMove(quizId, questionId, authUserId.authUserId, newPosition);
+  return res.status(200).json(response);
+});
+
+/**POST
+ * Route for /v1/admin/quiz/:quizid/question/:questionid/duplicate - POST
+ * 
+ * A particular question gets duplicated to immediately after 
+ * where the source question is
+ */
+app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request, res: Response) => {
+  // Parse quizid to int
+  const quizId = parseInt(req.params.quizid);
+  // Parse questionid to int
+  const questionId = parseInt(req.params.questionid);
+  // Request params from body
+  const { token } = req.body;
+  // Retrieve userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+  // Call and return adminQuizQuestionDuplicate
+  const response = adminQuizQuestionDuplicate(quizId, questionId, authUserId.authUserId);
+  return res.status(200).json(response);  
+});
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================

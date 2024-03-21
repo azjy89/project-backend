@@ -8,7 +8,8 @@ import {
   AdminQuizInfoReturn,
   Data,
   QuestionBody,
-  QuestionId
+  QuestionId,
+  DupedQuestionId
 } from './types';
 // Global Variables
 const maxNameLength = 30;
@@ -319,8 +320,7 @@ export function adminQuizQuestionUpdate(quizId: number, questionId: number, auth
  */
 
 export function adminQuizQuestionRemove(quizId: number, questionId: number, token: string): {} {
-
-    return {};
+  return {};
 }
 
 /**
@@ -334,7 +334,19 @@ export function adminQuizQuestionRemove(quizId: number, questionId: number, toke
  * @returns {void}
  */
 
-export function adminQuizQuestionMove(quizId: number, questionId: number, body: object): {} {
+export function adminQuizQuestionMove(quizId: number, questionId: number, newPosition: number): {} {
+  return {};
+}
 
-    return {};
+/**
+ * A particular question gets duplicated to
+ * immediately after where the source question is
+ * 
+ * @param {int} quizId 
+ * @param {int} questionId 
+ * @param {int} authUserId 
+ * @returns {}
+ */
+export function adminQuizQuestionDuplicate(quizId: number, questionId: number, authUserId: number): Error | DupedQuestionId {
+  return {};
 }
