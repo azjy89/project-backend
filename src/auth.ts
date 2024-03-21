@@ -37,7 +37,7 @@ export const createToken = ( authUserId: number ): string => {
 // retrieved from a token
 export const idFromToken = ( token: string ): ErrorObject | AuthUserId => {
   const tokenInfo = getData().tokens.find(dataToken => token === dataToken.token);
-  const user = data.users.find(user => user.userId === tokenInfo.userId);
+  const user = getData().users.find(user => user.userId === tokenInfo.userId);
 
   if (user) {
     return { authUserId: user.userId };
