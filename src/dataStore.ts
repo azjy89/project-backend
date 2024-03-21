@@ -39,3 +39,11 @@ export const getData = (): Data => {
 export const setData = (newData: Data): void => {
   data = newData;
 };
+
+export function getTrash() {
+  return;
+}
+
+export function setTrash() {
+
+}
