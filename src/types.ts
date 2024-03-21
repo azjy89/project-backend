@@ -58,18 +58,18 @@ export interface TokenReturn {
 }
 
 //Quiz summarised in this form
-interface QuizListNameId {
+export interface QuizListNameId {
   quizId: number,
   name: string
 }
 
 //adminQuizList return type
-interface AdminQuizListReturn {
+export interface AdminQuizListReturn {
   quizzes: QuizListNameId[]
 }
 
 //adminQuizInfo return type
-interface AdminQuizInfoReturn {
+export interface AdminQuizInfoReturn {
   quizId: number,
   name: string,
   timeCreated: number,
@@ -77,6 +77,24 @@ interface AdminQuizInfoReturn {
   description: string
 }
 
+//questionBody input type
+export interface QuestionBody {
+  question: string,
+  duration: number,
+  points: number,
+  answers: AnswerInput[]
+}
+
+//AnswerInput type
+export interface AnswerInput {
+  answer: string,
+  correct: true | false
+}
+
+//questionid return type
+export interface QuestionId {
+  question: number
+}
 
 //DataStore interface
 export interface Data {

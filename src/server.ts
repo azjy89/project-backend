@@ -25,7 +25,8 @@ import {
   adminQuizNameUpdate,
   adminQuizDescriptionUpdate,
   adminQuizQuestionRemove,
-  adminQuizQuestionMove
+  adminQuizQuestionMove,
+  adminQuizTransfer
 } from './quiz';
 
 import {
@@ -368,6 +369,43 @@ app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
   const response = trashEmpty(authUserId.authUserId, quizIds);
   return res.status(200).json(response);
 });
+
+/**POST 
+ * Route for /v1/admin/quiz/:quizid/transfer - POST
+ *
+ * Transfer ownership of a quiz to a different user based on their email
+ */
+app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
+  // Parse quizId to int
+  const quizId = parseInt(req.params.quizid);
+  // Request params from body
+  const { token, userEmail } = req.body;
+  // Retrieves userId for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+  // Calls and returns adminQuizTransfer
+  const response = adminQuizTransfer(authUserId.authUserId, quizId, userEmail);
+  return res.status(200).json(response);
+});
+
+/**POST
+ * Route for /v1/admin/quiz/:quizid/question
+ * 
+ * Create a new stub question for a particular quiz.
+ */
+app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
+  // Parse quizid to int
+  const quizId = parseInt(req.params.quizid);
+  // Request params from body
+  const { token, questionBody } = req.body;
+  // Retrieve userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+  // Call and return adminQuizQuestionCreate
+  const response = adminQuizQuestionCreate(quizId, authUserId.authUserId, questionBody);
+  return res.status(200).json(response);
+});
+
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================

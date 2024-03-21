@@ -6,7 +6,9 @@ import {
   AdminQuizListReturn,
   QuizId,
   AdminQuizInfoReturn,
-  Data
+  Data,
+  QuestionBody,
+  QuestionId
 } from './types';
 // Global Variables
 const maxNameLength = 30;
@@ -281,7 +283,16 @@ export function adminQuizTransfer(authUserId: number, quizId: number, userEmail:
   return {};
 }
 
-
+/**Given a particular quiz, add a question to that quiz
+ * 
+ * @param {int} quizId 
+ * @param {int} authUserId 
+ * @param {QuestionBody} questionBody 
+ * @returns {}
+ */
+export function adminQuizQuestionCreate(quizId: number, authUserId: number, questionBody: QuestionBody): QuestionId | ErrorObject {
+  return {};
+}
 
 /**
  * Delete a particular question from a quiz
