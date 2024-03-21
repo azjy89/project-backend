@@ -15,14 +15,14 @@ describe('adminAuthRegister', () => {
       , 'FirstName', 'LastName');
     let userDetails;
     if ('authUserId' in authUserId) {
-        userDetails = adminUserDetails(authUserId.authUserId);
+      userDetails = adminUserDetails(authUserId.authUserId);
     }
     if ('user' in userDetails) {
-        expect(userDetails.user.userId).toEqual(expect.any(Number));
-        expect(userDetails.user.name).toStrictEqual('FirstName LastName');
-        expect(userDetails.user.email).toStrictEqual('users@unsw.edu.au');
-        expect(userDetails.user.numSuccessfulLogins).toStrictEqual(1);
-        expect(userDetails.user.numFailedPasswordsSinceLastLogin).toStrictEqual(0);
+      expect(userDetails.user.userId).toEqual(expect.any(Number));
+      expect(userDetails.user.name).toStrictEqual('FirstName LastName');
+      expect(userDetails.user.email).toStrictEqual('users@unsw.edu.au');
+      expect(userDetails.user.numSuccessfulLogins).toStrictEqual(1);
+      expect(userDetails.user.numFailedPasswordsSinceLastLogin).toStrictEqual(0);
     }
   });
 
@@ -156,11 +156,11 @@ describe('adminAuthLogin', () => {
     const authUserId = adminAuthLogin('users@unsw.edu.au', '1234abcd');
     let userDetails;
     if ('authUserId' in authUserId) {
-        userDetails = adminUserDetails(authUserId.authUserId);
+      userDetails = adminUserDetails(authUserId.authUserId);
     }
     if ('user' in userDetails) {
-        expect(userDetails.user.numSuccessfulLogins).toStrictEqual(2);
-        expect(userDetails.user.numFailedPasswordsSinceLastLogin).toStrictEqual(0);
+      expect(userDetails.user.numSuccessfulLogins).toStrictEqual(2);
+      expect(userDetails.user.numFailedPasswordsSinceLastLogin).toStrictEqual(0);
     }
   });
 
@@ -177,10 +177,10 @@ describe('adminAuthLogin', () => {
     const authUserId = adminAuthLogin('users@unsw.edu.au', '1234abcd');
     let userDetails;
     if ('authUserId' in authUserId) {
-        userDetails = adminUserDetails(authUserId.authUserId);
+      userDetails = adminUserDetails(authUserId.authUserId);
     }
     if ('user' in userDetails) {
-        expect(userDetails.user.numFailedPasswordsSinceLastLogin).toStrictEqual(0);
+      expect(userDetails.user.numFailedPasswordsSinceLastLogin).toStrictEqual(0);
     }
   });
 
@@ -199,10 +199,10 @@ describe('adminAuthLogin', () => {
     const authUserId = adminAuthLogin('users@unsw.edu.au', '1234abce');
     let userDetails;
     if ('authUserId' in user) {
-        userDetails = adminUserDetails(user.authUserId);
+      userDetails = adminUserDetails(user.authUserId);
     }
     if ('user' in userDetails) {
-        expect(userDetails.user.numFailedPasswordsSinceLastLogin).toStrictEqual(1);
+      expect(userDetails.user.numFailedPasswordsSinceLastLogin).toStrictEqual(1);
     }
   });
 });

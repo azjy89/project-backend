@@ -10,15 +10,15 @@ describe('adminQuizList', () => {
   beforeEach(() => {
     clear();
   });
-  
+
   test('correct output of list of quizzes', () => {
     const user = adminAuthRegister('quiz@unsw.edu.au',
       'abcd1234', 'Bobby', 'Dickens');
     if ('authUserId' in user) {
       const quiz1 = adminQuizCreate(user.authUserId, 'COMP1531', 'Welcome!');
       const quiz2 = adminQuizCreate(user.authUserId, 'asdfasdf', 'Welcome!');
-      if ('quizId' in quiz1 && 'quizId' in quiz2) { 
-      expect(adminQuizList(user.authUserId)).toStrictEqual({
+      if ('quizId' in quiz1 && 'quizId' in quiz2) {
+        expect(adminQuizList(user.authUserId)).toStrictEqual({
           quizzes: [
             {
               quizId: quiz1.quizId,
@@ -38,18 +38,18 @@ describe('adminQuizList', () => {
       const quiz3 = adminQuizCreate(user1.authUserId, 'BOBBY', 'HELLO');
       const quiz4 = adminQuizCreate(user1.authUserId, 'LOLLY', 'alksdjf');
       if ('quizId' in quiz3 && 'quizId' in quiz4) {
-      expect(adminQuizList(user1.authUserId)).toStrictEqual({
-        quizzes: [
-          {
-            quizId: quiz3.quizId,
-            name: 'BOBBY',
-          },
-          {
-            quizId: quiz4.quizId,
-            name: 'LOLLY',
-          },
-        ]
-      });
+        expect(adminQuizList(user1.authUserId)).toStrictEqual({
+          quizzes: [
+            {
+              quizId: quiz3.quizId,
+              name: 'BOBBY',
+            },
+            {
+              quizId: quiz4.quizId,
+              name: 'LOLLY',
+            },
+          ]
+        });
       }
     }
   });
@@ -267,7 +267,7 @@ describe('adminQuizNameUpdate', () => {
     const authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
     if ('authUserId' in authUserId) {
       const quizId = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Welcome!');
-      if ('quizId' in quizId) {      
+      if ('quizId' in quizId) {
         expect(adminQuizNameUpdate(authUserId.authUserId, quizId.quizId, 'newName')).toEqual({});
         const quizInfo = adminQuizInfo(authUserId.authUserId, quizId.quizId);
         if ('name' in quizInfo) {
@@ -283,7 +283,7 @@ describe('adminQuizNameUpdate', () => {
     const authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
     if ('authUserId' in authUserId) {
       const quizId = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Welcome!');
-      if ('quizId' in quizId) {      
+      if ('quizId' in quizId) {
         expect(adminQuizNameUpdate(authUserId.authUserId + 1, quizId.quizId, 'newName')).toEqual({ error: expect.any(String) });
       }
     }
@@ -293,7 +293,7 @@ describe('adminQuizNameUpdate', () => {
     const authUserId = adminAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
     if ('authUserId' in authUserId) {
       const quizId = adminQuizCreate(authUserId.authUserId, 'COMP1531', 'Welcome!');
-      if ('quizId' in quizId) {      
+      if ('quizId' in quizId) {
         expect(adminQuizNameUpdate(authUserId.authUserId, quizId.quizId + 1, 'newName')).toEqual({ error: expect.any(String) });
       }
     }
@@ -352,10 +352,10 @@ describe('adminQuizDescriptionUpdate', () => {
       'abcd1234', 'John', 'Dickens');
     if ('authUserId' in user) {
       const quiz = adminQuizCreate(user.authUserId, 'COMP1531',
-      'Write a descrition for this quiz.');
+        'Write a descrition for this quiz.');
       if ('quizId' in quiz) {
         const quizDescription = adminQuizDescriptionUpdate(user.authUserId,
-        quiz.quizId, 'New Description.');
+          quiz.quizId, 'New Description.');
         expect(quizDescription).toStrictEqual({});
         const quizInfo = adminQuizInfo(user.authUserId, quiz.quizId);
         if ('description' in quizInfo) {
@@ -373,7 +373,7 @@ describe('adminQuizDescriptionUpdate', () => {
         'Write a descrition for this quiz.');
       if ('quizId' in quiz) {
         expect(adminQuizDescriptionUpdate(user.authUserId + 1, quiz.quizId,
-        'Description.')).toStrictEqual({ error: expect.any(String) });
+          'Description.')).toStrictEqual({ error: expect.any(String) });
       }
     }
   });
@@ -386,7 +386,7 @@ describe('adminQuizDescriptionUpdate', () => {
         'Write a descrition for this quiz.');
       if ('quizId' in quiz) {
         expect(adminQuizDescriptionUpdate(user.authUserId, quiz.quizId + 1,
-        'Description.')).toStrictEqual({ error: expect.any(String) });
+          'Description.')).toStrictEqual({ error: expect.any(String) });
       }
     }
   });
@@ -400,11 +400,11 @@ describe('adminQuizDescriptionUpdate', () => {
       const user2 = adminAuthRegister('xyz@unsw.edu.au',
         'abcd1234', 'Henry', 'Duckens');
       if ('authUserId' in user2) {
-      const quiz2 = adminQuizCreate(user2.authUserId, 'COMP1531',
-        'Write a descrition for the quiz.');
+        const quiz2 = adminQuizCreate(user2.authUserId, 'COMP1531',
+          'Write a descrition for the quiz.');
         if ('quizId' in quiz2) {
           expect(adminQuizDescriptionUpdate(user.authUserId, quiz2.quizId,
-          'Description.')).toStrictEqual({ error: expect.any(String) });
+            'Description.')).toStrictEqual({ error: expect.any(String) });
         }
       }
     }
