@@ -4,52 +4,9 @@ import {
 
 import fs from 'fs';
 
-// Sesssion Activity Definitions
+// Session Activity Definitions
 export const active = true;
 export const inactive = false;
-
-// Data Interfaces
-export interface User {
-  userId: number,
-  nameFirst: string,
-  nameLast: string,
-  email: string,
-  password: string,
-  numSuccessfulLogins: number,
-  numFailedPasswordsSinceLastLogin: number,
-  oldPasswords: string[]
-}
-
-export interface Quiz {
-  quizId: number,
-  name: string,
-  quizCreatorId: number,
-  timeCreated: number,
-  timeLastEdited: number,
-  description: string,
-  questions: string[],
-  answers: string[]
-}
-
-export interface Data {
-  users: User[],
-  quizzes: Quiz[]
-  tokens: TokenInfo[]
-}
-
-export interface TokenInfo {
-  token: string,
-  userId: number,
-  activity: boolean
-}
-
-export interface Token {
-  token: string
-}
-
-export interface AuthUserId {
-	authUserId: number
-}
 
 
 /*

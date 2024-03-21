@@ -27,6 +27,33 @@ export interface Quiz {
   answers: string[]
 }
 
+//Token interface
+export interface Token {
+  token: string,
+  userId: number
+}
+//AuthUserId interface
+export interface AuthUserId {
+  authUserId: number
+}
+
+//UserDetails interface (return type)
+export interface UserDetails {
+	user: {
+		userId: number,
+		name: string,
+		email: string,
+		numSuccessfulLogins: number,
+		numFailedPasswordsSinceLastLogin: number
+	}
+}
+
+//Token return type
+export interface TokenReturn {
+  token: string
+}
+
+
 //DataStore interface
 export interface Data {
   users: User[],

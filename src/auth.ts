@@ -1,52 +1,60 @@
 import { tokenToString } from 'typescript';
-import { Token, TokenInfo, AuthUserId, User, Quiz, Data, getData, setData } from './dataStore';
-const isEmail = require('validator/lib/isEmail');
+
+import { 
+  getData, 
+  setData 
+} from './dataStore';
+
+import {
+	ErrorObject,
+	User,
+  Data,
+  AuthUserId,
+  UserDetails
+} from './types';
+
+import HTTPError from 'http-errors';
 
 // Global Variables
 const minNameLength = 2;
 const maxNameLength = 20;
 const minPasswordLength = 8;
-
-import {
-	ErrorObject,
-	User,
-	Quiz
-} from './types';
-
-
-export interface AdminUserDetailsReturn {
-	user: {
-		userId: number,
-		name: string,
-		email: string,
-		numSuccessfulLogins: number,
-		numFailedPasswordsSinceLastLogin: number
-	}
-}
+const isEmail = require('validator/lib/isEmail');
 
 // Exported to server to allow token creation for sessions
-export const createToken = ( authUserId: number ): Token => {
+export const createToken = ( authUserId: number ): string => {
   const data = getData();
   const token: string = (-authUserId).toString();
-  const newTokenInfo = {
+  data.tokens.push({
     token: token,
     userId: authUserId,
-    activity: true
-  }
-  data.tokens.push(newTokenInfo)
+  });
   setData(data);
-  const returnToken = { token: newTokenInfo.token };
-  return returnToken;
+  return token;
 }
 
-// This funciton is exported to server and allows the userId of a user to be
+// This function is exported to server and allows the userId of a user to be
 // retrieved from a token
-export const idFromToken = ( token: string ): AuthUserId => {
-  const data = getData();
-  const tokenInfo = data.tokens.find(dataToken => token === dataToken.token);
+export const idFromToken = ( token: string ): ErrorObject | AuthUserId => {
+  const tokenInfo = getData().tokens.find(dataToken => token === dataToken.token);
   const user = data.users.find(user => user.userId === tokenInfo.userId);
-  return { authUserId: user.userId };
+
+  if (user) {
+    return { authUserId: tokenobject.userId };
+  }
+  throw HTTPError(403, 'Token does not refer to a valid logged in session');
 }
+
+/** Goes through data array and removes the token that needs to be deleted
+ * 
+ * @param {string} token 
+ */
+export const removeToken = ( token: string ): void => {
+  const data = getData();
+  data.tokens = data.tokens.filter(a => a.token !== token);
+  setData(data);
+}
+
 
 /**
  * Register a user with an email, password, and names,
@@ -59,7 +67,6 @@ export const idFromToken = ( token: string ): AuthUserId => {
  *
  * @returns {int}
 */
-
 export const adminAuthRegister = (email: string, password: string, nameFirst: string, nameLast:string): AuthUserId | ErrorObject => {
   const data = getData();
   const result = adminAuthRegisterErrors(email, password, nameFirst,
@@ -193,7 +200,7 @@ export const adminAuthLogin = (email: string, password: string): AuthUserId | Er
  * @returns {object}
  */
 
-export const adminUserDetails = (authUserId: number): AdminUserDetailsReturn | ErrorObject => {
+export const adminUserDetails = (authUserId: number): UserDetails | ErrorObject => {
   const data = getData();
 
   const userIndex = data.users.findIndex(user => user.userId === authUserId);
