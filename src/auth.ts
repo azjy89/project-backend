@@ -287,57 +287,61 @@ export const adminUserDetailsUpdate = (authUserId: number, email: string, nameFi
  * @returns {}
  */
 
-export const adminUserPasswordUpdate = (authUserId: number, oldPassword: string, newPassword: string): object | ErrorObject => {
-  const data = getData();
-  const userIndex = data.users.findIndex(user => user.userId === authUserId);
-  if (userIndex === -1) {
-    return {
-      error: 'AuthUserId is not a valid user'
-    };
-  }
-  if (oldPassword !== data.users[userIndex].password) {
-    return {
-      error: 'Old Password is not the correct old password'
-    };
-  }
-  if (newPassword === data.users[userIndex].password) {
-    return {
-      error: 'Old Password and New Password match exactly'
-    };
-  }
-  const GetPassword = findPassword(newPassword, userIndex);
-  if (!GetPassword) {
-    return {
-      error: 'New Password has already been used before by this user'
-    };
-  }
-  if (newPassword.length < minPasswordLength) {
-    return {
-      error: 'Password is too short'
-    };
-  }
-  if (!adminAuthRegisterValidPassword(newPassword)) {
-    return {
-      error: 'Unsatisfactory password strength'
-    };
-  }
-  data.users[userIndex].password = newPassword;
+export const adminUserPasswordUpdate = ( authUserId: number, oldPassword: string, newPassword: string ): object | ErrorObject => {
+	const data = getData();
+	const userIndex = data.users.findIndex(user => user.userId === authUserId);
+	if (userIndex === -1) {
+		return {
+			error: 'AuthUserId is not a valid user'
+		}
+	}
+	if (oldPassword !== data.users[userIndex].password) {
+		return {
+			error: 'Old Password is not the correct old password'
+		}
+	}
+	if (newPassword === data.users[userIndex].password) {
+		return {
+			error: 'Old Password and New Password match exactly'
+		}
+	}
+	const GetPassword = findPassword(newPassword, userIndex);
+	if (!GetPassword) {
+		return {
+			error: 'New Password has already been used before by this user'
+		}
+	}
+	if (newPassword.length < minPasswordLength) {
+		return {
+			error: 'Password is too short'
+		}
+	}
+	if (!adminAuthRegisterValidPassword(newPassword)) {
+		return {
+			error: 'Unsatisfactory password strength'
+		}
+	}
+	data.users[userIndex].password = newPassword;
+ 
+ 
+	data.users[userIndex].oldPasswords.push(oldPassword);
+	data.users[userIndex].oldPasswords.push(newPassword);
+   
+	setData(data);
+	return {}
+ }
+ 
+ 
+const findPassword = ( password: string, userIndex: number ): boolean => {
+	let data = getData();
+	let user = data.users[userIndex];
+ 
+ 
+	for (let oldpassword of user.oldPasswords) {
+		if (password === oldpassword) {
+			return false;
+		}
+	}
+	return true;
+}
 
-  data.users[userIndex].oldPasswords.push(oldPassword);
-  data.users[userIndex].oldPasswords.push(newPassword);
-
-  setData(data);
-  return {};
-};
-
-const findPassword = (password: string, userIndex: number): boolean => {
-  const data = getData();
-  const user = data.users[userIndex];
-
-  for (const oldpassword of user.oldPasswords) {
-    if (password === oldpassword) {
-      return false;
-    }
-  }
-  return true;
-};
