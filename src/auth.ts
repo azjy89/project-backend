@@ -40,7 +40,7 @@ export const idFromToken = ( token: string ): ErrorObject | AuthUserId => {
   const user = data.users.find(user => user.userId === tokenInfo.userId);
 
   if (user) {
-    return { authUserId: tokenobject.userId };
+    return { authUserId: user.userId };
   }
   throw HTTPError(403, 'Token does not refer to a valid logged in session');
 }
