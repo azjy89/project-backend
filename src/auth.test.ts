@@ -1,5 +1,13 @@
+import request from 'sync-request-curl';
+import { port, url } from '../src/config.json';
 import { adminAuthRegister, adminAuthLogin, adminUserDetails, adminUserDetailsUpdate, adminUserPasswordUpdate } from './auth';
 import { clear } from './other';
+
+const SERVER_URL = `${url}:${port}`;
+
+beforeEach(() => {
+  request('DELETE', `${SERVER_URL}/clear`);
+});
 
 describe('adminAuthRegister', () => {
   test('successful registration', () => {
@@ -207,35 +215,58 @@ describe('adminAuthLogin', () => {
   });
 });
 
-describe('adminUserDetails', () => {
-  beforeEach(() => {
-    clear();
+
+// ========================================================================== //
+// HELPER FUNCTION: 
+// ========================================================================== //
+
+// 
+function userCreateResponse(email: string, password: string, nameFirst: string, nameLast: string) {
+  const res = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      json: { email, password, nameFirst, nameLast }
   });
-  test('successful return details', () => {
-    const user = adminAuthRegister('users@unsw.edu.au', '1234abcd',
-      'FirstName', 'LastName');
-    if ('authUserId' in user) {
-      expect(adminUserDetails(user.authUserId)).toStrictEqual({
-        user: {
-          userId: user.authUserId,
-          name: 'FirstName LastName',
-          email: 'users@unsw.edu.au',
-          numSuccessfulLogins: expect.any(Number),
-          numFailedPasswordsSinceLastLogin: expect.any(Number),
-        }
-      });
-    }
+  return JSON.parse(res.body.toString());
+};
+
+// ========================================================================== //
+
+// adminUserDetails:
+describe ('Testing GET /v1/admin/user/details', () => {
+  let user: any;
+  beforeEach(() => {
+      request('DELETE', `${SERVER_URL}/v1/clear`);
+      // return a token: string
+      user = userCreateResponse('users@unsw.edu.au', '1234abcd', 'FirstName', 'LastName');
   });
 
-  test('AuthUserId is not a valid user', () => {
-    clear();
-    const user = adminAuthRegister('users@unsw.edu.au', '1234abcd',
-      'FirstName', 'LastName');
-    if ('authUserId' in user) {
-      expect(adminUserDetails(user.authUserId + 1)).toEqual(
-        { error: expect.any(String) }
-      );
-    }
+  test('successful return details', () => {
+      const res = request('GET', `${SERVER_URL}/v1/admin/user/details`, {
+          json: {
+              token: user.token
+          }
+      });
+      expect(res.statusCode).toStrictEqual(200);
+      const resObj = JSON.parse(res.body.toString());
+      expect(resObj).toStrictEqual({
+          user: {
+              userId: user.userId,
+              name: 'FirstName LastName',
+              email:'users@unsw.edu.au',
+              numSuccessfulLogins: expect.any(Number),
+              numFailedPasswordsSinceLastLogin: expect.any(Number),
+          }
+      })
+  }); 
+
+  test('AuthUserId is not a valid user', () => { 
+      const res = request('GET', `${SERVER_URL}/v1/admin/user/details`, {
+          json: {
+              token: String(Number(user.token) + 1)
+          }
+      })
+      expect(res.statusCode).toStrictEqual(401);
+      const resObj = JSON.parse(res.body.toString());
+      expect(resObj).toStrictEqual({error: expect.any(String)})
   });
 });
 
