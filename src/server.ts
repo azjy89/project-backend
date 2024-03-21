@@ -33,10 +33,14 @@ import {
 } from './other';
 
 import {
-  AuthUserId,
+  AuthUserId
 } from './types';
 
-
+import {
+  trashQuizList,
+  trashQuizRestore,
+  trashEmpty
+} from './trash';
 
 // Set up web app
 const app = express();
@@ -136,7 +140,7 @@ app.put('/v1/admin/user/details', (req: Request, res: Response) => {
   const { token, email, nameFirst, nameLast } = req.body;
   // Validate token MAYBE???
   // Retrieve userId for the token
-  const userId = idFromToken(token.token);
+  const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
   // Call and return adminUserDetailsUpdate
   const userDetails = adminUserDetails(authUserId.authUserId);
@@ -305,17 +309,65 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
   const { token } = req.body;
   // Some sort of error checking???? 
   idFromToken(token);
-  // NEED TO IMPLEMENT THIS FUNCTION IN AUTH.TS
+  // Token deleted (logged out)
   deleteToken(token);
   res.status(200).json({});
 });
 
+/**GET
+ * Route for /v1/admin/quiz/trash - GET
+ * 
+ * View the quizzes that are currently in the trash for the 
+ * logged in user
+ */
+app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
+  // Request token as a query
+  const token = req.query.token as string;
+  // Retrieves userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+  // Calls and returns trashQuizList
+  const response = trashQuizList(authUserId.authUserId);
+  return res.status(200).json(response);
+});
 
+/**POST
+ * Route for /v1/admin/quiz/:quizid/restore - POST
+ * 
+ * Restore a particular quiz from the trash back to an active quiz.
+ */
+app.post('/v1/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
+  // Parses quizId to int
+  const quizId = parseInt(req.params.quizid);
+  // Request parameter from body
+  const { token } = req.body;
+  // Retrieves userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+  // Calls and returns trashQuizRestore 
+  const response = trashQuizRestore(authUserId.authUserId, quizId);
+  return res.status(200).json(response);
+});
 
-
-
-
-
+/**DELETE 
+ * Route for /v1/admin/quiz/trash/empty - DELETE
+ *
+ * Permanently delete specific quizzes currently sitting in the trash
+ */
+app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
+  // Requests quizIdString as a query
+  const quizIdString = req.query.quizIds as string;
+  // Parse it as a JSON object
+  const quizIds = JSON.parse(quizIdString);
+  // Requests token as a query
+  const token = req.query.token as string;
+  // Retrieve userId for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+  // Call and returns trashEmpty
+  const response = trashEmpty(authUserId.authUserId, quizIds);
+  return res.status(200).json(response);
+});
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================

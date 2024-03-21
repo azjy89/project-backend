@@ -269,8 +269,17 @@ export const adminQuizDescriptionUpdate = (authUserId: number, quizId: number, d
   return {};
 }
 
-
-
+/**
+ * Transfer ownership of a quiz to a different user based on their email
+ * 
+ * @param {int} authUserId 
+ * @param {int} quizId 
+ * @param {string} userEmail 
+ * @returns {}
+ */
+export function adminQuizTransfer(authUserId: number, quizId: number, userEmail: string): {} {
+  return {};
+}
 
 
 
