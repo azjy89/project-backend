@@ -2,9 +2,17 @@
 import { adminQuizList, adminQuizCreate, adminQuizRemove, adminQuizInfo, adminQuizNameUpdate, adminQuizDescriptionUpdate } from './quiz';
 import { adminAuthRegister } from './auth';
 import { clear } from './other';
+
+
+import request from 'sync-request-curl';
+import { port, url } from '../src/config.json';
+
+const SERVER_URL = `${url}:${port}`;
+
 beforeEach(() => {
-  clear();
+  request('DELETE', `${SERVER_URL}/clear`);
 });
+
 
 describe('adminQuizList', () => {
   beforeEach(() => {
@@ -342,86 +350,101 @@ describe('adminQuizNameUpdate', () => {
   });
 });
 
-describe('adminQuizDescriptionUpdate', () => {
+
+// ========================================================================== //
+// HELPER FUNCTION: 
+// ========================================================================== //
+// Update Quiz Description
+// FIX: How do I typescript this function? :object  or : object:{bodyObj: object; statusCode: Number}
+function quizUpdateDescriptionResponse(token: string, description: string, quizId: string) {
+  const res = request('PUT', `${SERVER_URL}/v1/admin/quiz/${quizId}/description`, {
+      json: {
+          token: token,
+          description: description
+      }
+  });
+  return {
+    bodyObj: JSON.parse(res.body.toString()),
+    statusCode: Number(res.statusCode)
+  }
+}
+// Create User
+function userCreateResponse(email: string, password: string, nameFirst: string, nameLast: string) {
+  const res = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
+      json: { 
+        email: email, 
+        password: password, 
+        nameFirst: nameFirst, 
+        nameLast: nameLast 
+      }
+  });
+  return JSON.parse(res.body.toString());
+};
+
+// Create Quiz
+function quizCreateResponse(token: string, name: string, description: string) { 
+  const res = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
+      json: {
+          token: token,
+          name: name,
+          description: description
+      }
+  });
+  return JSON.parse(res.body.toString());
+}
+// ========================================================================== //
+
+// adminQuizDescriptionUpdate
+describe('Testing PUT /v1/admin/quiz/{quizid}/description', () => {
+  let user: any, quiz: any; // don't need to specify?
   beforeEach(() => {
-    clear();
-  });
+      // return a token
+      user = userCreateResponse("quiz@unsw.edu.au", "haydensmith123", "Hayden", "Smith");
+      // return a quizId
+      quiz = quizCreateResponse(user.token, "COMP1531", "A description of my quiz");
+  })
 
-  test('Check successful update quiz descrition', () => {
-    const user = adminAuthRegister('quiz@unsw.edu.au',
-      'abcd1234', 'John', 'Dickens');
-    if ('authUserId' in user) {
-      const quiz = adminQuizCreate(user.authUserId, 'COMP1531',
-      'Write a descrition for this quiz.');
-      if ('quizId' in quiz) {
-        const quizDescription = adminQuizDescriptionUpdate(user.authUserId,
-        quiz.quizId, 'New Description.');
-        expect(quizDescription).toStrictEqual({});
-        const quizInfo = adminQuizInfo(user.authUserId, quiz.quizId);
-        if ('description' in quizInfo) {
-          expect(quizInfo.description).toStrictEqual('New Description.');
-        }
-      }
-    }
+  // Error: invalid token
+  test('Token is invalid', () => {
+    const response = quizUpdateDescriptionResponse(String(Number(user.token) + 1), "New Description", quiz.quizId); 
+    expect(response.statusCode).toStrictEqual(401);
+    expect(response.bodyObj).toStrictEqual({error: expect.any(String)});
   });
-
-  test('AuthUserId is not a valid user', () => {
-    const user = adminAuthRegister('quiz@unsw.edu.au',
-      'abcd1234', 'John', 'Dickens');
-    if ('authUserId' in user) {
-      const quiz = adminQuizCreate(user.authUserId, 'COMP1531',
-        'Write a descrition for this quiz.');
-      if ('quizId' in quiz) {
-        expect(adminQuizDescriptionUpdate(user.authUserId + 1, quiz.quizId,
-        'Description.')).toStrictEqual({ error: expect.any(String) });
-      }
-    }
-  });
-
+  // Error: invalid quizId.
   test('Quiz ID does not refer to a valid quiz', () => {
-    const user = adminAuthRegister('quiz@unsw.edu.au',
-      'abcd1234', 'John', 'Dickens');
-    if ('authUserId' in user) {
-      const quiz = adminQuizCreate(user.authUserId, 'COMP1531',
-        'Write a descrition for this quiz.');
-      if ('quizId' in quiz) {
-        expect(adminQuizDescriptionUpdate(user.authUserId, quiz.quizId + 1,
-        'Description.')).toStrictEqual({ error: expect.any(String) });
-      }
-    }
+    const response = quizUpdateDescriptionResponse(user.token, "New Description", quiz.quizId + 1)
+    expect(response.statusCode).toStrictEqual(401);
+    expect(response).toStrictEqual({error: expect.any(String)});
   });
-
+  // Error: valid token, wrong quiz.
   test('Quiz ID does not refer to a quiz that this user owns', () => {
-    const user = adminAuthRegister('quiz@unsw.edu.au',
-      'abcd1234', 'John', 'Dickens');
-    if ('authUserId' in user) {
-      const quiz = adminQuizCreate(user.authUserId, 'COMP1531',
-        'Write a descrition for this quiz.');
-      const user2 = adminAuthRegister('xyz@unsw.edu.au',
-        'abcd1234', 'Henry', 'Duckens');
-      if ('authUserId' in user2) {
-      const quiz2 = adminQuizCreate(user2.authUserId, 'COMP1531',
-        'Write a descrition for the quiz.');
-        if ('quizId' in quiz2) {
-          expect(adminQuizDescriptionUpdate(user.authUserId, quiz2.quizId,
-          'Description.')).toStrictEqual({ error: expect.any(String) });
-        }
-      }
-    }
+    // create a different quizId.
+    let user2 = userCreateResponse("quiz2@unsw.edu.au", "abcd1234", "Henry", "Quacks");
+    let quiz2 = quizCreateResponse(user2.token, "COMP1531", "Another description of my quiz");
+    const response = quizUpdateDescriptionResponse(user.token, "New Description", quiz2.quizId)
+    expect(response.statusCode).toStrictEqual(403);
+    expect(response).toStrictEqual({error: expect.any(String)});
   });
-
+  // Error: > 100 char
   test('Description is more than 100 characters in length.', () => {
-    const user = adminAuthRegister('quiz@unsw.edu.au',
-      'abcd1234', 'John', 'Dickens');
-    if ('authUserId' in user) {
-      const quiz = adminQuizCreate(user.authUserId, 'COMP1531',
-        'Write a descrition for this quiz.');
-      if ('quizId' in quiz) {
-        expect(adminQuizDescriptionUpdate(user.authUserId, quiz.quizId,
-            `How much wood can a wood chucker chuck wood? I don't actually know 
-            but that was a great character count filler.`
-        )).toStrictEqual({ error: expect.any(String) });
-      }
-    }
+    const response = quizUpdateDescriptionResponse(
+      user.token, 
+      `How much wood can a wood chucker chuck wood? I don't actually know but that was a great character count filler.`,
+      quiz.quizId
+    )
+    expect(response.statusCode).toStrictEqual(400);
+    expect(response).toStrictEqual({error: expect.any(String)});
+  });
+  // Success
+  test('Successful editted quiz descrition', () => {
+    const response = quizUpdateDescriptionResponse(user.token, "New Description", quiz.quizId);
+      expect(response.statusCode).toStrictEqual(200);
+      expect(response).toStrictEqual({});
+
+      //FIX: Unnecessary? (or change to http server format)
+      /*
+      let quizInfo = adminQuizInfo(user.userId, quiz.quizId)
+      expect(quizInfo.description).toStrictEqual('New Description.')
+      */
   });
 });
