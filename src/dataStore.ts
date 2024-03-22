@@ -40,6 +40,7 @@ export const setData = (newData: Data): void => {
 };
 
 export function getTrash() {
+  
   return;
 }
 
