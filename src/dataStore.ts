@@ -3,6 +3,7 @@ import {
 } from './types';
 
 import fs from 'fs';
+import path from 'path';
 
 // Session Activity Definitions
 export const active = true;
@@ -23,7 +24,7 @@ let data: Data = {
 // Use get() to sync the data with database.json and access the data
 export const getData = (): Data => {
   if (fs.existsSync('database.json')) {
-    const json = fs.readFileSync('./dataBase.json', 'utf-8');
+    const json = fs.readFileSync('./database.json', 'utf-8');
     const jsonData = JSON.parse(json);
     setData(jsonData);
   } else {
@@ -39,12 +40,16 @@ export const setData = (newData: Data): void => {
   data = newData;
 };
 
-export function getTrash() {
-  
-  return;
+export const getTrash = (): Data => {
+  const trashFilePath = path.resolve(__dirname, './dataTrash.json');
+  const trashFileBuffer = fs.readFileSync(trashFilePath);
+  const trashData = JSON.parse(trashFileBuffer.toString());
+  return trashData;
 }
 
-export function setTrash() {
-
+export const setTrash = (newTrash: Data): void => {
+  const trashFilePath = path.resolve(__dirname, './dataTrash.json');
+  const trashDataString = JSON.stringify(newTrash);
+  fs.writeFileSync(trashFilePath, trashDataString);
 }
 
