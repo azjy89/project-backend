@@ -269,7 +269,10 @@ export const requestQuizTransfer = (token: string, quizId: number, userEmail: st
       }
     }
   );
-  return JSON.parse(res.body.toString());
+  return {
+    bodyObj: JSON.parse(res.body.toString()),
+    statusCode: res.statusCode
+  };
 };
 
 export const requestQuizQuestionCreate = (token: string, quizId: number, questionBody: QuestionBody) => {
