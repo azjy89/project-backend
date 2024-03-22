@@ -4,11 +4,17 @@ import { adminAuthRegister } from './auth';
 import { clear } from './other';
 import request from 'sync-request-curl';
 import { port, url } from '../src/config.json';
+import { 
+  requestAuthRegister,
+  requestQuizCreate,
+  requestClear,
+  requestQuizTransfer
+} from './httpRequests';
 
 const SERVER_URL = `${url}:${port}`;
 
 beforeEach(() => {
-  request('DELETE', `${SERVER_URL}/clear`);
+  requestClear();
 });
 
 describe('adminQuizList', () => {
@@ -431,48 +437,6 @@ describe('adminQuizDescriptionUpdate', () => {
   });
 });
 
-// ========================================================================== //
-// HELPER FUNCTION: 
-// ========================================================================== //
-// Update Quiz Description
-// FIX: How do I typescript this function? :object  or : object:{bodyObj: object; statusCode: Number}
-function quizTransferResponse(token: string, email: string, quizId?: string) {
-  const res = request('POST', `${SERVER_URL}/v1/admin/quiz/${quizId}/description`, {
-      json: {
-          token: token,
-          email: email
-      }
-  });
-  return {
-    bodyObj: JSON.parse(res.body.toString()),
-    statusCode: Number(res.statusCode)
-  }
-}
-// Create User
-function userCreateResponse(email: string, password: string, nameFirst: string, nameLast: string) {
-  const res = request('POST', `${SERVER_URL}/v1/admin/auth/register`, {
-      json: { 
-        email: email, 
-        password: password, 
-        nameFirst: nameFirst, 
-        nameLast: nameLast 
-      }
-  });
-  return JSON.parse(res.body.toString());
-};
-
-// Create Quiz
-function quizCreateResponse(token: string, name: string, description: string) { 
-  const res = request('POST', `${SERVER_URL}/v1/admin/quiz`, {
-      json: {
-          token: token,
-          name: name,
-          description: description
-      }
-  });
-  return JSON.parse(res.body.toString());
-}
-// ========================================================================== //
 
 // adminQuizTransfer:
 // Goal: Transfer first user's quiz to user2.
@@ -480,58 +444,61 @@ describe('Testing PUT /v1/admin/quiz/{qizId}/transfer', () => {
   let user: any, quiz: any, user2: any, quiz2: any;
   beforeEach(() => {
     // return a token
-    user = userCreateResponse("first@unsw.edu.au", "FirstUser123", "First", "User");
+    user = requestAuthRegister("first@unsw.edu.au", "FirstUser123", "First", "User");
     // return a quizId
-    quiz = quizCreateResponse(user.token, "COMP1531", "A description of my quiz");
+    quiz = requestQuizCreate(user.token, "COMP1531", "A description of my quiz");
     // create second user
-    user2 = userCreateResponse("second@unsw.edu.au", "SecondUser123", "Second", "User");
-    quiz2 = quizCreateResponse(user2.token, "COMP1531", "A description of my quiz");
+    user2 = requestAuthRegister("second@unsw.edu.au", "SecondUser123", "Second", "User");
+    quiz2 = requestQuizCreate(user2.token, "COMP1531", "A description of my quiz");
   });
 
   // Error: 400 Bad Request
-  test.todo.each([
+  // - userEmail is not a real user
+  // - userEmail is the currently logged in user.
+  // - quiz name same as target's quiz name
+  test.each([
     {
       token: user2.token,
-      email: "notReal@unsw.edu.au", // userEmail is not a real user
+      email: "notReal@unsw.edu.au", 
       quizId: quiz2.quizId
     }, 
     {
-      token: user.token, // userEmail is the currently logged in user.
+      token: user.token, 
       email: "first@unsw.edu.au",
       quizId: quiz.quizId
     },
     {
-      token: user.token, // quiz name same as target's quiz name
+      token: user.token, 
       email: "second@nsw.edu.au",
       quizId: quiz.quizId
     },
   ])('Bad request', ({token, email, quizId}) => {
-    const response = quizTransferResponse(token, email, quizId);
+    const response = request(token, email, quizId);
     expect(response.statusCode).toStrictEqual(400);
     expect(response).toStrictEqual({error: expect.any(String)})
   });
 
   test('Invalid Token', () => {
     // first user
-    const response = quizTransferResponse(String(Number(user.token) + 1), "first@unsw.edu.au", quiz.quizId); 
+    const response = requestQuizTransfer(String(Number(user.token) + 1), quiz.quizId, "first@unsw.edu.au"); 
     expect(response.statusCode).toStrictEqual(401);
     expect(response.bodyObj).toStrictEqual({error: expect.any(String)});
     // second user
-    const response2 = quizTransferResponse(String(Number(user2.token) + 1), "second@unsw.edu.au", quiz2.quizId); 
+    const response2 = requestQuizTransfer(String(Number(user2.token) + 1), quiz2.quizId, "second@unsw.edu.au", ); 
     expect(response2.statusCode).toStrictEqual(401);
     expect(response2.bodyObj).toStrictEqual({error: expect.any(String)});
   });
   
-  test('Valid token, wrong quizId', () => {
+  test('Valid token; quiz not owned by user. (userId not found in quiz)', () => {
     // first user (testing the user who is transfering quiz)
-    const response = quizTransferResponse(user.token, "first@unsw.edu.au", quiz.quizId + 1)
+    const response = requestQuizTransfer(user.token, quiz.quizId + 1, "first@unsw.edu.au")
     expect(response.statusCode).toStrictEqual(403);
     expect(response).toStrictEqual({error: expect.any(String)});
   });
 
   test('Successful return and status code', () => {
     // Transfer: first user's token, second user's email, first user's quizId.
-    const response = quizTransferResponse(user.token, "second@unsw.edu.au", quiz.quizId);
+    const response = requestQuizTransfer(user.token, quiz.quizId, "second@unsw.edu.au",);
     expect(response.statusCode).toStrictEqual(200);
     expect(response).toStrictEqual({});
   });
