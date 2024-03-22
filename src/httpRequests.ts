@@ -2,12 +2,14 @@ import request from 'sync-request-curl';
 import { port, url } from './config.json';
 const SERVER_URL = `${url}:${port}`;
 
+import { QuestionBody } from './types';
+
 // Iteration 1 functions
 
 export const requestAuthRegister = (email: string, password: string, nameFirst: string, nameLast: string) => {
   const res = request(
     'POST',
-    SERVER_URL + '/v1/admin/auth/register',
+    SERVER_URL + `/v1/admin/auth/register`,
     {
       json: {
         email: email,
@@ -24,7 +26,7 @@ export const requestAuthRegister = (email: string, password: string, nameFirst: 
 export const requestAuthLogin = (email: string, password: string) => {
   const res = request(
     'POST',
-    SERVER_URL + '/v1/admin/auth/login',
+    SERVER_URL + `/v1/admin/auth/login`,
     {
       body: JSON.stringify({
         email: email,
@@ -42,7 +44,7 @@ export const requestAuthLogin = (email: string, password: string) => {
 export const requestUserDetails = (token: string) => {
   const res = request(
     'GET',
-    SERVER_URL + '/v1/admin/user/details',
+    SERVER_URL + `/v1/admin/user/details`,
     {
       qs: {
         token: token,
@@ -92,7 +94,7 @@ export const requestUserPasswordUpdate = (token: string, oldPassword: string, ne
 export const requestQuizList = (token: string) => {
   const res = request(
     'GET',
-    SERVER_URL + '/v1/admin/quiz/list',
+    SERVER_URL + `/v1/admin/quiz/list`,
     {
       qs: {
         token: token,
@@ -105,7 +107,7 @@ export const requestQuizList = (token: string) => {
 export const requestQuizCreate = (token: string, name: string, description: string) => {
   const res = request(
     'POST',
-    SERVER_URL + '/v1/admin/quiz',
+    SERVER_URL + `/v1/admin/quiz`,
     {
       body: JSON.stringify({
         token: token,
@@ -183,7 +185,7 @@ export const requestQuizDescriptionUpdate = (token: string, quizId: number, desc
 export const requestClear = () => {
   const res = request(
     'DELETE',
-    SERVER_URL + '/v1/clear',
+    SERVER_URL + `/v1/clear`,
     {
       json: {
 
@@ -192,3 +194,160 @@ export const requestClear = () => {
   );
 };
 
+// Iteration 2 functions
+
+export const requestLogout = (token: string) => {
+  const res = request(
+    'POST',
+    SERVER_URL + `/v1/admin/auth/logout`,
+    {
+      body: JSON.stringify({
+        token: token,
+      }),
+      headers: {
+        'Content-type': 'application/json',
+      }
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestTrashQuizList = (token: string) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/admin/quiz/trash`,
+    {
+      qs: {
+        token: token,
+      }
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestTrashQuizRestore = (token: string, quizId: number) => {
+  const res = request(
+    'POST',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/restore`,
+    {
+      body: JSON.stringify({
+        token: token,
+      }),
+      headers: {
+        'Content-type': 'application/json',
+      }
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestTrashEmpty = (token: string, quizIds: number[]) => {
+  const res = request(
+    'DELETE',
+    SERVER_URL + `/v1/admin/quiz/trash/empty`,
+    {
+      qs: {
+        token: token,
+        quizIds: JSON.stringify(quizIds),
+      },
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestQuizTransfer = (token: string, quizId: number, userEmail: string) => {
+  const res = request(
+    'POST',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/transfer`,
+    {
+      body: JSON.stringify({
+        token: token,
+        userEmail: userEmail,
+      }),
+      headers: {
+        'Content-type': 'application/json',
+      }
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestQuizQuestionCreate = (token: string, quizId: number, questionBody: QuestionBody) => {
+  const res = request(
+    'POST',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/question`,
+    {
+      body: JSON.stringify({
+        token: token,
+        questionBody: questionBody,
+      }),
+      headers: {
+        'Content-type': 'application/json',
+      }
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestQuizQuestionUpdate = (token: string, quizId: number, questionBody: QuestionBody) => {
+  const res = request(
+    'PUT',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}`,
+    {
+      body: JSON.stringify({
+        token: token,
+        questionBody: questionBody,
+      }),
+      headers: {
+        'Content-type': 'application/json',
+      }
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestQuizQuestionRemove = (token: string, quizId: number, questionId: number) => {
+  const res = request(
+    'DELETE',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}`,
+    {
+      qs: {
+        token: token,
+      },
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestQuizQuestionMove = (token: string, quizId: number, questionId: number, newPosition: number) => {
+  const res = request(
+    'PUT',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}/move`,
+    {
+      body: JSON.stringify({
+        token: token,
+        newPosition: newPosition,
+      }),
+      headers: {
+        'Content-type': 'application/json',
+      }
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestQuizQustionDuplicate = (token: string, quizId: number, questionId: number) => {
+  const res = request(
+    'POST',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}/duplicate`,
+    {
+      body: JSON.stringify({
+        token: token,
+      }),
+      headers: {
+        'Content-type': 'application/json',
+      }
+    }
+  );
+  return JSON.parse(res.body.toString());
+};  

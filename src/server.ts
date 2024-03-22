@@ -10,6 +10,9 @@ import path from 'path';
 import process from 'process';
 
 import {
+  createToken,
+  removeToken,
+  idFromToken,
   adminAuthRegister,
   adminAuthLogin,
   adminUserDetails,
