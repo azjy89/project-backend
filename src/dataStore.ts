@@ -23,21 +23,18 @@ let data: Data = {
 
 // Use get() to sync the data with database.json and access the data
 export const getData = (): Data => {
-  if (fs.existsSync('database.json')) {
-    const json = fs.readFileSync('./database.json', 'utf-8');
-    const jsonData = JSON.parse(json);
-    setData(jsonData);
-  } else {
-    fs.writeFileSync('database.json', '');
-  }
-  return data;
+  const storeFilePath = path.resolve(__dirname, './dataStore.json');
+  const storeFileContents = fs.readFileSync(storeFilePath).toString();
+  const storeData: Data = JSON.parse(storeFileContents);
+  return storeData;
 };
 
 // Use set(newData) to pass in the entire data object, with modifications made 
 // and then save the made changes to database.json
 export const setData = (newData: Data): void => {
-  fs.writeFileSync('./database.json', JSON.stringify(newData));
-  data = newData;
+  const storeFilePath = path.resolve(__dirname, './dataStore.json');
+  const writeData = JSON.stringify(newData);
+  fs.writeFileSync(storeFilePath, writeData);
 };
 
 export const getTrash = (): Data => {
