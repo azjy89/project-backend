@@ -23,7 +23,7 @@ let data: Data = {
 // Use get() to sync the data with database.json and access the data
 export const getData = (): Data => {
   if (fs.existsSync('database.json')) {
-    const json = fs.readFileSync('./dataBase.json', 'utf-8');
+    const json = fs.readFileSync('./database.json', 'utf-8');
     const jsonData = JSON.parse(json);
     setData(jsonData);
   } else {

@@ -7,6 +7,7 @@ import {
   QuizId,
   AdminQuizInfoReturn,
   Data,
+  Quiz,
   QuestionBody,
   QuestionId,
   DupedQuestionId
@@ -50,7 +51,7 @@ export const adminQuizList = (authUserId: number): AdminQuizListReturn | ErrorOb
  * @returns {int}
  */
 
-export const adminQuizCreate = (authUserId: number, name: string, description:string): AdminQuizCreateReturn | ErrorObject => {
+export const adminQuizCreate = (authUserId: number, name: string, description:string): QuizId | ErrorObject => {
   const data = getData();
 
   // Check if the authUserId is valid
