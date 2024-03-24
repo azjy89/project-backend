@@ -10,7 +10,7 @@ import {
   QuestionBody,
   QuestionId,
   DupedQuestionId
-} from './types';
+} from './interfaces';
 // Global Variables
 const maxNameLength = 30;
 const minNameLength = 3;
@@ -347,6 +347,40 @@ export function adminQuizQuestionMove(quizId: number, questionId: number, newPos
  * @param {int} authUserId 
  * @returns {}
  */
-export function adminQuizQuestionDuplicate(quizId: number, questionId: number, authUserId: number): Error | DupedQuestionId {
-  return {};
+
+export function adminQuizQuestionDuplicate(quizId: number, questionId: number, authUserId: number): ErrorObject | DupedQuestionId {
+  let data = getData();
+  // Errors
+  // Error: Invalid questionId
+  const currentQuiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  // FIX: need to add interface for 'question' in dataStore... to access questionId.
+  const currentQuestion = currentQuiz.questions.find(question => question.questionId === questionId)
+  if (!currentQuestion) {
+    return {
+      error: "Question Id does not refer to a valid question within this quiz"
+    };
+  }
+  // Error: Invalid authUserId
+  const userIndex = data.users.findIndex(user => user.userId === authUserId);
+  if (userIndex === -1) {
+    return {
+      error: 'AuthUserId is not a valid user'
+    };
+  }
+  // Error: Valid authUserId, wrong quiz.
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (quiz.quizCreatorId != authUserId) {
+    return {
+      error: 'Quiz ID does not refer to a quiz that this user own'
+    };
+  }
+
+  // Successful
+  const newQuestionId = currentQuiz.questions.length +1;
+  const newQuestion = currentQuestion;
+  newQuestion.questionId = newQuestionId
+  currentQuiz.questions.push(newQuestion)
+  currentQuiz.timeLastEdited = Date.now();
+
+  return {newQuestionId: newQuestionId};
 }
