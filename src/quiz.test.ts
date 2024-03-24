@@ -2,8 +2,9 @@
 import { adminQuizList, adminQuizCreate, adminQuizRemove, adminQuizInfo, adminQuizNameUpdate, adminQuizDescriptionUpdate } from './quiz';
 import { adminAuthRegister } from './auth';
 import { clear } from './other';
+import { requestAuthRegister, requestClear, requestQuizCreate, requestQuizQuestionCreate, requestQuizQuestionDuplicate} from './httpRequests';
 beforeEach(() => {
-  clear();
+  requestClear();
 });
 
 describe('adminQuizList', () => {
@@ -423,5 +424,50 @@ describe('adminQuizDescriptionUpdate', () => {
         )).toStrictEqual({ error: expect.any(String) });
       }
     }
+  });
+});
+
+describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate', () => {
+  let user: any, quiz: any, question: any;
+  beforeEach(() => {
+    user = requestAuthRegister("first@unsw.edu.au", "FirstUser123", "First", "User");
+    quiz = requestQuizCreate(user.token, "COMP1531", "A description of my quiz");
+    question = requestQuizQuestionCreate(user.token, quiz.quizId, {
+      "questionBody": {
+        "question": "Who is the Monarch of England?",
+        "duration": 4,
+        "points": 5,
+        "answers": [
+          {
+            "answer": "Prince Charles",
+            "correct": true
+          }
+        ]
+      }
+    });
+  });
+
+  test('Invalid Question ID', () => {
+    const response = requestQuizQuestionDuplicate(user.token, quiz.quizId, question.questionId + 2);
+    expect(response.statusCode).toStrictEqual(400);
+    expect(response.bodyObj).toStrictEqual({error: expect.any(String)});
+  });
+
+  test('Invalid Token', () => {
+    const response = requestQuizQuestionDuplicate(String(Number(user.token) + 1), quiz.quizId, question.questionId); 
+    expect(response.statusCode).toStrictEqual(401);
+    expect(response.bodyObj).toStrictEqual({error: expect.any(String)});
+  });
+  
+  test('Valid token; quiz not owned by user. (userId not found in quiz)', () => {
+    const response = requestQuizQuestionDuplicate(user.token, quiz.quizId + 1, question.questionId);
+    expect(response.statusCode).toStrictEqual(403);
+    expect(response.bodyObj).toStrictEqual({error: expect.any(String)});
+  });
+
+  test('Successful return and status code', () => {
+    const response = requestQuizQuestionDuplicate(user.token, quiz.quizId, question.questionId);
+    expect(response.statusCode).toStrictEqual(200);
+    expect(response.bodyObj).toStrictEqual({newQuestionId: expect.any(Number)});
   });
 });

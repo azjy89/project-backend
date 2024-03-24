@@ -336,7 +336,7 @@ export const requestQuizQuestionMove = (token: string, quizId: number, questionI
   return JSON.parse(res.body.toString());
 };
 
-export const requestQuizQustionDuplicate = (token: string, quizId: number, questionId: number) => {
+export const requestQuizQuestionDuplicate = (token: string, quizId: number, questionId: number) => {
   const res = request(
     'POST',
     SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}/duplicate`,
@@ -349,5 +349,8 @@ export const requestQuizQustionDuplicate = (token: string, quizId: number, quest
       }
     }
   );
-  return JSON.parse(res.body.toString());
-};  
+  return {
+    bodyObj: JSON.parse(res.body.toString()),
+    statusCode: res.statusCode
+  }
+  };  
