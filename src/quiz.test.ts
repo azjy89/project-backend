@@ -473,9 +473,9 @@ describe('Testing PUT /v1/admin/quiz/{qizId}/transfer', () => {
       quizId: quiz.quizId
     },
   ])('Bad request', ({token, email, quizId}) => {
-    const response = request(token, email, quizId);
+    const response = requestQuizTransfer(token, quizId, email);
     expect(response.statusCode).toStrictEqual(400);
-    expect(response).toStrictEqual({error: expect.any(String)})
+    expect(response.bodyObj).toStrictEqual({error: expect.any(String)})
   });
 
   test('Invalid Token', () => {
@@ -493,13 +493,13 @@ describe('Testing PUT /v1/admin/quiz/{qizId}/transfer', () => {
     // first user (testing the user who is transfering quiz)
     const response = requestQuizTransfer(user.token, quiz.quizId + 1, "first@unsw.edu.au")
     expect(response.statusCode).toStrictEqual(403);
-    expect(response).toStrictEqual({error: expect.any(String)});
+    expect(response.bodyObj).toStrictEqual({error: expect.any(String)});
   });
 
   test('Successful return and status code', () => {
     // Transfer: first user's token, second user's email, first user's quizId.
     const response = requestQuizTransfer(user.token, quiz.quizId, "second@unsw.edu.au",);
     expect(response.statusCode).toStrictEqual(200);
-    expect(response).toStrictEqual({});
+    expect(response.bodyObj).toStrictEqual({});
   });
 });
