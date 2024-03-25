@@ -10,7 +10,8 @@ import {
   Quiz,
   QuestionBody,
   QuestionId,
-  DupedQuestionId
+  DupedQuestionId,
+  AnswerInput
 } from './types';
 // Global Variables
 const maxNameLength = 30;
@@ -305,10 +306,56 @@ export function adminQuizQuestionCreate(quizId: number, authUserId: number, ques
  * @returns {}
  */
 export function adminQuizQuestionUpdate(quizId: number, questionId: number, authUserId: number, questionBody: QuestionBody): ErrorObject | object {
+  const data = getData();
+  const quiz = data.quizzes.find(quiz => quiz.quizOwnerId === authUserId);
+  const question = quiz.questions.find(question => question.questionId === questionId);
+  if (!data.users.find(user => user.userId === authUserId)) {
+    return { error: 'Invalid UserId' };
+  }
+  if (!quiz) {
+    return { error: 'User Does Not Own Quiz' };
+  }
+  if (!question) {
+    return { error: 'Invalid QuestionId' };
+  }
+  if (questionBody.question.length < 5 || questionBody.question.length > 50) {
+    return { error: 'Invalid Question String Length' };
+  }
+  if (questionBody.duration < 1) {
+    return { error: 'Invalid Duration' };
+  }
+  if (questionBody.answers.length < 2 || questionBody.answers.length > 6) {
+    return { error: 'Invalid Number of Answers' };
+  }
+  let totalDuration = quiz.questions.duration.reduce((acc: number, curr: number) => acc + curr, 0);
+  totalDuration += questionBody.duration;
+  if (totalDuration > 180) {
+    return { error: 'Quiz Exceeded Time Limit' };
+  }
+  if (questionBody.points < 1 || questionBody.points > 10) {
+    return { error: 'Invalid Question Points' };
+  }
+  for (const answer of questionBody.answers) {
+    if (answer.answer.length) {
+      return { error: 'Invalid Answer Length' };
+    }
+  }
+  if (sameQuestionString(questionBody)) {
+    return { error: 'Duplicate Answers' };
+  }
+  if (!questionBody.answers.find(answer => answer.correct === true)) {
+    return { error: 'No Correct Answers' };
+  }
   return {};
 }
 
-
+const sameQuestionString = (questionBody: QuestionBody): boolean => {
+  return questionBody.answers.some((answer: AnswerInput, index: number) => {
+    return questionBody.answers.slice(index + 1).some(otherAnswer => {
+      return answer.answer === otherAnswer.answer;
+    })
+  })
+}
 
 /**
  * Delete a particular question from a quiz

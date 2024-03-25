@@ -10,7 +10,8 @@ import {
 	User,
   Data,
   AuthUserId,
-  UserDetails
+  UserDetails,
+  TokenReturn
 } from './types';
 
 import HTTPError from 'http-errors';
@@ -190,6 +191,25 @@ export const adminAuthLogin = (email: string, password: string): AuthUserId | Er
     authUserId: data.users[index].userId
   };
 };
+
+/**
+ * 
+ * @param inputToken 
+ * @returns 
+ */
+
+export const adminAuthLogout = (inputToken: string): Object | ErrorObject => {
+  const data = getData();
+  if (!data.tokens.find(token => token.token === inputToken)) {
+    return {
+      error: 'Invalid Token'
+    }
+  }
+
+  data.tokens = data.tokens.filter(token => token.token !== inputToken);
+  setData(data);
+  return {};
+}
 
 /**
  * Given an admin user's authUserId, return details about the user. "name" is
