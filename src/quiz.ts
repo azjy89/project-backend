@@ -1,4 +1,4 @@
-import { User, Quiz, Data, getData, setData } from './dataStore';
+import { User, Quiz, Data, getData, setData, getTrash, setTrash} from './dataStore';
 
 // Global Variables
 const maxNameLength = 30;
@@ -67,6 +67,7 @@ export const adminQuizList = ( authUserId: number ): AdminQuizListReturn | Error
 
 export const adminQuizCreate = ( authUserId: number, name: string, description:string ): AdminQuizCreateReturn | ErrorObject => {
   const data = getData();
+  const trash = getTrash();
 
   // Check if the authUserId is valid
   const userExists = data.users.some(user => user.userId === authUserId);
@@ -95,9 +96,7 @@ export const adminQuizCreate = ( authUserId: number, name: string, description:s
     return { error: 'Description must be 100 characters or less' };
   }
 
-  const newQuizId = data.quizzes.length > 0
-    ? Math.max(...data.quizzes.map(quiz => quiz.quizId)) + 1
-    : 1;
+  const newQuizId = data.quizzes.length + trash.quizzes.length + 1;
 
   const newQuiz: Quiz = {
     quizId: newQuizId,
@@ -127,6 +126,7 @@ export const adminQuizCreate = ( authUserId: number, name: string, description:s
 
 export const adminQuizRemove = ( authUserId: number, quizId: number ): object | ErrorObject => {
   const data = getData();
+  const trash = getTrash();
 
   // Check if authUserId refers to a valid user
   const userExists = data.users.some(user => user.userId === authUserId);
@@ -144,6 +144,8 @@ export const adminQuizRemove = ( authUserId: number, quizId: number ): object | 
   if (data.quizzes[quizIndex].quizCreatorId !== authUserId) {
     return { error: 'quizId does not refer to a quiz this user owns' };
   }
+  trash.quizzes.push(data.quizzes[quizIndex]);
+  setTrash(trash);
 
   data.quizzes.splice(quizIndex, 1);
   setData(data);

@@ -40,10 +40,17 @@ export const setData = (newData: Data): void => {
   data = newData;
 };
 
-export function getTrash() {
-  return;
+export interface Trash {
+  quizzes: Quiz[];
 }
 
-export function setTrash() {
+let trash: Trash = {
+  quizzes: [],
+};
+export const getTrash = (): Trash => {
+  return trash;
+}
 
+export const setTrash = (newTrash: Trash): void => {
+  trash = newTrash;
 }
