@@ -1,5 +1,5 @@
 import { before } from 'node:test';
-import { requestAuthRegister, requestAuthLogin, requestUserDetails, requestUserDetailsUpdate, requestUserPasswordUpdate, requestClear } from './httpRequests';
+import { requestAuthRegister, requestAuthLogin, requestAuthLogout, requestUserDetails, requestUserDetailsUpdate, requestUserPasswordUpdate, requestClear } from './httpRequests';
 import { response } from 'express';
 
 beforeEach(() => {
@@ -165,6 +165,28 @@ describe('adminAuthLogin', () => {
     const loginToken = requestAuthLogin('users@unsw.edu.au', '1234abce');
     const userDetails = requestUserDetails(loginToken.token);
     expect(userDetails.user.numFailedPasswordsSinceLastLogin).toStrictEqual(1);
+  });
+});
+
+describe('requestAuthLogout', () => {
+  test('successful logout', () => {
+    const responseToken = requestAuthRegister('users@unsw.edu.au', '1234abcd'
+    , 'FirstName', 'LastName');
+    const logoutReturn = requestAuthLogout(responseToken.token);
+    expect(logoutReturn).toEqual({});
+    const loginToken = requestAuthLogin('users@unsw.edu.au', '1234abcd');
+    const logoutReturn2 = requestAuthLogout(loginToken.token);
+    expect(logoutReturn2).toEqual({}); 
+  });
+
+  test('invalid token', () => {
+    const responseToken = requestAuthRegister('users@unsw.edu.au', '1234abcd'
+    , 'FirstName', 'LastName');
+    const logoutReturn = requestAuthLogout(responseToken.token + 1);
+    expect(logoutReturn).toEqual({ error: 'error' });
+    const loginToken = requestAuthLogin('users@unsw.edu.au', '1234abcd');
+    const logoutReturn2 = requestAuthLogout(loginToken.token + 1);
+    expect(logoutReturn2).toEqual({ error: 'error' }); 
   });
 });
 
