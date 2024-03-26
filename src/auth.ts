@@ -1,5 +1,3 @@
-import { tokenToString } from 'typescript';
-
 import { 
   getData, 
   setData 
@@ -37,19 +35,19 @@ export const createToken = ( authUserId: number ): string => {
 // This function is exported to server and allows the userId of a user to be
 // retrieved from a token
 export const idFromToken = ( token: string ): ErrorObject | AuthUserId => {
-  const tokenInfo = getData().tokens.find(dataToken => token === dataToken.token);
+  const dataToken = getData().tokens.find(dataToken => dataToken.token === token);
 
-  if (tokenInfo) {
-    return { authUserId: tokenInfo.userId };
+  if (dataToken) {
+    return { authUserId: dataToken.userId };
   }
   throw HTTPError(403, 'Token does not refer to a valid logged in session');
 }
 
 // Checks the token has a valid structure and throws an error if not
-export const validateToken = ( token: string ): ErrorObject | object => {
+export const validateToken = ( token: string ): ErrorObject | object  => {
   const regex = /^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$/;
   if (!regex.test(token)) {
-    throw HTTPError(401, 'Token is not a valid structure');
+    throw HTTPError(401, 'Token is not valid');
   }
   return {};
 }
@@ -97,6 +95,7 @@ export const adminAuthRegister = (email: string, password: string, nameFirst: st
     const successfulResult = {
       authUserId: newUserId,
     };
+    setData(data);
     return successfulResult;
   }
 

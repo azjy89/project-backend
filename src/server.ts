@@ -8,6 +8,8 @@ import sui from 'swagger-ui-express';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
+import errorHandler from 'middleware-http-errors';
+import createHttpError from 'http-errors';
 
 import {
   createToken,
@@ -32,7 +34,8 @@ import {
   adminQuizQuestionUpdate,
   adminQuizQuestionRemove,
   adminQuizQuestionMove,
-  adminQuizTransfer
+  adminQuizTransfer,
+  adminQuizQuestionDuplicate
 } from './quiz';
 
 import {
@@ -168,7 +171,7 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
   // Call and return adminPasswordUpdate
-  const response = adminPasswordUpdate(authUserId.authUserId, oldPassword, newPassword);
+  const response = adminUserPasswordUpdate(authUserId.authUserId, oldPassword, newPassword);
   res.status(200).json(response);
 });
 
@@ -179,7 +182,7 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
  */
 app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   // Request token as a query
-  const token = req.query.token as string;
+  const token = JSON.parse(req.query.token);
   // Validates token
   validateToken(token);
   // Retrieve userId for the token
@@ -285,7 +288,7 @@ app.put('/v1/admin/quiz/:quizid/description', (req: Request, res: Response) => {
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
   // Calls and returns an empty object from adminQuizDescriptionUpdate
-  const result = adminQuizDescriptionUpdate(authUserId.authUserId, quizId, description);
+  const response = adminQuizDescriptionUpdate(authUserId.authUserId, quizId, description);
   return res.status(200).json(response);
 });
 
@@ -315,7 +318,7 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
   // Check if token is a currently logged in session
   idFromToken(token);
   // Token deleted (logged out)
-  deleteToken(token);
+  removeToken(token);
   res.status(200).json({});
 });
 
@@ -508,25 +511,11 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
   const response = adminQuizQuestionDuplicate(quizId, questionId, authUserId.authUserId);
   return res.status(200).json(response);  
 });
-
+app.use(errorHandler());
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
 
-app.use((req: Request, res: Response) => {
-  const error = `
-    Route not found - This could be because:
-      0. You have defined routes below (not above) this middleware in server.ts
-      1. You have not implemented the route ${req.method} ${req.path}
-      2. There is a typo in either your test or server, e.g. /posts/list in one
-         and, incorrectly, /post/list in the other
-      3. You are using ts-node (instead of ts-node-dev) to start your server and
-         have forgotten to manually restart to load the new changes
-      4. You've forgotten a leading slash (/), e.g. you have posts/list instead
-         of /posts/list in your server.ts or test file
-  `;
-  res.json({ error });
-});
 
 // start server
 const server = app.listen(PORT, HOST, () => {

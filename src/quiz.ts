@@ -30,11 +30,10 @@ const maxDescriptionLength = 100;
  * @returns {object}
  */
 
-export const adminQuizList = (authUserId: number): AdminQuizListReturn | ErrorObject => {
+export const adminQuizList = (authUserId: number): AdminQuizListReturn => {
   const data: Data = getData();
-  const userExists = data.users.some(user => user.userId === authUserId);
   const userQuizzes = data.quizzes.filter(quiz => quiz.quizOwnerId === authUserId);
-  const quizList = userQuizzes.map(quiz => ({
+  const quizList = userQuizzes.map((quiz: Quiz) => ({
     quizId: quiz.quizId,
     name: quiz.name,
   }));
@@ -53,10 +52,6 @@ export const adminQuizList = (authUserId: number): AdminQuizListReturn | ErrorOb
 
 export const adminQuizCreate = (authUserId: number, name: string, description: string): QuizId | ErrorObject => {
   const data: Data = getData();
-
-  // Check if the authUserId is valid
-  const userExists = data.users.some(user => user.userId === authUserId);
-
   // Check if name contains valid characters
   if (!/^[a-zA-Z0-9 ]+$/.test(name)) {
     throw HTTPError(400, 'Quiz name must contain only alphanumeric characters and spaces');
