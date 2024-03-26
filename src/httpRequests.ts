@@ -2,7 +2,7 @@ import request from 'sync-request-curl';
 import { port, url } from './config.json';
 const SERVER_URL = `${url}:${port}`;
 
-import { QuestionBody } from './types';
+import { QuestionBody } from './interfaces';
 
 // Iteration 1 functions
 

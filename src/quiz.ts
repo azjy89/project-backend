@@ -10,9 +10,10 @@ import {
   Quiz,
   QuestionBody,
   QuestionId,
-  DupedQuestionId,
-  AnswerInput
-} from './types';
+  DupedQuestionId
+} from './interfaces';
+
+import HTTPError from 'http-errors';
 // Global Variables
 const maxNameLength = 30;
 const minNameLength = 3;
@@ -28,13 +29,8 @@ const maxDescriptionLength = 100;
 
 export const adminQuizList = (authUserId: number): AdminQuizListReturn | ErrorObject => {
   const data = getData();
-
   const userExists = data.users.some(user => user.userId === authUserId);
-  if (!userExists) {
-    return { error: 'authUserId does not refer to a valid user' };
-  }
   const userQuizzes = data.quizzes.filter(quiz => quiz.quizCreatorId === authUserId);
-
   const quizList = userQuizzes.map(quiz => ({
     quizId: quiz.quizId,
     name: quiz.name,
@@ -52,34 +48,31 @@ export const adminQuizList = (authUserId: number): AdminQuizListReturn | ErrorOb
  * @returns {int}
  */
 
-export const adminQuizCreate = (authUserId: number, name: string, description:string): QuizId | ErrorObject => {
+export const adminQuizCreate = (authUserId: number, name: string, description: string): QuizId | ErrorObject => {
   const data = getData();
 
   // Check if the authUserId is valid
   const userExists = data.users.some(user => user.userId === authUserId);
-  if (!userExists) {
-    return { error: 'authUserId does not refer to a valid user' };
-  }
 
   // Check if name contains valid characters
   if (!/^[a-zA-Z0-9 ]+$/.test(name)) {
-    return { error: 'Quiz name must contain only alphanumeric characters and spaces' };
+    throw HTTPError(400, 'Quiz name must contain only alphanumeric characters and spaces');
   }
 
   // Check if the name is within the character limits
   if (name.length < minNameLength || name.length > maxNameLength) {
-    return { error: 'Quiz name must be between 3 and 30 characters long' };
+    throw HTTPError(400, 'Quiz name must be between 3 and 30 characters long');
   }
 
   // Check if the name is already being used
   const nameExists = data.quizzes.some(quiz => quiz.name === name && quiz.quizCreatorId === authUserId);
   if (nameExists) {
-    return { error: 'Quiz name is already being used' };
+    throw HTTPError(400, 'Quiz name is already being used');
   }
 
   // Check if the description is within the character limit
   if (description.length > maxDescriptionLength) {
-    return { error: 'Description must be 100 characters or less' };
+    throw HTTPError(400, 'Description must be 100 characters or less');
   }
 
   const newQuizId = data.quizzes.length > 0
@@ -117,19 +110,16 @@ export const adminQuizRemove = (authUserId: number, quizId: number): object | Er
 
   // Check if authUserId refers to a valid user
   const userExists = data.users.some(user => user.userId === authUserId);
-  if (!userExists) {
-    return { error: 'authUserId does not refer to a valid user' };
-  }
 
   // Check if quizId refers to a valid quiz
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
   if (quizIndex === -1) {
-    return { error: 'quizId does not refer to a valid quiz' };
+    throw HTTPError(400, 'quizId does not refer to a valid quiz');
   }
 
   // Check if the quiz belongs to the user with authUserId
   if (data.quizzes[quizIndex].quizCreatorId !== authUserId) {
-    return { error: 'quizId does not refer to a quiz this user owns' };
+    throw HTTPError(400, 'quizId does not refer to a quiz this user owns');
   }
 
   data.quizzes.splice(quizIndex, 1);
@@ -150,21 +140,16 @@ export const adminQuizInfo = (authUserId: number, quizId: number): AdminQuizInfo
   const data = getData();
   const userIndex = data.users.findIndex(user => user.userId === authUserId);
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
-
-  // Checks dataStore.users to find if a userId matches; else is invalid user.
-  if (userIndex === -1) {
-    return { error: 'AuthUserId is not a valid user.' };
-  }
-
+  
   // Checks dataStore.quizzes to find if a quizId matches; else is invalid quiz.
   if (quizIndex === -1) {
-    return { error: ' Quiz ID does not refer to valid quiz.' };
+    throw HTTPError(400, 'Quiz ID does not refer to valid quiz.');
   }
 
   // Checks dataStore.quizzes for a quiz.quizCreatorId that doesn't match authUserId.
   const quiz = data.quizzes[quizIndex];
   if (authUserId !== quiz.quizCreatorId) {
-    return { error: ' Quiz ID does not refer to a quiz that this user owns.' };
+    throw HTTPError(400, 'Quiz ID does not refer to a quiz that this user owns.');
   }
 
   const name = quiz.name;
@@ -195,30 +180,27 @@ export const adminQuizNameUpdate = (authUserId: number, quizId: number, name: st
   const data = getData();
 
   const userIndex = data.users.findIndex(user => user.userId === authUserId);
-  if (userIndex === -1) {
-    return { error: 'AuthUserId is not a valid user.' };
-  }
 
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
   if (quizIndex === -1) {
-    return { error: 'Quiz ID does not refer to valid quiz.' };
+    throw HTTPError(400, 'Quiz ID does not refer to valid quiz.');
   }
 
   if (authUserId !== data.quizzes[quizIndex].quizCreatorId) {
-    return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
+    throw HTTPError(400, 'Quiz ID does not refer to a quiz that this user owns.');
   }
 
   const regex = /^[a-zA-Z0-9\s]*$/;
   if (!regex.test(name)) {
-    return { error: 'Name contains invalid characters. Valid characters are alphanumeric and spaces.' };
+    throw HTTPError(400, 'Name contains invalid characters. Valid characters are alphanumeric and spaces.');
   }
 
   if (name.length > maxNameLength || name.length < minNameLength) {
-    return { error: 'Name is either less than 3 characters long or more than 30 characters long.' };
+    throw HTTPError(400, 'Name is either less than 3 characters long or more than 30 characters long.');
   }
 
   if (data.quizzes.find(q => q.name === name && q.quizCreatorId === authUserId)) {
-    return { error: 'Name is already used by the current logged in user for another quiz.' };
+    throw HTTPError(400, 'Name is already used by the current logged in user for another quiz.');
   }
 
   // Update the quiz name in the data store
@@ -244,27 +226,17 @@ export const adminQuizDescriptionUpdate = (authUserId: number, quizId: number, d
   const data = getData();
   const userIndex = data.users.findIndex(user => user.userId === authUserId);
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
-  if (userIndex === -1) {
-    return {
-      error: 'AuthUserId is not a valid user'
-    };
-  }
+  
   if (quizIndex === -1) {
-    return {
-      error: 'Quiz ID does not refer to a valid quiz'
-    };
+    throw HTTPError(400, 'Quiz ID does not refer to a valid quiz');
   }
 
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   if (quiz.quizCreatorId != authUserId) {
-    return {
-      error: 'Quiz ID does not refer to a quiz that this user own'
-    };
+    throw HTTPError(400, 'Quiz ID does not refer to a quiz that this user own');
   }
   if (description.length >= maxDescriptionLength) {
-    return {
-      error: 'Description is more than 100 characters in length'
-    };
+    throw HTTPError(400, 'Description is more than 100 characters in length');
   }
 
   data.quizzes[quizIndex].description = description;
