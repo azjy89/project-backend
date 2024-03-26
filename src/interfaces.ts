@@ -93,7 +93,7 @@ export interface AnswerInput {
 
 // questionid return type
 export interface QuestionId {
-  question: number
+  questionId: number
 }
 
 export interface DupedQuestionId {

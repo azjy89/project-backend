@@ -167,19 +167,17 @@ const adminAuthRegisterValidPassword = (password: string): boolean => {
 
 export const adminAuthLogin = (email: string, password: string): AuthUserId | ErrorObject => {
   const data = getData();
-  if (!data.users.some(user => user.email === email)) {
-    return {
-      error: 'Email does not exist'
-    };
+  const user = data.users.some(user => user.email === email);
+
+  if (!user) {
+    throw HTTPError(400, 'User with this email does not exist');
   }
 
   const index = data.users.findIndex(user => user.email === email);
   if (data.users[index].password !== password) {
     data.users[index].numFailedPasswordsSinceLastLogin++;
     setData(data);
-    return {
-      error: 'Incorrect password'
-    };
+    throw HTTPError(400, 'Incorrect password');
   }
 
   data.users[index].numFailedPasswordsSinceLastLogin = 0;
@@ -305,30 +303,20 @@ export const adminUserPasswordUpdate = ( authUserId: number, oldPassword: string
 		}
 	}
 	if (oldPassword !== data.users[userIndex].password) {
-		return {
-			error: 'Old Password is not the correct old password'
-		}
+    throw HTTPError(400, 'Old password is not the correct old password');
 	}
 	if (newPassword === data.users[userIndex].password) {
-		return {
-			error: 'Old Password and New Password match exactly'
-		}
+    throw HTTPError(400, 'Old Password and New Password match exactly');
 	}
 	const GetPassword = findPassword(newPassword, userIndex);
 	if (!GetPassword) {
-		return {
-			error: 'New Password has already been used before by this user'
-		}
+    throw HTTPError(400, 'New Password has already been used before by this user');
 	}
 	if (newPassword.length < minPasswordLength) {
-		return {
-			error: 'Password is too short'
-		}
+    throw HTTPError(400, 'Password is too short');
 	}
 	if (!adminAuthRegisterValidPassword(newPassword)) {
-		return {
-			error: 'Unsatisfactory password strength'
-		}
+    throw HTTPError(400, 'Unsatisfactory password strength');
 	}
 	data.users[userIndex].password = newPassword;
  
