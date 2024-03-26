@@ -11,7 +11,7 @@ import {
   Data,
   AuthUserId,
   UserDetails
-} from './types';
+} from './interfaces';
 
 import HTTPError from 'http-errors';
 
@@ -20,11 +20,12 @@ const minNameLength = 2;
 const maxNameLength = 20;
 const minPasswordLength = 8;
 const isEmail = require('validator/lib/isEmail');
+const uuid = require('uuid');
 
 // Exported to server to allow token creation for sessions
 export const createToken = ( authUserId: number ): string => {
   const data = getData();
-  const token: string = (-authUserId).toString();
+  const token: string = uuid.v4();
   data.tokens.push({
     token: token,
     userId: authUserId,
@@ -37,12 +38,20 @@ export const createToken = ( authUserId: number ): string => {
 // retrieved from a token
 export const idFromToken = ( token: string ): ErrorObject | AuthUserId => {
   const tokenInfo = getData().tokens.find(dataToken => token === dataToken.token);
-  const checkUser = getData().users.find(user => user.userId === tokenInfo.userId);
 
-  if (checkUser) {
-    return { authUserId: checkUser.userId };
+  if (tokenInfo) {
+    return { authUserId: tokenInfo.userId };
   }
   throw HTTPError(403, 'Token does not refer to a valid logged in session');
+}
+
+// Checks the token has a valid structure and throws an error if not
+export const validateToken = ( token: string ): ErrorObject | object => {
+  const regex = /^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$/;
+  if (!regex.test(token)) {
+    throw HTTPError(401, 'Token is not a valid structure');
+  }
+  return {};
 }
 
 /** Goes through data array and removes the token that needs to be deleted
@@ -167,19 +176,17 @@ const adminAuthRegisterValidPassword = (password: string): boolean => {
 
 export const adminAuthLogin = (email: string, password: string): AuthUserId | ErrorObject => {
   const data = getData();
-  if (!data.users.some(user => user.email === email)) {
-    return {
-      error: 'Email does not exist'
-    };
+  const user = data.users.some(user => user.email === email);
+
+  if (!user) {
+    throw HTTPError(400, 'User with this email does not exist');
   }
 
   const index = data.users.findIndex(user => user.email === email);
   if (data.users[index].password !== password) {
     data.users[index].numFailedPasswordsSinceLastLogin++;
     setData(data);
-    return {
-      error: 'Incorrect password'
-    };
+    throw HTTPError(400, 'Incorrect password');
   }
 
   data.users[index].numFailedPasswordsSinceLastLogin = 0;
@@ -190,6 +197,25 @@ export const adminAuthLogin = (email: string, password: string): AuthUserId | Er
     authUserId: data.users[index].userId
   };
 };
+
+/**
+ * 
+ * @param inputToken 
+ * @returns 
+ */
+
+export const adminAuthLogout = (inputToken: string): Object | ErrorObject => {
+  const data = getData();
+  if (!data.tokens.find(token => token.token === inputToken)) {
+    return {
+      error: 'Invalid Token'
+    }
+  }
+
+  data.tokens = data.tokens.filter(token => token.token !== inputToken);
+  setData(data);
+  return {};
+}
 
 /**
  * Given an admin user's authUserId, return details about the user. "name" is
@@ -305,30 +331,20 @@ export const adminUserPasswordUpdate = ( authUserId: number, oldPassword: string
 		}
 	}
 	if (oldPassword !== data.users[userIndex].password) {
-		return {
-			error: 'Old Password is not the correct old password'
-		}
+    throw HTTPError(400, 'Old password is not the correct old password');
 	}
 	if (newPassword === data.users[userIndex].password) {
-		return {
-			error: 'Old Password and New Password match exactly'
-		}
+    throw HTTPError(400, 'Old Password and New Password match exactly');
 	}
 	const GetPassword = findPassword(newPassword, userIndex);
 	if (!GetPassword) {
-		return {
-			error: 'New Password has already been used before by this user'
-		}
+    throw HTTPError(400, 'New Password has already been used before by this user');
 	}
 	if (newPassword.length < minPasswordLength) {
-		return {
-			error: 'Password is too short'
-		}
+    throw HTTPError(400, 'Password is too short');
 	}
 	if (!adminAuthRegisterValidPassword(newPassword)) {
-		return {
-			error: 'Unsatisfactory password strength'
-		}
+    throw HTTPError(400, 'Unsatisfactory password strength');
 	}
 	data.users[userIndex].password = newPassword;
  
