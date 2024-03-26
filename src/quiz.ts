@@ -11,7 +11,7 @@ import {
   QuestionBody,
   QuestionId,
   DupedQuestionId
-} from './types';
+} from './interfaces';
 // Global Variables
 const maxNameLength = 30;
 const minNameLength = 3;

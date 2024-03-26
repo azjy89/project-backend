@@ -40,7 +40,7 @@ import {
 
 import {
   AuthUserId
-} from './types';
+} from './interfaces';
 
 import {
   trashQuizList,

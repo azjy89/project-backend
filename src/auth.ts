@@ -11,7 +11,7 @@ import {
   Data,
   AuthUserId,
   UserDetails
-} from './types';
+} from './interfaces';
 
 import HTTPError from 'http-errors';
 
