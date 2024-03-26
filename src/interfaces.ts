@@ -19,7 +19,7 @@ export interface User {
 export interface Quiz {
   quizId: number,
   name: string,
-  quizCreatorId: number,
+  quizOwnerId: number,
   timeCreated: number,
   timeLastEdited: number,
   description: string,

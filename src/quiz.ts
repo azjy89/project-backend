@@ -11,7 +11,7 @@ import {
   QuestionBody,
   QuestionId,
   DupedQuestionId
-} from './types';
+} from './interfaces';
 // Global Variables
 const maxNameLength = 30;
 const minNameLength = 3;
@@ -32,7 +32,7 @@ export const adminQuizList = (authUserId: number): AdminQuizListReturn | ErrorOb
   if (!userExists) {
     return { error: 'authUserId does not refer to a valid user' };
   }
-  const userQuizzes = data.quizzes.filter(quiz => quiz.quizCreatorId === authUserId);
+  const userQuizzes = data.quizzes.filter(quiz => quiz.quizOwnerId === authUserId);
 
   const quizList = userQuizzes.map(quiz => ({
     quizId: quiz.quizId,
@@ -71,7 +71,7 @@ export const adminQuizCreate = (authUserId: number, name: string, description:st
   }
 
   // Check if the name is already being used
-  const nameExists = data.quizzes.some(quiz => quiz.name === name && quiz.quizCreatorId === authUserId);
+  const nameExists = data.quizzes.some(quiz => quiz.name === name && quiz.quizOwnerId === authUserId);
   if (nameExists) {
     return { error: 'Quiz name is already being used' };
   }
@@ -88,7 +88,7 @@ export const adminQuizCreate = (authUserId: number, name: string, description:st
   const newQuiz: Quiz = {
     quizId: newQuizId,
     name: name,
-    quizCreatorId: authUserId,
+    quizOwnerId: authUserId,
     timeCreated: Date.now(),
     timeLastEdited: Date.now(),
     description: description,
@@ -127,7 +127,7 @@ export const adminQuizRemove = (authUserId: number, quizId: number): object | Er
   }
 
   // Check if the quiz belongs to the user with authUserId
-  if (data.quizzes[quizIndex].quizCreatorId !== authUserId) {
+  if (data.quizzes[quizIndex].quizOwnerId !== authUserId) {
     return { error: 'quizId does not refer to a quiz this user owns' };
   }
 
@@ -160,9 +160,9 @@ export const adminQuizInfo = (authUserId: number, quizId: number): AdminQuizInfo
     return { error: ' Quiz ID does not refer to valid quiz.' };
   }
 
-  // Checks dataStore.quizzes for a quiz.quizCreatorId that doesn't match authUserId.
+  // Checks dataStore.quizzes for a quiz.quizOwnerId that doesn't match authUserId.
   const quiz = data.quizzes[quizIndex];
-  if (authUserId !== quiz.quizCreatorId) {
+  if (authUserId !== quiz.quizOwnerId) {
     return { error: ' Quiz ID does not refer to a quiz that this user owns.' };
   }
 
@@ -203,7 +203,7 @@ export const adminQuizNameUpdate = (authUserId: number, quizId: number, name: st
     return { error: 'Quiz ID does not refer to valid quiz.' };
   }
 
-  if (authUserId !== data.quizzes[quizIndex].quizCreatorId) {
+  if (authUserId !== data.quizzes[quizIndex].quizOwnerId) {
     return { error: 'Quiz ID does not refer to a quiz that this user owns.' };
   }
 
@@ -216,7 +216,7 @@ export const adminQuizNameUpdate = (authUserId: number, quizId: number, name: st
     return { error: 'Name is either less than 3 characters long or more than 30 characters long.' };
   }
 
-  if (data.quizzes.find(q => q.name === name && q.quizCreatorId === authUserId)) {
+  if (data.quizzes.find(q => q.name === name && q.quizOwnerId === authUserId)) {
     return { error: 'Name is already used by the current logged in user for another quiz.' };
   }
 
@@ -255,7 +255,7 @@ export const adminQuizDescriptionUpdate = (authUserId: number, quizId: number, d
   }
 
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
-  if (quiz.quizCreatorId != authUserId) {
+  if (quiz.quizOwnerId != authUserId) {
     return {
       error: 'Quiz ID does not refer to a quiz that this user own'
     };
