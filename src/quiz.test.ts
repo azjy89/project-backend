@@ -1,4 +1,4 @@
-import { requestAuthRegister, requestQuizList, requestQuizCreate, requestQuizRemove, requestQuizInfo, requestQuizNameUpdate, requestQuizDescriptionUpdate, requestQuizQuestionCreate, requestQuizQuestionUpdate, requestClear } from './quiz';
+import { requestAuthRegister, requestQuizList, requestQuizCreate, requestQuizRemove, requestQuizInfo, requestQuizNameUpdate, requestQuizDescriptionUpdate, requestQuizQuestionCreate, requestQuizQuestionUpdate, requestClear } from './httpRequests';
 import { TokenReturn, QuizId, Quiz, QuestionBody, QuestionId } from './interfaces'
 import { string } from 'yaml/dist/schema/common/string';
 beforeEach(() => {
@@ -315,7 +315,7 @@ describe('requestQuizQuestionUpdate', () => {
         }
       ]
     }
-    quizQuestion = requestQuizQuestionCreate(quiz1.quizId, question);
+    quizQuestion = requestQuizQuestionCreate(resToken.token, quiz1.quizId, question);
   });
 
   test('successful quiz question udpate', () => {

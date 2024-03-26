@@ -30,7 +30,7 @@ const maxDescriptionLength = 100;
 export const adminQuizList = (authUserId: number): AdminQuizListReturn | ErrorObject => {
   const data = getData();
   const userExists = data.users.some(user => user.userId === authUserId);
-  const userQuizzes = data.quizzes.filter(quiz => quiz.quizCreatorId === authUserId);
+  const userQuizzes = data.quizzes.filter(quiz => quiz.quizOwnerId === authUserId);
   const quizList = userQuizzes.map(quiz => ({
     quizId: quiz.quizId,
     name: quiz.name,
@@ -65,7 +65,7 @@ export const adminQuizCreate = (authUserId: number, name: string, description: s
   }
 
   // Check if the name is already being used
-  const nameExists = data.quizzes.some(quiz => quiz.name === name && quiz.quizCreatorId === authUserId);
+  const nameExists = data.quizzes.some(quiz => quiz.name === name && quiz.quizOwnerId === authUserId);
   if (nameExists) {
     throw HTTPError(400, 'Quiz name is already being used');
   }
@@ -82,7 +82,7 @@ export const adminQuizCreate = (authUserId: number, name: string, description: s
   const newQuiz: Quiz = {
     quizId: newQuizId,
     name: name,
-    quizCreatorId: authUserId,
+    quizOwnerId: authUserId,
     timeCreated: Date.now(),
     timeLastEdited: Date.now(),
     description: description,
@@ -118,7 +118,7 @@ export const adminQuizRemove = (authUserId: number, quizId: number): object | Er
   }
 
   // Check if the quiz belongs to the user with authUserId
-  if (data.quizzes[quizIndex].quizCreatorId !== authUserId) {
+  if (data.quizzes[quizIndex].quizOwnerId !== authUserId) {
     throw HTTPError(400, 'quizId does not refer to a quiz this user owns');
   }
 
@@ -146,9 +146,9 @@ export const adminQuizInfo = (authUserId: number, quizId: number): AdminQuizInfo
     throw HTTPError(400, 'Quiz ID does not refer to valid quiz.');
   }
 
-  // Checks dataStore.quizzes for a quiz.quizCreatorId that doesn't match authUserId.
+  // Checks dataStore.quizzes for a quiz.quizOwnerId that doesn't match authUserId.
   const quiz = data.quizzes[quizIndex];
-  if (authUserId !== quiz.quizCreatorId) {
+  if (authUserId !== quiz.quizOwnerId) {
     throw HTTPError(400, 'Quiz ID does not refer to a quiz that this user owns.');
   }
 
@@ -186,7 +186,7 @@ export const adminQuizNameUpdate = (authUserId: number, quizId: number, name: st
     throw HTTPError(400, 'Quiz ID does not refer to valid quiz.');
   }
 
-  if (authUserId !== data.quizzes[quizIndex].quizCreatorId) {
+  if (authUserId !== data.quizzes[quizIndex].quizOwnerId) {
     throw HTTPError(400, 'Quiz ID does not refer to a quiz that this user owns.');
   }
 
@@ -199,7 +199,7 @@ export const adminQuizNameUpdate = (authUserId: number, quizId: number, name: st
     throw HTTPError(400, 'Name is either less than 3 characters long or more than 30 characters long.');
   }
 
-  if (data.quizzes.find(q => q.name === name && q.quizCreatorId === authUserId)) {
+  if (data.quizzes.find(q => q.name === name && q.quizOwnerId === authUserId)) {
     throw HTTPError(400, 'Name is already used by the current logged in user for another quiz.');
   }
 
@@ -232,7 +232,7 @@ export const adminQuizDescriptionUpdate = (authUserId: number, quizId: number, d
   }
 
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
-  if (quiz.quizCreatorId != authUserId) {
+  if (quiz.quizOwnerId != authUserId) {
     throw HTTPError(400, 'Quiz ID does not refer to a quiz that this user own');
   }
   if (description.length >= maxDescriptionLength) {
@@ -281,42 +281,40 @@ export function adminQuizQuestionUpdate(quizId: number, questionId: number, auth
   const data = getData();
   const quiz = data.quizzes.find(quiz => quiz.quizOwnerId === authUserId);
   const question = quiz.questions.find(question => question.questionId === questionId);
-  if (!data.users.find(user => user.userId === authUserId)) {
-    return { error: 'Invalid UserId' };
-  }
+  //last time edited
   if (!quiz) {
-    return { error: 'User Does Not Own Quiz' };
+    throw HTTPError(400, 'User Does Not Own Quiz');
   }
   if (!question) {
-    return { error: 'Invalid QuestionId' };
+    throw HTTPError(400, 'Invalid QuestionId');
   }
   if (questionBody.question.length < 5 || questionBody.question.length > 50) {
-    return { error: 'Invalid Question String Length' };
+    throw HTTPError(400, 'Invalid Question String Length');
   }
   if (questionBody.duration < 1) {
-    return { error: 'Invalid Duration' };
+    throw HTTPError(400, 'Invalid Duration');
   }
   if (questionBody.answers.length < 2 || questionBody.answers.length > 6) {
-    return { error: 'Invalid Number of Answers' };
+    throw HTTPError(400, 'Invalid Number of Answers');
   }
   let totalDuration = quiz.questions.duration.reduce((acc: number, curr: number) => acc + curr, 0);
   totalDuration += questionBody.duration;
   if (totalDuration > 180) {
-    return { error: 'Quiz Exceeded Time Limit' };
+    throw HTTPError(400, 'Quiz Exceeded Time Limit');
   }
   if (questionBody.points < 1 || questionBody.points > 10) {
-    return { error: 'Invalid Question Points' };
+    throw HTTPError(400, 'Invalid Question Points');
   }
   for (const answer of questionBody.answers) {
     if (answer.answer.length) {
-      return { error: 'Invalid Answer Length' };
+      throw HTTPError(400, 'Invalid Answer Length');
     }
   }
   if (sameQuestionString(questionBody)) {
-    return { error: 'Duplicate Answers' };
+    throw HTTPError(400, 'Duplicate Answers');
   }
   if (!questionBody.answers.find(answer => answer.correct === true)) {
-    return { error: 'No Correct Answers' };
+    throw HTTPError(400, 'No Correct Answers');
   }
   return {};
 }

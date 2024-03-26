@@ -198,24 +198,6 @@ export const adminAuthLogin = (email: string, password: string): AuthUserId | Er
   };
 };
 
-/**
- * 
- * @param inputToken 
- * @returns 
- */
-
-export const adminAuthLogout = (inputToken: string): Object | ErrorObject => {
-  const data = getData();
-  if (!data.tokens.find(token => token.token === inputToken)) {
-    return {
-      error: 'Invalid Token'
-    }
-  }
-
-  data.tokens = data.tokens.filter(token => token.token !== inputToken);
-  setData(data);
-  return {};
-}
 
 /**
  * Given an admin user's authUserId, return details about the user. "name" is
