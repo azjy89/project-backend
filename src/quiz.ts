@@ -284,14 +284,7 @@ export function adminQuizQuestionUpdate(quizId: number, questionId: number, auth
   const data = getData();
   const quiz = data.quizzes.find(quiz => quiz.quizOwnerId === authUserId);
   const question = quiz.questions.find(question => question.questionId === questionId);
-<<<<<<< HEAD
-  //last time edited
-=======
-  const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId);
-  if (!data.users.find(user => user.userId === authUserId)) {
-    return { error: 'Invalid UserId' };
-  }
->>>>>>> e33018c488d109e6cc067a83b915688eec4a9869
+
   if (!quiz) {
     throw HTTPError(400, 'User Does Not Own Quiz');
   }
