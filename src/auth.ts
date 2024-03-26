@@ -20,11 +20,12 @@ const minNameLength = 2;
 const maxNameLength = 20;
 const minPasswordLength = 8;
 const isEmail = require('validator/lib/isEmail');
+const uuid = require('uuid');
 
 // Exported to server to allow token creation for sessions
 export const createToken = ( authUserId: number ): string => {
   const data = getData();
-  const token: string = (-authUserId).toString();
+  const token: string = uuid.v4();
   data.tokens.push({
     token: token,
     userId: authUserId,
@@ -37,12 +38,20 @@ export const createToken = ( authUserId: number ): string => {
 // retrieved from a token
 export const idFromToken = ( token: string ): ErrorObject | AuthUserId => {
   const tokenInfo = getData().tokens.find(dataToken => token === dataToken.token);
-  const checkUser = getData().users.find(user => user.userId === tokenInfo.userId);
 
-  if (checkUser) {
-    return { authUserId: checkUser.userId };
+  if (tokenInfo) {
+    return { authUserId: tokenInfo.userId };
   }
   throw HTTPError(403, 'Token does not refer to a valid logged in session');
+}
+
+// Checks the token has a valid structure and throws an error if not
+export const validateToken = ( token: string ): ErrorObject | object => {
+  const regex = /^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$/;
+  if (!regex.test(token)) {
+    throw HTTPError(401, 'Token is not a valid structure');
+  }
+  return {};
 }
 
 /** Goes through data array and removes the token that needs to be deleted

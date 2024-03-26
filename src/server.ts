@@ -13,6 +13,7 @@ import {
   createToken,
   removeToken,
   idFromToken,
+  validateToken,
   adminAuthRegister,
   adminAuthLogin,
   adminUserDetails,
@@ -126,29 +127,11 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   // Request token as a query
   const token = req.query.token as string;
-  // Validate token?????? MAYBE ADD LATER
+  // Validates token
+  validateToken(token);
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
   // Call adminUserDetails 
-  const userDetails = adminUserDetails(authUserId.authUserId);
-  return res.status(200).json(userDetails);
-});
-
-
-/**PUT
- * Route for /v1/admin/user/details - PUT
- * 
- * Given a set of properties, update those properties of this logged in 
- * admin user.
- */
-app.put('/v1/admin/user/details', (req: Request, res: Response) => {
-  // Request parameters from body
-  const { token, email, nameFirst, nameLast } = req.body;
-  // Validate token MAYBE???
-  // Retrieve userId for the token
-  const userId = idFromToken(token);
-  const authUserId = userId as AuthUserId;
-  // Call and return adminUserDetailsUpdate
   const userDetails = adminUserDetails(authUserId.authUserId);
   return res.status(200).json(userDetails);
 });
@@ -162,6 +145,8 @@ app.put('/v1/admin/user/details', (req: Request, res: Response) => {
 app.put('/v1/admin/user/details', (req: Request, res: Response) => {
   // Request parameters from body
   const { token, email, nameFirst, nameLast } = req.body;
+  // Validates token
+  validateToken(token);
   // Retrieve userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -179,6 +164,8 @@ app.put('/v1/admin/user/details', (req: Request, res: Response) => {
 app.put('/v1/admin/user/password', (req: Request, res: Response) => {
   // Request parameters from body
   const { token, oldPassword, newPassword } = req.body;
+  // Validates token
+  validateToken(token);
   // Retrieve userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -195,6 +182,8 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
 app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   // Request token as a query
   const token = req.query.token as string;
+  // Validates token
+  validateToken(token);
   // Retrieve userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -211,6 +200,8 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
 app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   // Request parameter from body
   const { token } = req.body;
+  // Validates token
+  validateToken(token);
   // Retrieve userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -231,6 +222,8 @@ app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   // Requests token as a query
   const token = req.query.token as string;
+  // Validates token
+  validateToken(token);
   // Retrieves user for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -249,6 +242,8 @@ app.get('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   // Requests token as a query
   const token = req.query.token as string;
+  // Validates token
+  validateToken(token);
   // Retrieves user for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -267,6 +262,8 @@ app.put('/v1/admin/quiz/:quizid/name', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   // Requests parameters from body
   const { token, name } = req.body;
+  // Validates token
+  validateToken(token);
   // Retrieves userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -285,6 +282,8 @@ app.put('/v1/admin/quiz/:quizid/description', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   // Requests params from body
   const { token, description } = req.body;
+  // Validates token
+  validateToken(token);
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
   // Calls and returns an empty object from adminQuizDescriptionUpdate
@@ -313,7 +312,9 @@ app.delete('/v1/clear', (req:Request, res: Response) => {
 app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
   // Request parameter from body
   const { token } = req.body;
-  // Some sort of error checking???? 
+  // Validates token
+  validateToken(token);
+  // Check if token is a currently logged in session
   idFromToken(token);
   // Token deleted (logged out)
   deleteToken(token);
@@ -329,6 +330,8 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
 app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
   // Request token as a query
   const token = req.query.token as string;
+  // Validates token
+  validateToken(token);
   // Retrieves userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -347,6 +350,8 @@ app.post('/v1/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   // Request parameter from body
   const { token } = req.body;
+  // Validates token
+  validateToken(token);
   // Retrieves userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -367,6 +372,8 @@ app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
   const quizIds = JSON.parse(quizIdString);
   // Requests token as a query
   const token = req.query.token as string;
+  // Validates token
+  validateToken(token);
   // Retrieve userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -385,6 +392,8 @@ app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   // Request params from body
   const { token, userEmail } = req.body;
+  // Validates token
+  validateToken(token);
   // Retrieves userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -403,6 +412,8 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   // Request params from body
   const { token, questionBody } = req.body;
+  // Validates token
+  validateToken(token);
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -423,6 +434,8 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Respo
   const questionId = parseInt(req.params.questionid);
   // Request params from body
   const { token, questionBody } = req.body;
+  // Validates token
+  validateToken(token);
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -443,6 +456,8 @@ app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Re
   const questionId = parseInt(req.params.questionid);
   // Request token as query
   const token = req.query.token as string;
+  // Validates token
+  validateToken(token);
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -463,6 +478,8 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   const questionId = parseInt(req.params.questionid);
   // Request params from body
   const { token, newPosition } = req.body;
+  // Validates token
+  validateToken(token);
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -484,6 +501,8 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
   const questionId = parseInt(req.params.questionid);
   // Request params from body
   const { token } = req.body;
+  // Validates token
+  validateToken(token);
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
