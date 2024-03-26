@@ -1,56 +1,46 @@
-export interface User {
-    userId: number,
-    nameFirst: string,
-    nameLast: string,
-    email: string,
-    password: string,
-    numSuccessfulLogins: number,
-    numFailedPasswordsSinceLastLogin: number,
-    oldPasswords: string[]
-}
+import {
+  Data
+} from './interfaces';
 
-export interface Quiz {
-    quizId: number,
-    name: string,
-    quizCreatorId: number,
-    timeCreated: number,
-    timeLastEdited: number,
-    description: string,
-    questions: string[],
-    answers: string[]
-}
+import fs from 'fs';
+import path from 'path';
 
-export interface Data {
-    users: User[],
-    quizzes: Quiz[]
-}
+// Session Activity Definitions
+export const active = true;
+export const inactive = false;
+
 
 let data: Data = {
   users: [],
-  quizzes: []
-};
-
-// Use get() to access the data
-export const getData = (): Data => {
-  return data;
-};
-
-// Use set(newData) to pass in the entire data object, with modifications made
-export const setData = (newData: Data): void => {
-  data = newData;
-};
-
-export interface Trash {
-  quizzes: Quiz[];
-}
-
-let trash: Trash = {
   quizzes: [],
+  tokens: [],
 };
-export const getTrash = (): Trash => {
-  return trash;
+
+
+
+// Data Functions 
+
+// Use get() to sync the data with database.json and access the data
+export function getData (): Data {
+  return JSON.parse(String(fs.readFileSync(path.resolve(__dirname, './database.json'))));
+};
+
+// Use set(newData) to pass in the entire data object, with modifications made 
+// and then save the made changes to database.json
+export function setData (newData: Data): void {
+  fs.writeFileSync(path.resolve(__dirname, './database.json'), JSON.stringify(newData));
+};
+
+export const getTrash = (): Data => {
+  const trashFilePath = path.resolve(__dirname, './dataTrash.json');
+  const trashFileBuffer = fs.readFileSync(trashFilePath);
+  const trashData = JSON.parse(trashFileBuffer.toString());
+  return trashData;
 }
 
-export const setTrash = (newTrash: Trash): void => {
-  trash = newTrash;
+export const setTrash = (newTrash: Data): void => {
+  const trashFilePath = path.resolve(__dirname, './dataTrash.json');
+  const trashDataString = JSON.stringify(newTrash);
+  fs.writeFileSync(trashFilePath, trashDataString);
 }
+
