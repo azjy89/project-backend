@@ -257,7 +257,7 @@ describe('requestQuizNameUpdate', () => {
 });
 
 describe('requestQuizDescriptionUpdate', () => {
-  test('Check successful update quiz descrition', () => {
+  test('Check successful update quiz description', () => {
     const resToken = requestAuthRegister('quiz@unsw.edu.au',
       'abcd1234', 'John', 'Dickens');
     const quiz = requestQuizCreate(resToken.token, 'COMP1531',
@@ -312,6 +312,343 @@ describe('requestQuizDescriptionUpdate', () => {
   });
 });
 
+describe('requestQuizQuestionCreate', () => {
+  let resToken: TokenReturn;
+  let quiz1: QuizId;
+  beforeEach(() => {
+    resToken = requestAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
+    quiz1 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+  })
+  // Invalid Question Body
+  test.each([
+    //question string less than 5 characters
+    {
+      questionBody: {
+        question: 'ABC',
+        duration: 4,
+        points: 4,
+        answers: [
+          {
+            answer: 'Bobby the builder',
+            correct: true
+          },
+          {
+            answer: 'Bobby the breaker',
+            correct: false
+          }
+        ]
+      }
+    },
+    //question string greater than 50 characters
+    {
+      questionBody: {
+        question: 'You fill me up until you are empty, I took too much and you let me. Maybe youll be happier with someone else, maybe loving me is the reason you can love yourself',
+        duration: 4,
+        points: 4,
+        answers: [
+          {
+            answer: 'Bobby the builder',
+            correct: true
+          },
+          {
+            answer: 'Bobby the breaker',
+            correct: false
+          }
+        ]
+      }
+    },
+    //question has more than 6 answers
+    {
+      questionBody: {
+        question: 'When are you going to sleep?',
+        duration: 4,
+        points: 4,
+        answers: [
+          {
+            answer: 'Bobby the builder',
+            correct: true
+          },
+          {
+            answer: 'Bobby the breaker',
+            correct: false
+          },
+          {
+            answer: 'Bobby the maker',
+            correct: false
+          },
+          {
+            answer: 'Bobby the baker',
+            correct: false
+          },
+          {
+            answer: 'Bobby the creator',
+            correct: false
+          },
+          {
+            answer: 'Bobby the owner',
+            correct: false
+          },
+          {
+            answer: 'Bobby the barker',
+            correct: false
+          },
+        ]
+      }
+    },
+    //question has less than 2 answers
+    {
+      questionBody: {
+        question: 'When are you going to sleep?',
+        duration: 4,
+        points: 4,
+        answers: [
+          {
+            answer: 'Bobby the builder',
+            correct: true
+          },
+        ]
+      }
+    },
+    //question duration is not a postive number
+    {
+      questionBody: {
+        question: 'When are you going to sleep?',
+        duration: -1,
+        points: 4,
+        answers: [
+          {
+            answer: 'Bobby the builder',
+            correct: true
+          },
+          {
+            answer: 'Bobby the breaker',
+            correct: false
+          }
+        ]
+      }
+    },
+    //question duration for one question is too long
+    {
+      questionBody: {
+        question: 'When are you going to sleep?',
+        duration: 9999,
+        points: 4,
+        answers: [
+          {
+            answer: 'Bobby the builder',
+            correct: true
+          },
+          {
+            answer: 'Bobby the breaker',
+            correct: false
+          }
+        ]
+      }
+    },
+    //question points is less than 1
+    {
+      questionBody: {
+        question: 'When are you going to sleep?',
+        duration: 4,
+        points: 0,
+        answers: [
+          {
+            answer: 'Bobby the builder',
+            correct: true
+          },
+          {
+            answer: 'Bobby the breaker',
+            correct: false
+          }
+        ]
+      }
+    },
+    //question points is greater than 10
+    {
+      questionBody: {
+        question: 'When are you going to sleep?',
+        duration: 4,
+        points: 11,
+        answers: [
+          {
+            answer: 'Bobby the builder',
+            correct: true
+          },
+          {
+            answer: 'Bobby the breaker',
+            correct: false
+          }
+        ]
+      }
+    },
+    //question answer less than 1 character long
+    {
+      questionBody: {
+        question: 'When are you going to sleep?',
+        duration: 4,
+        points: 4,
+        answers: [
+          {
+            answer: '',
+            correct: true
+          },
+          {
+            answer: 'Bobby the breaker',
+            correct: false
+          }
+        ]
+      }
+    },
+    //question answer is longer than 30 characters
+    {
+      questionBody: {
+        question: 'When are you going to sleep?',
+        duration: 4,
+        points: 4,
+        answers: [
+          {
+            answer: 'Bobby the builder',
+            correct: true
+          },
+          {
+            answer: 'But when i get back to my room and i shut the door, everything hits me at once. i know your not coming back to me, its not enough just knowing this is how it has to be',
+            correct: false
+          }
+        ]
+      }
+    },
+    //question has duplicate answers
+    {
+      questionBody: {
+        question: 'When are you going to sleep?',
+        duration: 4,
+        points: 4,
+        answers: [
+          {
+            answer: 'Bobby the builder',
+            correct: true
+          },
+          {
+            answer: 'Bobby the builder',
+            correct: false
+          }
+        ]
+      }
+    },
+    //question has no correct answers
+    {
+      questionBody: {
+        question: 'When are you going to sleep?',
+        duration: 4,
+        points: 4,
+        answers: [
+          {
+            answer: 'Bobby the builder',
+            correct: false
+          },
+          {
+            answer: 'Bobby the breaker',
+            correct: false
+          }
+        ]
+      }
+    },
+  ])("Invalid question body: '$questionBody'", ({ questionBody }) => {
+    expect(requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody)).toStrictEqual({ error: expect.any(String) });
+  });
+  test('successful requestQuizQuestionCreate', () => {
+    const questionBody: QuestionBody = {
+      question: 'When are you sleeping?',
+      duration: 5,
+      points: 5,
+      answer: [
+        {
+          answer: 'Bobby the builder',
+          correct: true
+        },
+        {
+          answer: 'Bobby the breaker',
+          correct: false
+        }
+      ]
+    }
+    const question = requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody);
+    expect(question.questionId).toStrictEqual(expect.any(Number));
+    expect()
+  });
+  test('successful multiple creations', () => {
+    const questionBody1: QuestionBody = {
+      question: 'When are you sleeping?',
+      duration: 5,
+      points: 5,
+      answer: [
+        {
+          answer: 'Bobby the builder',
+          correct: true
+        },
+        {
+          answer: 'Bobby the breaker',
+          correct: false
+        }
+      ]
+    }
+    const questionBody2: QuestionBody = {
+      question: 'When are you not sleeping?',
+      duration: 5,
+      points: 5,
+      answer: [
+        {
+          answer: 'Bobby the buulder',
+          correct: true
+        },
+        {
+          answer: 'Bobby the breeker',
+          correct: false
+        }
+      ]
+    }
+    const questionBody3: QuestionBody = {
+      question: 'When are you always sleeping?',
+      duration: 5,
+      points: 5,
+      answer: [
+        {
+          answer: 'Bobby the brooder',
+          correct: true
+        },
+        {
+          answer: 'Bobby the boomer',
+          correct: false
+        }
+      ]
+    }
+    const question1 = requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody1);
+    const question2 = requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody2);
+    const question3 = requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody3);
+    expect(requestQuizInfo(resToken.token, quiz1.quizId)).toStrictEqual({
+      quizId: quiz1.quizId,
+      name: 'COMP1531',
+      quizOwnerId: resToken.userId,
+      timeCreated: expect.any(Number),
+      timeLastEdited: expect.any(Number),
+      description: 'Welcome!',
+      questions: [
+        {
+          questionBody: question1.questionBody,
+          questionId: question1.questionId
+        },
+        {
+          questionBody: question2.questionBody,
+          questionId: question2.questionId
+        },
+        {
+          questionBody: question3.questionBody,
+          questionId: question3.questionId
+        }
+      ]
+    })
+  });
+});
 
 /*
 describe('requestQuizQuestionUpdate', () => {

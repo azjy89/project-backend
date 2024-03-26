@@ -26,7 +26,6 @@ export interface Quiz {
   timeLastEdited: number,
   description: string,
   questions: Question[],
-  answers: string[]
 }
 
 // Token interface

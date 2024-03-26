@@ -413,7 +413,7 @@ export function adminQuizQuestionRemove(quizId: number, questionId: number, auth
  * @returns {void}
  */
 
-export function adminQuizQuestionMove(quizId: number, questionId: number, newPosition: number): {} {
+export function adminQuizQuestionMove(quizId: number, questionId: number, authUserId: number, newPosition: number): {} {
   const data: Data = getData();
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId);
