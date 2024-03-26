@@ -192,6 +192,7 @@ export const requestClear = () => {
       }
     }
   );
+  return JSON.parse(res.body.toString());
 };
 
 // Iteration 2 functions

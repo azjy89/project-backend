@@ -163,7 +163,7 @@ describe('adminAuthLogin', () => {
     const responseToken = requestAuthRegister('users@unsw.edu.au', '1234abcd'
       , 'FirstName', 'LastName');
     const loginToken = requestAuthLogin('users@unsw.edu.au', '1234abce');
-    const userDetails = requestUserDetails(loginToken.token);
+    const userDetails = requestUserDetails(responseToken.token);
     expect(userDetails.user.numFailedPasswordsSinceLastLogin).toStrictEqual(1);
   });
 });
