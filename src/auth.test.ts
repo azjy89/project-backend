@@ -24,9 +24,9 @@ describe('requestAuthRegister', () => {
   });
 
   test('duplicate email', () => {
-    const responseToken = requestAuthLogin('users@unsw.edu.au', '1234abcd'
+    const responseToken = requestAuthRegister('users@unsw.edu.au', '1234abcd'
     , 'FirstName', 'LastName')
-    const responseToken2 = requestAuthLogin('users@unsw.edu.au', '1234abcd'
+    const responseToken2 = requestAuthRegister('users@unsw.edu.au', '1234abcd'
     , 'FirstName', 'LastName');
     expect(responseToken2).toEqual({ error: expect.any(String) });
   });
@@ -339,3 +339,4 @@ describe('requestUserPasswordUpdate', () => {
       expect(loginToken).toEqual({ token: expect.any(String)} );
   });
 });
+

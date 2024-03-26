@@ -1,6 +1,6 @@
 import {
   Data
-} from './types';
+} from './interfaces';
 
 import fs from 'fs';
 import path from 'path';

@@ -1,4 +1,4 @@
-import { requestAuthRegister, requestQuizList, requestQuizCreate, requestQuizRemove, requestQuizInfo, requestQuizNameUpdate, requestQuizDescriptionUpdate, requestQuizQuestionCreate, requestQuizQuestionUpdate, requestClear } from './quiz';
+import { requestAuthRegister, requestQuizList, requestQuizCreate, requestQuizRemove, requestQuizInfo, requestQuizNameUpdate, requestQuizDescriptionUpdate, requestQuizQuestionCreate, requestQuizQuestionUpdate, requestClear } from './httpRequests';
 import { TokenReturn, QuizId, Quiz, QuestionBody, QuestionId } from './interfaces'
 import { string } from 'yaml/dist/schema/common/string';
 beforeEach(() => {
@@ -315,7 +315,7 @@ describe('requestQuizQuestionUpdate', () => {
         }
       ]
     }
-    quizQuestion = requestQuizQuestionCreate(quiz1.quizId, question);
+    quizQuestion = requestQuizQuestionCreate(resToken.token, quiz1.quizId, question);
   });
 
   test('successful quiz question udpate', () => {
@@ -334,7 +334,7 @@ describe('requestQuizQuestionUpdate', () => {
         }
       ]
     }
-    const updateReturn = requestQuizQuestionUpdate(quiz1.quizId, quizQuestion.questionId, newQuestion);
+    const updateReturn = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, quizQuestion.questionId, newQuestion);
     expect(updateReturn).toEqual({});
   });
 
@@ -354,7 +354,7 @@ describe('requestQuizQuestionUpdate', () => {
         }
       ]
     }
-    const updateReturn = requestQuizQuestionUpdate(quiz1.quizId, 
+    const updateReturn = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
       quizQuestion.questionId + 1, newQuestion);
     expect(updateReturn).toEqual({ error: expect.any(string) });
   });
@@ -375,7 +375,7 @@ describe('requestQuizQuestionUpdate', () => {
         }
       ]
     }
-    const updateReturn1 = requestQuizQuestionUpdate(quiz1.quizId, 
+    const updateReturn1 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
       quizQuestion.questionId + 1, newQuestion1);
     expect(updateReturn1).toEqual({ error: expect.any(string) });
     const newQuestion2: QuestionBody = {
@@ -393,7 +393,7 @@ describe('requestQuizQuestionUpdate', () => {
         }
       ]
     }
-    const updateReturn2 = requestQuizQuestionUpdate(quiz1.quizId, 
+    const updateReturn2 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
       quizQuestion.questionId + 1, newQuestion1);
     expect(updateReturn2).toEqual({ error: expect.any(string) });
   });
@@ -410,7 +410,7 @@ describe('requestQuizQuestionUpdate', () => {
         }
       ]
     }
-    const updateReturn1 = requestQuizQuestionUpdate(quiz1.quizId, 
+    const updateReturn1 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
       quizQuestion.questionId + 1, newQuestion1);
     expect(updateReturn1).toEqual({ error: expect.any(string) });
     const newQuestion2: QuestionBody = {
@@ -448,7 +448,7 @@ describe('requestQuizQuestionUpdate', () => {
         }
       ]
     }
-    const updateReturn2 = requestQuizQuestionUpdate(quiz1.quizId, 
+    const updateReturn2 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
       quizQuestion.questionId + 1, newQuestion2);
     expect(updateReturn2).toEqual({ error: expect.any(string) });
   });
@@ -469,7 +469,7 @@ describe('requestQuizQuestionUpdate', () => {
         }
       ]
     }
-    const updateReturn = requestQuizQuestionUpdate(quiz1.quizId, 
+    const updateReturn = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
       quizQuestion.questionId + 1, newQuestion1);
     expect(updateReturn).toEqual({ error: expect.any(string) });
     const newQuestion2: QuestionBody = {
@@ -487,7 +487,7 @@ describe('requestQuizQuestionUpdate', () => {
         }
       ]
     }
-    const updateReturn2 = requestQuizQuestionUpdate(quiz1.quizId, 
+    const updateReturn2 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
       quizQuestion.questionId + 1, newQuestion2);
     expect(updateReturn2).toEqual({ error: expect.any(string) });
   });
@@ -508,7 +508,7 @@ describe('requestQuizQuestionUpdate', () => {
         }
       ]
     }
-    const updateReturn1 = requestQuizQuestionUpdate(quiz1.quizId, 
+    const updateReturn1 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
       quizQuestion.questionId + 1, newQuestion1);
     expect(updateReturn1).toEqual({ error: expect.any(string) });
     const newQuestion2: QuestionBody = {
@@ -526,7 +526,7 @@ describe('requestQuizQuestionUpdate', () => {
         }
       ]
     }
-    const updateReturn2 = requestQuizQuestionUpdate(quiz1.quizId, 
+    const updateReturn2 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
       quizQuestion.questionId + 1, newQuestion2);
     expect(updateReturn2).toEqual({ error: expect.any(string) });
   });
@@ -547,7 +547,7 @@ describe('requestQuizQuestionUpdate', () => {
         }
       ]
     }
-    const updateReturn1 = requestQuizQuestionUpdate(quiz1.quizId, 
+    const updateReturn1 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
       quizQuestion.questionId + 1, newQuestion1);
     expect(updateReturn1).toEqual({ error: expect.any(string) });
     const newQuestion2: QuestionBody = {
@@ -565,7 +565,7 @@ describe('requestQuizQuestionUpdate', () => {
         }
       ]
     }
-    const updateReturn2 = requestQuizQuestionUpdate(quiz1.quizId, 
+    const updateReturn2 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
       quizQuestion.questionId + 1, newQuestion2);
     expect(updateReturn2).toEqual({ error: expect.any(string) });
   });
@@ -586,7 +586,7 @@ describe('requestQuizQuestionUpdate', () => {
         }
       ]
     }
-    const updateReturn1 = requestQuizQuestionUpdate(quiz1.quizId, 
+    const updateReturn1 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
       quizQuestion.questionId + 1, newQuestion1);
     expect(updateReturn1).toEqual({ error: expect.any(string) });
     const newQuestion2: QuestionBody = {
@@ -604,7 +604,7 @@ describe('requestQuizQuestionUpdate', () => {
         }
       ]
     }
-    const updateReturn2 = requestQuizQuestionUpdate(quiz1.quizId, 
+    const updateReturn2 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
       quizQuestion.questionId + 1, newQuestion2);
     expect(updateReturn2).toEqual({ error: expect.any(string) });
   });
@@ -625,7 +625,7 @@ describe('requestQuizQuestionUpdate', () => {
         }
       ]
     }
-    const updateReturn1 = requestQuizQuestionUpdate(quiz1.quizId, 
+    const updateReturn1 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
       quizQuestion.questionId + 1, newQuestion1);
     expect(updateReturn1).toEqual({ error: expect.any(string) });
   });
@@ -638,15 +638,59 @@ describe('requestQuizQuestionUpdate', () => {
       answers: [
         {
           answer: "King Charles",
-          correct: false
+          correct: true
         },
         {
-          answer: "King Charles",
+          answer: "Queen Elizabeth",
           correct: false
         }
       ]
     }
-    const updateReturn1 = requestQuizQuestionUpdate(quiz1.quizId, 
+    const updateReturn1 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
+      quizQuestion.questionId + 1, newQuestion1);
+    expect(updateReturn1).toEqual({ error: expect.any(string) });
+  })
+
+  test('Invalid Token', () => {
+    const newQuestion1: QuestionBody = {
+      question: "Who is the Monarch of England?",
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: "King Charles",
+          correct: true
+        },
+        {
+          answer: "Queen Elizabeth",
+          correct: false
+        }
+      ]
+    }
+    const updateReturn1 = requestQuizQuestionUpdate(resToken.token + 1, quiz1.quizId, 
+      quizQuestion.questionId + 1, newQuestion1);
+    expect(updateReturn1).toEqual({ error: expect.any(string) });
+  })
+
+  test('User Does Not Own Quiz', () => {
+    const resToken2 = requestAuthRegister('quize@unsw.edu.au',
+    'abcd12344', 'Pobby', 'Pickens')
+    const newQuestion1: QuestionBody = {
+      question: "Who is the Monarch of England?",
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: "King Charles",
+          correct: true
+        },
+        {
+          answer: "Queen Elizabeth",
+          correct: false
+        }
+      ]
+    }
+    const updateReturn1 = requestQuizQuestionUpdate(resToken2.token, quiz1.quizId, 
       quizQuestion.questionId + 1, newQuestion1);
     expect(updateReturn1).toEqual({ error: expect.any(string) });
   })
