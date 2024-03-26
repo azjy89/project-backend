@@ -9,7 +9,7 @@ beforeEach(() => {
 
 describe('requestQuizList', () => {
   test('correct output of list of quizzes', () => {
-    const resToken = requestAuthRegister('quiz@unsw.edu.au',
+    const resToken: TokenReturn = requestAuthRegister('quiz@unsw.edu.au',
       'abcd1234', 'Bobby', 'Dickens');
     const quiz1 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
     const quiz2 = requestQuizCreate(resToken.token, 'asdfasdf', 'Welcome!');

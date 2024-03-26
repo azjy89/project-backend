@@ -87,12 +87,10 @@ app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
   const { email, password, nameFirst, nameLast } = req.body;
   // Call adminAuthRegister with parameters
   const response = adminAuthRegister(email, password, nameFirst, nameLast);
-
   if ('error' in response) {
     // Invalid parameters
     return res.status(400).json(response);
   }
-
   // Generate a token for authUserId
   const token = createToken(response.authUserId);
   return res.status(200).json({ token });
