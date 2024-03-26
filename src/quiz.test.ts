@@ -46,7 +46,7 @@ describe('requestQuizList', () => {
       'abcd1234', 'Bobby', 'Dickens');
     const quiz1 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
     const quiz2 = requestQuizCreate(resToken.token, 'asdfasdf', 'Welcome!');
-    expect(requestQuizList(resToken.token + 1)).toStrictEqual({ error: expect.any(String) });
+    expect(requestQuizList('1')).toStrictEqual({ error: expect.any(String) });
   });
 });
 
@@ -61,7 +61,7 @@ describe('requestQuizCreate', () => {
   test('token doesnt exist', () => {
     const resToken = requestAuthRegister('quiz@unsw.edu.au',
       'abcd1234', 'Bobby', 'Dickens');
-    const quiz = requestQuizCreate(resToken.token + 1, 'COMP1531', 'Welcome!');
+    const quiz = requestQuizCreate('1', 'COMP1531', 'Welcome!');
     expect(quiz).toStrictEqual({ error: expect.any(String) });
   });
 
@@ -122,7 +122,7 @@ describe('requestQuizRemove', () => {
     const resToken = requestAuthRegister('quiz@unsw.edu.au',
       'abcd1234', 'Bobby', 'Dickens');
     const quiz = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
-    expect(requestQuizRemove(resToken.token + 1, quiz.quizId)).toStrictEqual({ error: expect.any(String) });
+    expect(requestQuizRemove('1', quiz.quizId)).toStrictEqual({ error: expect.any(String) });
   });
 
   test('quizId doesnt refer to a valid quiz', () => {
@@ -164,7 +164,7 @@ describe('requestQuizInfo', () => {
   test('Token is not a token', () => {
     const resToken = requestAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
     const quizId = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
-    expect(requestQuizInfo(resToken.token + 1, quizId.quizId)).toStrictEqual({ error: expect.any(String) });
+    expect(requestQuizInfo('1', quizId.quizId)).toStrictEqual({ error: expect.any(String) });
   });
 
   test('Quiz ID does not refer to a valid quiz', () => {
@@ -196,7 +196,7 @@ describe('requestQuizNameUpdate', () => {
   test('Token is not a token', () => {
     const resToken = requestAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
     const quizId = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
-    expect(requestQuizNameUpdate(resToken.token + 1, quizId.quizId, 'newName')).toEqual({ error: expect.any(String) });
+    expect(requestQuizNameUpdate('1', quizId.quizId, 'newName')).toEqual({ error: expect.any(String) });
   });
 
   test('Quiz ID does not refer to a valid quiz', () => {
@@ -254,7 +254,7 @@ describe('requestQuizDescriptionUpdate', () => {
       'abcd1234', 'John', 'Dickens');
     const quiz = requestQuizCreate(resToken.token, 'COMP1531',
       'Write a descrition for this quiz.');
-    expect(requestQuizDescriptionUpdate(resToken.token + 1, quiz.quizId,
+    expect(requestQuizDescriptionUpdate('1', quiz.quizId,
       'Description.')).toStrictEqual({ error: expect.any(String) });
   });
 
@@ -667,7 +667,7 @@ describe('requestQuizQuestionUpdate', () => {
         }
       ]
     }
-    const updateReturn1 = requestQuizQuestionUpdate(resToken.token + 1, quiz1.quizId, 
+    const updateReturn1 = requestQuizQuestionUpdate('1', quiz1.quizId, 
       quizQuestion.questionId, newQuestion1);
     expect(updateReturn1).toEqual({ error: expect.any(string) });
   })
