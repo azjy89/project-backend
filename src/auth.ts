@@ -315,10 +315,11 @@ const findPassword = ( password: string, userIndex: number ): boolean => {
 	let user = data.users[userIndex];
  
  
-	for ( let oldpassword of user.oldPasswords) {
+	for (let oldpassword of user.oldPasswords) {
 		if (password === oldpassword) {
 			return false;
 		}
 	}
 	return true;
 }
+
