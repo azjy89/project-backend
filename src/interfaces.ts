@@ -1,3 +1,5 @@
+import { QuestionDotToken } from "typescript"
+
 // Error interface
 export interface ErrorObject {
   error: string
@@ -19,11 +21,11 @@ export interface User {
 export interface Quiz {
   quizId: number,
   name: string,
-  quizCreatorId: number,
+  quizOwnerId: number,
   timeCreated: number,
   timeLastEdited: number,
   description: string,
-  questions: string[],
+  questions: Question[],
   answers: string[]
 }
 
@@ -75,6 +77,12 @@ export interface AdminQuizInfoReturn {
   timeCreated: number,
   timeLastEdited: number,
   description: string
+}
+
+// Question type
+export interface Question {
+  body: QuestionBody,
+  questionId: number
 }
 
 // questionBody input type

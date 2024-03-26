@@ -24,9 +24,9 @@ describe('requestAuthRegister', () => {
   });
 
   test('duplicate email', () => {
-    const responseToken = requestAuthLogin('users@unsw.edu.au', '1234abcd'
+    const responseToken = requestAuthRegister('users@unsw.edu.au', '1234abcd'
     , 'FirstName', 'LastName')
-    const responseToken2 = requestAuthLogin('users@unsw.edu.au', '1234abcd'
+    const responseToken2 = requestAuthRegister('users@unsw.edu.au', '1234abcd'
     , 'FirstName', 'LastName');
     expect(responseToken2).toEqual({ error: expect.any(String) });
   });
@@ -182,7 +182,7 @@ describe('requestAuthLogout', () => {
   test('invalid token', () => {
     const responseToken = requestAuthRegister('users@unsw.edu.au', '1234abcd'
     , 'FirstName', 'LastName');
-    const logoutReturn = requestAuthLogout(responseToken.token + 1);
+    const logoutReturn = requestAuthLogout('1');
     expect(logoutReturn).toEqual({ error: 'error' });
     const loginToken = requestAuthLogin('users@unsw.edu.au', '1234abcd');
     const logoutReturn2 = requestAuthLogout(loginToken.token + 1);
@@ -208,7 +208,7 @@ describe('requestUserDetails', () => {
   test('AuthUserId is not a valid user', () => {
     const responseToken = requestAuthRegister('users@unsw.edu.au', '1234abcd',
       'FirstName', 'LastName');
-    expect(requestUserDetails(responseToken.token + 1)).toEqual({ error: expect.any(String) });
+    expect(requestUserDetails('1')).toEqual({ error: expect.any(String) });
   });
 });
 
@@ -216,7 +216,7 @@ describe('requestUserDetailsUpdate', () => {
   test('AuthUserId is not a valid user', () => {
     const responseToken = requestAuthRegister('users@unsw.edu.au', '1234abcd'
       , 'FirstName', 'LastName');
-    expect(requestUserDetailsUpdate(responseToken.token + 1, 'users@unsw.edu.au', 'FirstName', 'LastName')).toEqual({ error: expect.any(String) });
+    expect(requestUserDetailsUpdate('1', 'users@unsw.edu.au', 'FirstName', 'LastName')).toEqual({ error: expect.any(String) });
   });
 
   test('Email is currently used by another user', () => {
@@ -278,7 +278,7 @@ describe('requestUserPasswordUpdate', () => {
   test('AuthUserId is not a valid user', () => {
     const responseToken = requestAuthRegister('users@unsw.edu.au', '1234abcd'
       , 'FirstName', 'LastName');
-    expect(requestUserPasswordUpdate(responseToken.token + 1, '1234abcd', 'abcd1234')).toEqual({ error: expect.any(String) });
+    expect(requestUserPasswordUpdate('1', '1234abcd', 'abcd1234')).toEqual({ error: expect.any(String) });
   });
 
   test('Old Password is not the correct old password', () => {
@@ -339,3 +339,4 @@ describe('requestUserPasswordUpdate', () => {
       expect(loginToken).toEqual({ token: expect.any(String)} );
   });
 });
+

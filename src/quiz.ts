@@ -1,3 +1,4 @@
+import { arrayBuffer } from 'stream/consumers';
 import { getTrash, setTrash, getData, setData } from './dataStore';
 
 import {
@@ -10,6 +11,8 @@ import {
   Quiz,
   QuestionBody,
   QuestionId,
+  Question,
+  AnswerInput,
   DupedQuestionId
 } from './interfaces';
 
@@ -281,7 +284,14 @@ export function adminQuizQuestionUpdate(quizId: number, questionId: number, auth
   const data = getData();
   const quiz = data.quizzes.find(quiz => quiz.quizOwnerId === authUserId);
   const question = quiz.questions.find(question => question.questionId === questionId);
+<<<<<<< HEAD
   //last time edited
+=======
+  const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId);
+  if (!data.users.find(user => user.userId === authUserId)) {
+    return { error: 'Invalid UserId' };
+  }
+>>>>>>> e33018c488d109e6cc067a83b915688eec4a9869
   if (!quiz) {
     throw HTTPError(400, 'User Does Not Own Quiz');
   }
@@ -297,7 +307,10 @@ export function adminQuizQuestionUpdate(quizId: number, questionId: number, auth
   if (questionBody.answers.length < 2 || questionBody.answers.length > 6) {
     throw HTTPError(400, 'Invalid Number of Answers');
   }
-  let totalDuration = quiz.questions.duration.reduce((acc: number, curr: number) => acc + curr, 0);
+  let totalDuration: number;
+  for (const question of quiz.questions) {
+    totalDuration += question.body.duration;
+  }
   totalDuration += questionBody.duration;
   if (totalDuration > 180) {
     throw HTTPError(400, 'Quiz Exceeded Time Limit');
@@ -316,8 +329,12 @@ export function adminQuizQuestionUpdate(quizId: number, questionId: number, auth
   if (!questionBody.answers.find(answer => answer.correct === true)) {
     throw HTTPError(400, 'No Correct Answers');
   }
+  question.body = questionBody;
+  quiz.timeLastEdited = Date.now();
+  setData(data);
   return {};
 }
+
 
 const sameQuestionString = (questionBody: QuestionBody): boolean => {
   return questionBody.answers.some((answer: AnswerInput, index: number) => {
@@ -337,9 +354,16 @@ const sameQuestionString = (questionBody: QuestionBody): boolean => {
  * @returns {}
  */
 
-export function adminQuizQuestionRemove(quizId: number, questionId: number, token: string): {} {
+export function adminQuizQuestionRemove(quizId: number, questionId: number, authUserId: number): {} {
+  const data = getData();
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (!quiz.questions.find(question => question.questionId === questionId)) {
+    return { error: 'Question Not Found' };
+  }
+  quiz.questions.filter(question => question.questionId !== questionId);
+  setData(data);
   return {};
-}
+};
 
 /**
  * Move a question from one particular position in the quiz to another
@@ -353,6 +377,21 @@ export function adminQuizQuestionRemove(quizId: number, questionId: number, toke
  */
 
 export function adminQuizQuestionMove(quizId: number, questionId: number, newPosition: number): {} {
+  const data = getData();
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId);
+  if (!quiz.questions.find(question => question.questionId === questionId)) {
+    return { error: 'Question Not Found' };
+  }
+  if (newPosition < 0 ||
+      newPosition > quiz.questions.length || 
+      newPosition === quiz.questions.findIndex(question => question.questionId === questionId)) {
+    return { error: 'Invalid Position' };
+  }
+  let removedQuestion = quiz.questions.splice(questionIndex, 1)[0];
+  quiz.questions.splice(newPosition, 0, removedQuestion);
+  quiz.timeLastEdited = Date.now();
+  setData(data);
   return {};
 }
 
