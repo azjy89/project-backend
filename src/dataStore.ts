@@ -10,13 +10,12 @@ export const active = true;
 export const inactive = false;
 
 
-/*
 let data: Data = {
   users: [],
   quizzes: [],
   tokens: [],
 };
-*/
+
 
 
 // Data Functions 

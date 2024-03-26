@@ -24,7 +24,7 @@ const uuid = require('uuid');
 
 // Exported to server to allow token creation for sessions
 export const createToken = ( authUserId: number ): string => {
-  const data = getData();
+  const data: Data = getData();
   const token: string = uuid.v4();
   data.tokens.push({
     token: token,
@@ -59,7 +59,7 @@ export const validateToken = ( token: string ): ErrorObject | object => {
  * @param {string} token 
  */
 export const removeToken = ( token: string ): void => {
-  const data = getData();
+  const data: Data = getData();
   data.tokens = data.tokens.filter(a => a.token !== token);
   setData(data);
 }
@@ -77,7 +77,7 @@ export const removeToken = ( token: string ): void => {
  * @returns {int}
 */
 export const adminAuthRegister = (email: string, password: string, nameFirst: string, nameLast:string): AuthUserId | ErrorObject => {
-  const data = getData();
+  const data: Data = getData();
   const result = adminAuthRegisterErrors(email, password, nameFirst,
     nameLast, data);
   if (result.error === 'No Error') {
@@ -175,7 +175,7 @@ const adminAuthRegisterValidPassword = (password: string): boolean => {
  */
 
 export const adminAuthLogin = (email: string, password: string): AuthUserId | ErrorObject => {
-  const data = getData();
+  const data: Data = getData();
   const user = data.users.some(user => user.email === email);
 
   if (!user) {
@@ -209,7 +209,7 @@ export const adminAuthLogin = (email: string, password: string): AuthUserId | Er
  */
 
 export const adminUserDetails = (authUserId: number): UserDetails | ErrorObject => {
-  const data = getData();
+  const data: Data = getData();
 
   const userIndex = data.users.findIndex(user => user.userId === authUserId);
   if (userIndex === -1) {
@@ -244,7 +244,7 @@ export const adminUserDetails = (authUserId: number): UserDetails | ErrorObject 
  */
 
 export const adminUserDetailsUpdate = (authUserId: number, email: string, nameFirst: string, nameLast:string): object | ErrorObject => {
-  const data = getData();
+  const data: Data = getData();
   const userIndex = data.users.findIndex(user => user.userId === authUserId);
   if (userIndex === -1) {
     return {
@@ -305,7 +305,7 @@ export const adminUserDetailsUpdate = (authUserId: number, email: string, nameFi
  */
 
 export const adminUserPasswordUpdate = ( authUserId: number, oldPassword: string, newPassword: string ): object | ErrorObject => {
-	const data = getData();
+	const data: Data = getData();
 	const userIndex = data.users.findIndex(user => user.userId === authUserId);
 	if (userIndex === -1) {
 		return {

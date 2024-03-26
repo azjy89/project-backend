@@ -31,7 +31,7 @@ const maxDescriptionLength = 100;
  */
 
 export const adminQuizList = (authUserId: number): AdminQuizListReturn | ErrorObject => {
-  const data = getData();
+  const data: Data = getData();
   const userExists = data.users.some(user => user.userId === authUserId);
   const userQuizzes = data.quizzes.filter(quiz => quiz.quizOwnerId === authUserId);
   const quizList = userQuizzes.map(quiz => ({
@@ -52,7 +52,7 @@ export const adminQuizList = (authUserId: number): AdminQuizListReturn | ErrorOb
  */
 
 export const adminQuizCreate = (authUserId: number, name: string, description: string): QuizId | ErrorObject => {
-  const data = getData();
+  const data: Data = getData();
 
   // Check if the authUserId is valid
   const userExists = data.users.some(user => user.userId === authUserId);
@@ -109,7 +109,7 @@ export const adminQuizCreate = (authUserId: number, name: string, description: s
  */
 
 export const adminQuizRemove = (authUserId: number, quizId: number): object | ErrorObject => {
-  const data = getData();
+  const data: Data = getData();
 
   // Check if authUserId refers to a valid user
   const userExists = data.users.some(user => user.userId === authUserId);
@@ -140,7 +140,7 @@ export const adminQuizRemove = (authUserId: number, quizId: number): object | Er
  */
 
 export const adminQuizInfo = (authUserId: number, quizId: number): AdminQuizInfoReturn | ErrorObject => {
-  const data = getData();
+  const data: Data = getData();
   const userIndex = data.users.findIndex(user => user.userId === authUserId);
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
   
@@ -180,7 +180,7 @@ export const adminQuizInfo = (authUserId: number, quizId: number): AdminQuizInfo
  */
 
 export const adminQuizNameUpdate = (authUserId: number, quizId: number, name: string): object | ErrorObject => {
-  const data = getData();
+  const data: Data = getData();
 
   const userIndex = data.users.findIndex(user => user.userId === authUserId);
 
@@ -226,7 +226,7 @@ export const adminQuizNameUpdate = (authUserId: number, quizId: number, name: st
  */
 
 export const adminQuizDescriptionUpdate = (authUserId: number, quizId: number, description: string): object | ErrorObject => {
-  const data = getData();
+  const data: Data = getData();
   const userIndex = data.users.findIndex(user => user.userId === authUserId);
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
   
@@ -281,7 +281,7 @@ export function adminQuizQuestionCreate(quizId: number, authUserId: number, ques
  * @returns {}
  */
 export function adminQuizQuestionUpdate(quizId: number, questionId: number, authUserId: number, questionBody: QuestionBody): ErrorObject | object {
-  const data = getData();
+  const data: Data = getData();
   const quiz = data.quizzes.find(quiz => quiz.quizOwnerId === authUserId);
   const question = quiz.questions.find(question => question.questionId === questionId);
 
@@ -348,7 +348,7 @@ const sameQuestionString = (questionBody: QuestionBody): boolean => {
  */
 
 export function adminQuizQuestionRemove(quizId: number, questionId: number, authUserId: number): {} {
-  const data = getData();
+  const data: Data = getData();
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   if (!quiz.questions.find(question => question.questionId === questionId)) {
     return { error: 'Question Not Found' };
@@ -370,7 +370,7 @@ export function adminQuizQuestionRemove(quizId: number, questionId: number, auth
  */
 
 export function adminQuizQuestionMove(quizId: number, questionId: number, newPosition: number): {} {
-  const data = getData();
+  const data: Data = getData();
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId);
   if (!quiz.questions.find(question => question.questionId === questionId)) {
