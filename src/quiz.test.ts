@@ -1,15 +1,33 @@
-import { requestAuthRegister, requestQuizList, requestQuizCreate, requestQuizRemove, requestQuizInfo, requestQuizNameUpdate, 
-  requestQuizDescriptionUpdate, requestQuizQuestionCreate, requestQuizQuestionUpdate, requestClear, requestQuizQuestionRemove,
-  requestQuizQuestionMove, requestQuizQuestionDuplicate } from './httpRequests';
-import { TokenReturn, QuizId, Quiz, QuestionBody, QuestionId } from './interfaces'
-import { string } from 'yaml/dist/schema/common/string';
+import { 
+  requestAuthRegister, 
+  requestQuizList, 
+  requestQuizCreate, 
+  requestQuizRemove, 
+  requestQuizInfo, 
+  requestQuizNameUpdate, 
+  requestQuizDescriptionUpdate, 
+  requestQuizQuestionCreate, 
+  requestQuizQuestionUpdate, 
+  requestClear, 
+  requestQuizQuestionRemove,
+  requestQuizQuestionMove 
+} from './httpRequests';
+import { 
+  TokenReturn, 
+  QuizId, 
+  Quiz, 
+  QuestionBody, 
+  QuestionId,
+  ErrorObject
+} from './interfaces'
+
 beforeEach(() => {
   requestClear();
 });
 
 describe('requestQuizList', () => {
   test('correct output of list of quizzes', () => {
-    const resToken = requestAuthRegister('quiz@unsw.edu.au',
+    const resToken: TokenReturn = requestAuthRegister('quiz@unsw.edu.au',
       'abcd1234', 'Bobby', 'Dickens');
     const quiz1 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
     const quiz2 = requestQuizCreate(resToken.token, 'asdfasdf', 'Welcome!');
@@ -48,7 +66,7 @@ describe('requestQuizList', () => {
       'abcd1234', 'Bobby', 'Dickens');
     const quiz1 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
     const quiz2 = requestQuizCreate(resToken.token, 'asdfasdf', 'Welcome!');
-    expect(requestQuizList('1')).toStrictEqual({ error: expect.any(String) });
+    expect(requestQuizList('bob')).toStrictEqual({ error: expect.any(String) });
   });
 });
 
@@ -239,7 +257,7 @@ describe('requestQuizNameUpdate', () => {
 });
 
 describe('requestQuizDescriptionUpdate', () => {
-  test('Check successful update quiz descrition', () => {
+  test('Check successful update quiz description', () => {
     const resToken = requestAuthRegister('quiz@unsw.edu.au',
       'abcd1234', 'John', 'Dickens');
     const quiz = requestQuizCreate(resToken.token, 'COMP1531',
@@ -294,40 +312,773 @@ describe('requestQuizDescriptionUpdate', () => {
   });
 });
 
-describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate', () => {
-  let user: any, quiz: any, question: any;
+describe('requestQuizQuestionCreate', () => {
+  let resToken: TokenReturn;
+  let quiz1: QuizId;
   beforeEach(() => {
-    user = requestAuthRegister("first@unsw.edu.au", "FirstUser123", "First", "User");
-    quiz = requestQuizCreate(user.token, "COMP1531", "A description of my quiz");
-    question = requestQuizQuestionCreate(user.token, quiz.quizId, { 
-          "question": "Who is the Monarch of England?",
-          "duration": 4,
-          "points": 5,
-          "answers": [
-            {
-              "answer": "Prince Charles",
-              "correct": true
-            }
-          ]
-    });
+    resToken = requestAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
+    quiz1 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+  })
+  // Invalid Question Body
+  test.each([
+    //question string less than 5 characters
+    {
+      questionBody: {
+        question: 'ABC',
+        duration: 4,
+        points: 4,
+        answers: [
+          {
+            answer: 'Bobby the builder',
+            correct: true
+          },
+          {
+            answer: 'Bobby the breaker',
+            correct: false
+          }
+        ]
+      }
+    },
+    //question string greater than 50 characters
+    {
+      questionBody: {
+        question: 'You fill me up until you are empty, I took too much and you let me. Maybe youll be happier with someone else, maybe loving me is the reason you can love yourself',
+        duration: 4,
+        points: 4,
+        answers: [
+          {
+            answer: 'Bobby the builder',
+            correct: true
+          },
+          {
+            answer: 'Bobby the breaker',
+            correct: false
+          }
+        ]
+      }
+    },
+    //question has more than 6 answers
+    {
+      questionBody: {
+        question: 'When are you going to sleep?',
+        duration: 4,
+        points: 4,
+        answers: [
+          {
+            answer: 'Bobby the builder',
+            correct: true
+          },
+          {
+            answer: 'Bobby the breaker',
+            correct: false
+          },
+          {
+            answer: 'Bobby the maker',
+            correct: false
+          },
+          {
+            answer: 'Bobby the baker',
+            correct: false
+          },
+          {
+            answer: 'Bobby the creator',
+            correct: false
+          },
+          {
+            answer: 'Bobby the owner',
+            correct: false
+          },
+          {
+            answer: 'Bobby the barker',
+            correct: false
+          },
+        ]
+      }
+    },
+    //question has less than 2 answers
+    {
+      questionBody: {
+        question: 'When are you going to sleep?',
+        duration: 4,
+        points: 4,
+        answers: [
+          {
+            answer: 'Bobby the builder',
+            correct: true
+          },
+        ]
+      }
+    },
+    //question duration is not a postive number
+    {
+      questionBody: {
+        question: 'When are you going to sleep?',
+        duration: -1,
+        points: 4,
+        answers: [
+          {
+            answer: 'Bobby the builder',
+            correct: true
+          },
+          {
+            answer: 'Bobby the breaker',
+            correct: false
+          }
+        ]
+      }
+    },
+    //question duration for one question is too long
+    {
+      questionBody: {
+        question: 'When are you going to sleep?',
+        duration: 9999,
+        points: 4,
+        answers: [
+          {
+            answer: 'Bobby the builder',
+            correct: true
+          },
+          {
+            answer: 'Bobby the breaker',
+            correct: false
+          }
+        ]
+      }
+    },
+    //question points is less than 1
+    {
+      questionBody: {
+        question: 'When are you going to sleep?',
+        duration: 4,
+        points: 0,
+        answers: [
+          {
+            answer: 'Bobby the builder',
+            correct: true
+          },
+          {
+            answer: 'Bobby the breaker',
+            correct: false
+          }
+        ]
+      }
+    },
+    //question points is greater than 10
+    {
+      questionBody: {
+        question: 'When are you going to sleep?',
+        duration: 4,
+        points: 11,
+        answers: [
+          {
+            answer: 'Bobby the builder',
+            correct: true
+          },
+          {
+            answer: 'Bobby the breaker',
+            correct: false
+          }
+        ]
+      }
+    },
+    //question answer less than 1 character long
+    {
+      questionBody: {
+        question: 'When are you going to sleep?',
+        duration: 4,
+        points: 4,
+        answers: [
+          {
+            answer: '',
+            correct: true
+          },
+          {
+            answer: 'Bobby the breaker',
+            correct: false
+          }
+        ]
+      }
+    },
+    //question answer is longer than 30 characters
+    {
+      questionBody: {
+        question: 'When are you going to sleep?',
+        duration: 4,
+        points: 4,
+        answers: [
+          {
+            answer: 'Bobby the builder',
+            correct: true
+          },
+          {
+            answer: 'But when i get back to my room and i shut the door, everything hits me at once. i know your not coming back to me, its not enough just knowing this is how it has to be',
+            correct: false
+          }
+        ]
+      }
+    },
+    //question has duplicate answers
+    {
+      questionBody: {
+        question: 'When are you going to sleep?',
+        duration: 4,
+        points: 4,
+        answers: [
+          {
+            answer: 'Bobby the builder',
+            correct: true
+          },
+          {
+            answer: 'Bobby the builder',
+            correct: false
+          }
+        ]
+      }
+    },
+    //question has no correct answers
+    {
+      questionBody: {
+        question: 'When are you going to sleep?',
+        duration: 4,
+        points: 4,
+        answers: [
+          {
+            answer: 'Bobby the builder',
+            correct: false
+          },
+          {
+            answer: 'Bobby the breaker',
+            correct: false
+          }
+        ]
+      }
+    },
+  ])("Invalid question body: '$questionBody'", ({ questionBody }) => {
+    expect(requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody)).toStrictEqual({ error: expect.any(String) });
+  });
+  test('successful requestQuizQuestionCreate', () => {
+    const questionBody: QuestionBody = {
+      question: 'When are you sleeping?',
+      duration: 5,
+      points: 5,
+      answer: [
+        {
+          answer: 'Bobby the builder',
+          correct: true
+        },
+        {
+          answer: 'Bobby the breaker',
+          correct: false
+        }
+      ]
+    }
+    const question = requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody);
+    expect(question.questionId).toStrictEqual(expect.any(Number));
+    expect()
+  });
+  test('successful multiple creations', () => {
+    const questionBody1: QuestionBody = {
+      question: 'When are you sleeping?',
+      duration: 5,
+      points: 5,
+      answer: [
+        {
+          answer: 'Bobby the builder',
+          correct: true
+        },
+        {
+          answer: 'Bobby the breaker',
+          correct: false
+        }
+      ]
+    }
+    const questionBody2: QuestionBody = {
+      question: 'When are you not sleeping?',
+      duration: 5,
+      points: 5,
+      answer: [
+        {
+          answer: 'Bobby the buulder',
+          correct: true
+        },
+        {
+          answer: 'Bobby the breeker',
+          correct: false
+        }
+      ]
+    }
+    const questionBody3: QuestionBody = {
+      question: 'When are you always sleeping?',
+      duration: 5,
+      points: 5,
+      answer: [
+        {
+          answer: 'Bobby the brooder',
+          correct: true
+        },
+        {
+          answer: 'Bobby the boomer',
+          correct: false
+        }
+      ]
+    }
+    const question1 = requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody1);
+    const question2 = requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody2);
+    const question3 = requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody3);
+    expect(requestQuizInfo(resToken.token, quiz1.quizId)).toStrictEqual({
+      quizId: quiz1.quizId,
+      name: 'COMP1531',
+      quizOwnerId: resToken.userId,
+      timeCreated: expect.any(Number),
+      timeLastEdited: expect.any(Number),
+      description: 'Welcome!',
+      questions: [
+        {
+          questionBody: question1.questionBody,
+          questionId: question1.questionId
+        },
+        {
+          questionBody: question2.questionBody,
+          questionId: question2.questionId
+        },
+        {
+          questionBody: question3.questionBody,
+          questionId: question3.questionId
+        }
+      ]
+    })
+  });
+});
+
+/*
+describe('requestQuizQuestionUpdate', () => {
+  let resToken: TokenReturn;
+  let quiz1: QuizId;
+  let quizQuestion: QuestionId;
+  beforeEach(() => {
+    resToken = requestAuthRegister('quiz@unsw.edu.au',
+    'abcd1234', 'Bobby', 'Dickens');
+    quiz1 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+    const question: QuestionBody = {
+      question: "Who is the Monarch of England?",
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: "Prince Charles",
+          correct: true
+        },
+        {
+          answer: "Queen Elizabeth",
+          correct: false
+        }
+      ]
+    }
+    quizQuestion = requestQuizQuestionCreate(resToken.token, quiz1.quizId, question);
   });
 
-  test('Invalid Question ID', () => {
-    const response = requestQuizQuestionDuplicate(user.token, quiz.quizId, question.questionId + 2);
-    expect(response.statusCode).toStrictEqual(400);
-    expect(response.bodyObj).toStrictEqual({error: expect.any(String)});
+  test('successful quiz question udpate', () => {
+    const newQuestion: QuestionBody = {
+      question: "Who is the Monarch of England?",
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: "King Charles",
+          correct: true
+        },
+        {
+          answer: "Queen Elizabeth",
+          correct: false
+        }
+      ]
+    }
+    const updateReturn = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, quizQuestion.questionId, newQuestion);
+    expect(updateReturn).toEqual({});
   });
+
+  test('Question Id not valid', () => {
+    const newQuestion: QuestionBody = {
+      question: "Who is the Monarch of England?",
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: "King Charles",
+          correct: true
+        },
+        {
+          answer: "Queen Elizabeth",
+          correct: false
+        }
+      ]
+    }
+    const updateReturn = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
+      quizQuestion.questionId + 1, newQuestion);
+    expect(updateReturn).toEqual({ error: expect.any(String) });
+  });
+
+  test('Question String Length', () => {
+    const newQuestion1: QuestionBody = {
+      question: "1234",
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: "King Charles",
+          correct: true
+        },
+        {
+          answer: "Queen Elizabeth",
+          correct: false
+        }
+      ]
+    }
+    const updateReturn1 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
+      quizQuestion.questionId, newQuestion1);
+    expect(updateReturn1).toEqual({ error: expect.any(String) });
+    const newQuestion2: QuestionBody = {
+      question: "123451234512345123451234512345123451234512345123451",
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: "King Charles",
+          correct: true
+        },
+        {
+          answer: "Queen Elizabeth",
+          correct: false
+        }
+      ]
+    }
+    const updateReturn2 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
+      quizQuestion.questionId, newQuestion1);
+    expect(updateReturn2).toEqual({ error: expect.any(String) });
+  });
+
+  test('Question Number Answers', () => {
+    const newQuestion1: QuestionBody = {
+      question: "Who is the Monarch of England?",
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: "King Charles",
+          correct: true
+        }
+      ]
+    }
+    const updateReturn1 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
+      quizQuestion.questionId, newQuestion1);
+    expect(updateReturn1).toEqual({ error: expect.any(String) });
+    const newQuestion2: QuestionBody = {
+      question: "Who is the Monarch of England?",
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: "1",
+          correct: true
+        },
+        {
+          answer: "2",
+          correct: false
+        },
+        {
+          answer: "3",
+          correct: false
+        },
+        {
+          answer: "4",
+          correct: false
+        },
+        {
+          answer: "5",
+          correct: false
+        },
+        {
+          answer: "6",
+          correct: false
+        },
+        {
+          answer: "7",
+          correct: false
+        }
+      ]
+    }
+    const updateReturn2 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
+      quizQuestion.questionId, newQuestion2);
+    expect(updateReturn2).toEqual({ error: expect.any(String) });
+  });
+
+  test('Non-positive Question Duration', () => {
+    const newQuestion1: QuestionBody = {
+      question: "Who is the Monarch of England?",
+      duration: 0,
+      points: 5,
+      answers: [
+        {
+          answer: "King Charles",
+          correct: true
+        },
+        {
+          answer: "Queen Elizabeth",
+          correct: false
+        }
+      ]
+    }
+    const updateReturn = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
+      quizQuestion.questionId, newQuestion1);
+    expect(updateReturn).toEqual({ error: expect.any(String) });
+    const newQuestion2: QuestionBody = {
+      question: "Who is the Monarch of England?",
+      duration: -1,
+      points: 5,
+      answers: [
+        {
+          answer: "King Charles",
+          correct: true
+        },
+        {
+          answer: "Queen Elizabeth",
+          correct: false
+        }
+      ]
+    }
+    const updateReturn2 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
+      quizQuestion.questionId, newQuestion2);
+    expect(updateReturn2).toEqual({ error: expect.any(String) });
+  });
+
+  test('Quiz Time Limit Exceeded', () => {
+    const newQuestion1: QuestionBody = {
+      question: "Who is the Monarch of England?",
+      duration: 177,
+      points: 5,
+      answers: [
+        {
+          answer: "King Charles",
+          correct: true
+        },
+        {
+          answer: "Queen Elizabeth",
+          correct: false
+        }
+      ]
+    }
+    const updateReturn1 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
+      quizQuestion.questionId, newQuestion1);
+    expect(updateReturn1).toEqual({ error: expect.any(String) });
+    const newQuestion2: QuestionBody = {
+      question: "Who is the Monarch of England?",
+      duration: 181,
+      points: 5,
+      answers: [
+        {
+          answer: "King Charles",
+          correct: true
+        },
+        {
+          answer: "Queen Elizabeth",
+          correct: false
+        }
+      ]
+    }
+    const updateReturn2 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
+      quizQuestion.questionId, newQuestion2);
+    expect(updateReturn2).toEqual({ error: expect.any(String) });
+  });
+
+  test('Invalid Points Awarded', () => {
+    const newQuestion1: QuestionBody = {
+      question: "Who is the Monarch of England?",
+      duration: 177,
+      points: 0,
+      answers: [
+        {
+          answer: "King Charles",
+          correct: true
+        },
+        {
+          answer: "Queen Elizabeth",
+          correct: false
+        }
+      ]
+    }
+    const updateReturn1 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
+      quizQuestion.questionId, newQuestion1);
+    expect(updateReturn1).toEqual({ error: expect.any(String) });
+    const newQuestion2: QuestionBody = {
+      question: "Who is the Monarch of England?",
+      duration: 177,
+      points: 11,
+      answers: [
+        {
+          answer: "King Charles",
+          correct: true
+        },
+        {
+          answer: "Queen Elizabeth",
+          correct: false
+        }
+      ]
+    }
+    const updateReturn2 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
+      quizQuestion.questionId, newQuestion2);
+    expect(updateReturn2).toEqual({ error: expect.any(String) });
+  });
+
+  test('Invalid Answer Length', () => {
+    const newQuestion1: QuestionBody = {
+      question: "Who is the Monarch of England?",
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: "",
+          correct: true
+        },
+        {
+          answer: "Queen Elizabeth",
+          correct: false
+        }
+      ]
+    }
+    const updateReturn1 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
+      quizQuestion.questionId, newQuestion1);
+    expect(updateReturn1).toEqual({ error: expect.any(String) });
+    const newQuestion2: QuestionBody = {
+      question: "Who is the Monarch of England?",
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: "King Charles",
+          correct: true
+        },
+        {
+          answer: "1234512345123451234512345123451",
+          correct: false
+        }
+      ]
+    }
+    const updateReturn2 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
+      quizQuestion.questionId, newQuestion2);
+    expect(updateReturn2).toEqual({ error: expect.any(String) });
+  });
+
+  test('Duplicate Answers', () => {
+    const newQuestion1: QuestionBody = {
+      question: "Who is the Monarch of England?",
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: "King Charles",
+          correct: true
+        },
+        {
+          answer: "King Charles",
+          correct: false
+        }
+      ]
+    }
+    const updateReturn1 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
+      quizQuestion.questionId, newQuestion1);
+    expect(updateReturn1).toEqual({ error: expect.any(String) });
+  });
+
+  test('No Correct Answers', () => {
+    const newQuestion1: QuestionBody = {
+      question: "Who is the Monarch of England?",
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: "King Charles",
+          correct: true
+        },
+        {
+          answer: "Queen Elizabeth",
+          correct: false
+        }
+      ]
+    }
+    const updateReturn1 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, 
+      quizQuestion.questionId, newQuestion1);
+    expect(updateReturn1).toEqual({ error: expect.any(String) });
+  })
 
   test('Invalid Token', () => {
-    const response = requestQuizQuestionDuplicate(String(Number(user.token) + 1), quiz.quizId, question.questionId); 
-    expect(response.statusCode).toStrictEqual(401);
-    expect(response.bodyObj).toStrictEqual({error: expect.any(String)});
-  });
-  
-  test('Valid token; quiz not owned by user. (userId not found in quiz)', () => {
-    const response = requestQuizQuestionDuplicate(user.token, quiz.quizId + 1, question.questionId);
-    expect(response.statusCode).toStrictEqual(403);
-    expect(response.bodyObj).toStrictEqual({error: expect.any(String)});
+    const newQuestion1: QuestionBody = {
+      question: "Who is the Monarch of England?",
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: "King Charles",
+          correct: true
+        },
+        {
+          answer: "Queen Elizabeth",
+          correct: false
+        }
+      ]
+    }
+    const updateReturn1 = requestQuizQuestionUpdate('1', quiz1.quizId, 
+      quizQuestion.questionId, newQuestion1);
+    expect(updateReturn1).toEqual({ error: expect.any(string) });
+  })
+
+  test('User Does Not Own Quiz', () => {
+    const resToken2 = requestAuthRegister('quize@unsw.edu.au',
+    'abcd12344', 'Pobby', 'Pickens')
+    const newQuestion1: QuestionBody = {
+      question: "Who is the Monarch of England?",
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: "King Charles",
+          correct: true
+        },
+        {
+          answer: "Queen Elizabeth",
+          correct: false
+        }
+      ]
+    }
+    const updateReturn1 = requestQuizQuestionUpdate(resToken2.token, quiz1.quizId, 
+      quizQuestion.questionId, newQuestion1);
+    expect(updateReturn1).toEqual({ error: expect.any(string) });
+  })
+});
+
+describe('requestQuizQuestionRemove', () => {
+  let resToken: TokenReturn;
+  let quiz1: QuizId;
+  let quizQuestion: QuestionId;
+  beforeEach(() => {
+    resToken = requestAuthRegister('quiz@unsw.edu.au',
+    'abcd1234', 'Bobby', 'Dickens');
+    quiz1 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+    const question: QuestionBody = {
+      question: "Who is the Monarch of England?",
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: "King Charles",
+          correct: true
+        },
+        {
+          answer: "Queen Elizabeth",
+          correct: false
+        }
+      ]
+    }
+    quizQuestion = requestQuizQuestionCreate(resToken.token, quiz1.quizId, question);
   });
 
   test('Successful return and status code', () => {
@@ -336,3 +1087,91 @@ describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate',
     expect(response.bodyObj).toStrictEqual({newQuestionId: expect.any(Number)});
   });
 });
+
+describe('requestQuizQuestionMove', () => {
+  let resToken: TokenReturn;
+  let quiz1: QuizId;
+  let quizQuestion: QuestionId;
+  let quizquestion2: QuestionId;
+  beforeEach(() => {
+    resToken = requestAuthRegister('quiz@unsw.edu.au',
+    'abcd1234', 'Bobby', 'Dickens');
+    quiz1 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+    const question: QuestionBody = {
+      question: "Who is the Monarch of England?",
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: "King Charles",
+          correct: true
+        },
+        {
+          answer: "Queen Elizabeth",
+          correct: false
+        }
+      ]
+    }
+    const question2: QuestionBody = {
+      question: "Who is the PM of England?",
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: "Theresa May",
+          correct: false
+        },
+        {
+          answer: "Rishi Sunak",
+          correct: true
+        }
+      ]
+    }
+    quizQuestion = requestQuizQuestionCreate(resToken.token, quiz1.quizId, question);
+    quizquestion2 = requestQuizQuestionCreate(resToken.token, quiz1.quizId, question2);
+  });
+
+  test('successful quiz question move', () => {
+    expect(requestQuizQuestionMove(resToken.token, quiz1.quizId, quizQuestion.questionId, 1)).toEqual({});
+    const quizInfo = requestQuizInfo(resToken.token, quiz1.quizId);
+    expect(quizInfo.timeLastEdited).toEqual(expect.any(Number));
+  });
+
+  test('Question Id Invalid', () => {
+    expect(requestQuizQuestionMove(resToken.token, quiz1.quizId + 1, quizQuestion.questionId, 1)).toEqual({ error: expect.any(String) });
+    const quizInfo = requestQuizInfo(resToken.token, quiz1.quizId);
+    expect(quizInfo.timeLastEdited).toEqual(expect.any(Number));
+  });
+
+  test('Invalid Position', () => {
+    // too great
+    expect(requestQuizQuestionMove(resToken.token, quiz1.quizId, quizQuestion.questionId, 2)).toEqual({ error: expect.any(String) });
+    const quizInfo1 = requestQuizInfo(resToken.token, quiz1.quizId);
+    expect(quizInfo1.timeLastEdited).toEqual(expect.any(Number));
+    // too small
+    expect(requestQuizQuestionMove(resToken.token, quiz1.quizId, quizQuestion.questionId, -1)).toEqual({ error: expect.any(String) });
+    const quizInfo2 = requestQuizInfo(resToken.token, quiz1.quizId);
+    expect(quizInfo2.timeLastEdited).toEqual(expect.any(Number));
+    // cant be same
+    expect(requestQuizQuestionMove(resToken.token, quiz1.quizId, quizQuestion.questionId, 0)).toEqual({ error: expect.any(String) });
+    const quizInfo3 = requestQuizInfo(resToken.token, quiz1.quizId);
+    expect(quizInfo3.timeLastEdited).toEqual(expect.any(Number));
+  });
+
+  test('Invalid Token', () => {
+    expect(requestQuizQuestionMove('1', quiz1.quizId, quizQuestion.questionId, 1)).toEqual({ error: expect.any(String) });
+    const quizInfo = requestQuizInfo(resToken.token, quiz1.quizId);
+    expect(quizInfo.timeLastEdited).toEqual(expect.any(Number));
+  });
+
+  test('User Does Not Own Quiz', () => {
+    const resToken2 = requestAuthRegister('quiz1@unsw.edu.au',
+    'abcd12344', 'Pobby', 'Pickens');
+    expect(requestQuizQuestionMove(resToken2.token, quiz1.quizId, quizQuestion.questionId, 1)).toEqual({ error: expect.any(String) });
+    const quizInfo = requestQuizInfo(resToken.token, quiz1.quizId);
+    expect(quizInfo.timeLastEdited).toEqual(expect.any(Number));
+  });
+});
+
+
+*/

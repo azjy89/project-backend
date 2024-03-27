@@ -94,10 +94,10 @@ export const requestUserPasswordUpdate = (token: string, oldPassword: string, ne
 export const requestQuizList = (token: string) => {
   const res = request(
     'GET',
-    SERVER_URL + `/v1/admin/quiz/list`,
+    SERVER_URL + '/v1/admin/quiz/list',
     {
       qs: {
-        token: token,
+        token: JSON.stringify(token),
       }
     }
   );
@@ -192,6 +192,7 @@ export const requestClear = () => {
       }
     }
   );
+  return JSON.parse(res.body.toString());
 };
 
 // Iteration 2 functions

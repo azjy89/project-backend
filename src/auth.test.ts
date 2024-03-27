@@ -163,7 +163,7 @@ describe('adminAuthLogin', () => {
     const responseToken = requestAuthRegister('users@unsw.edu.au', '1234abcd'
       , 'FirstName', 'LastName');
     const loginToken = requestAuthLogin('users@unsw.edu.au', '1234abce');
-    const userDetails = requestUserDetails(loginToken.token);
+    const userDetails = requestUserDetails(responseToken.token);
     expect(userDetails.user.numFailedPasswordsSinceLastLogin).toStrictEqual(1);
   });
 });
@@ -183,10 +183,10 @@ describe('requestAuthLogout', () => {
     const responseToken = requestAuthRegister('users@unsw.edu.au', '1234abcd'
     , 'FirstName', 'LastName');
     const logoutReturn = requestAuthLogout('1');
-    expect(logoutReturn).toEqual({ error: 'error' });
+    expect(logoutReturn).toEqual({ error: expect.any(String) });
     const loginToken = requestAuthLogin('users@unsw.edu.au', '1234abcd');
     const logoutReturn2 = requestAuthLogout(loginToken.token + 1);
-    expect(logoutReturn2).toEqual({ error: 'error' }); 
+    expect(logoutReturn2).toEqual({ error: expect.any(String) }); 
   });
 });
 

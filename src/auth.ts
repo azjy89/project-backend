@@ -1,5 +1,3 @@
-import { tokenToString } from 'typescript';
-
 import { 
   getData, 
   setData 
@@ -12,8 +10,6 @@ import {
   AuthUserId,
   UserDetails
 } from './interfaces';
-
-import HTTPError from 'http-errors';
 
 // Global Variables
 const minNameLength = 2;
@@ -37,19 +33,24 @@ export const createToken = ( authUserId: number ): string => {
 // This function is exported to server and allows the userId of a user to be
 // retrieved from a token
 export const idFromToken = ( token: string ): ErrorObject | AuthUserId => {
-  const tokenInfo = getData().tokens.find(dataToken => token === dataToken.token);
+  const dataToken = getData().tokens.find(dataToken => dataToken.token === token);
 
-  if (tokenInfo) {
-    return { authUserId: tokenInfo.userId };
+  if (dataToken) {
+    return { authUserId: dataToken.userId };
+  } else {
+    return {
+      error: 'Token does not refer to a valid logged in session'
+    }
   }
-  throw HTTPError(403, 'Token does not refer to a valid logged in session');
 }
 
-// Checks the token has a valid structure and throws an error if not
-export const validateToken = ( token: string ): ErrorObject | object => {
+// Checks the token has a valid structure and returns an error if not
+export const validateToken = ( token: string ): ErrorObject | object  => {
   const regex = /^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$/;
   if (!regex.test(token)) {
-    throw HTTPError(401, 'Token is not a valid structure');
+    return {
+      error: 'Token is not valid'
+    }
   }
   return {};
 }
@@ -97,6 +98,7 @@ export const adminAuthRegister = (email: string, password: string, nameFirst: st
     const successfulResult = {
       authUserId: newUserId,
     };
+    setData(data);
     return successfulResult;
   }
 
@@ -179,14 +181,18 @@ export const adminAuthLogin = (email: string, password: string): AuthUserId | Er
   const user = data.users.some(user => user.email === email);
 
   if (!user) {
-    throw HTTPError(400, 'User with this email does not exist');
+    return { 
+      error: 'User with this email does not exist' 
+    };
   }
 
   const index = data.users.findIndex(user => user.email === email);
   if (data.users[index].password !== password) {
     data.users[index].numFailedPasswordsSinceLastLogin++;
     setData(data);
-    throw HTTPError(400, 'Incorrect password');
+    return {
+      error: 'Incorrect password'
+    }
   }
 
   data.users[index].numFailedPasswordsSinceLastLogin = 0;
@@ -313,20 +319,30 @@ export const adminUserPasswordUpdate = ( authUserId: number, oldPassword: string
 		}
 	}
 	if (oldPassword !== data.users[userIndex].password) {
-    throw HTTPError(400, 'Old password is not the correct old password');
+    return {
+      error: 'Old password is not the correct old password'
+    }
 	}
 	if (newPassword === data.users[userIndex].password) {
-    throw HTTPError(400, 'Old Password and New Password match exactly');
+    return {
+      error: 'Old Password and New Password match exactly'
+    }
 	}
 	const GetPassword = findPassword(newPassword, userIndex);
 	if (!GetPassword) {
-    throw HTTPError(400, 'New Password has already been used before by this user');
+    return {
+      error: 'New Password has already been used before by this user'
+    }
 	}
 	if (newPassword.length < minPasswordLength) {
-    throw HTTPError(400, 'Password is too short');
+    return {
+      error: 'Password is too short'
+    }
 	}
 	if (!adminAuthRegisterValidPassword(newPassword)) {
-    throw HTTPError(400, 'Unsatisfactory password strength');
+    return {
+      error: 'Unsatisfactory password strength'
+    }
 	}
 	data.users[userIndex].password = newPassword;
  
