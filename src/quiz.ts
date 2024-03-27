@@ -322,7 +322,6 @@ export const adminQuizTransfer = (authUserId: number, quizId: number, userEmail:
     };
   }
   // Succesful Transfer
-  // FIX: Note: This updates by reference, so don't need setData().
   currentQuiz.quizOwnerId = targetUser.userId;
   return {};
 };
