@@ -196,7 +196,7 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
  */
 app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   // Request token as a query
-  const token = JSON.parse(req.query.token);
+  const token = req.query.token as string;
   // Validates token
   const retValidateToken = validateToken(token);
   if ('error' in retValidateToken) {
@@ -504,11 +504,10 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   }
   // Retrieve userid for the token
   const userId = idFromToken(token);
-  const authUserId = userId as AuthUserId;
   if ('error' in userId) {
     return res.status(403).json(userId);
   }
-
+  const authUserId = userId as AuthUserId;
   // Call and return adminQuizQuestionCreate
   const response = adminQuizQuestionCreate(quizId, authUserId.authUserId, questionBody);
   if ('error' in response) {

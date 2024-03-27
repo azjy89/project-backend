@@ -168,12 +168,15 @@ describe('requestQuizInfo', () => {
     const quizId = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
     const quizInfo = requestQuizInfo(resToken.token, quizId.quizId);
     // Define the expected quiz information structure
-    const expectedQuizInfo = {
+    const expectedQuizInfo: Quiz = {
       quizId: expect.any(Number),
-      name: 'COMP1531', // Assuming 'name' property is available in quizInfo
+      name: 'COMP1531',
+      ownerId: expect.any(Number),
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
-      description: 'Welcome!'
+      description: 'Welcome!',
+      questions: [],
+      duration: 0
     };
 
     // Compare quizInfo object with the expected quiz information structure
@@ -630,24 +633,25 @@ describe('requestQuizQuestionCreate', () => {
     expect(requestQuizInfo(resToken.token, quiz1.quizId)).toStrictEqual({
       quizId: quiz1.quizId,
       name: 'COMP1531',
-      quizOwnerId: expect.any(Number),
+      ownerId: expect.any(Number),
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
       description: 'Welcome!',
       questions: [
         {
-          questionBody: question1.questionBody,
+          questionBody: questionBody1,
           questionId: question1.questionId
         },
         {
-          questionBody: question2.questionBody,
+          questionBody: questionBody2,
           questionId: question2.questionId
         },
         {
-          questionBody: question3.questionBody,
+          questionBody: questionBody3,
           questionId: question3.questionId
         }
-      ]
+      ],
+      duration: 15
     })
   });
 });

@@ -97,7 +97,7 @@ export const requestQuizList = (token: string) => {
     SERVER_URL + '/v1/admin/quiz/list',
     {
       qs: {
-        token: JSON.stringify(token),
+        token: token,
       }
     }
   );

@@ -21,7 +21,7 @@ export interface User {
 export interface Quiz {
   quizId: number,
   name: string,
-  quizOwnerId: number,
+  ownerId: number,
   timeCreated: number,
   timeLastEdited: number,
   description: string,
@@ -96,7 +96,7 @@ export interface QuestionBody {
 // AnswerInput type
 export interface AnswerInput {
   answer: string,
-  correct: true | false
+  correct: boolean
 }
 
 // questionid return type
