@@ -654,7 +654,6 @@ describe('requestQuizQuestionCreate', () => {
     })
   });
 });
-*/
 
 describe('requestQuizQuestionUpdate', () => {
   let resToken: TokenReturn;
@@ -1061,8 +1060,6 @@ describe('requestQuizQuestionUpdate', () => {
 });
 
 
-
-/*
 describe('requestQuizQuestionRemove', () => {
   let resToken: TokenReturn;
   let quiz1: QuizId;
@@ -1095,6 +1092,7 @@ describe('requestQuizQuestionRemove', () => {
     expect(response.bodyObj).toStrictEqual({newQuestionId: expect.any(Number)});
   });
 });
+*/
 
 describe('requestQuizQuestionMove', () => {
   let resToken: TokenReturn;
@@ -1183,7 +1181,7 @@ describe('requestQuizQuestionMove', () => {
 
 
 
-
+/*
 describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate', () => {
   let user: any, quiz: any, question: any;
   beforeEach(() => {

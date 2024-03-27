@@ -546,19 +546,37 @@ export function adminQuizQuestionRemove(quizId: number, questionId: number, auth
 
 export function adminQuizQuestionMove(quizId: number, questionId: number, authUserId: number, newPosition: number): {} {
   const data: Data = getData();
-  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
-  const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId);
-  if (!quiz.questions.find(question => question.questionId === questionId)) {
-    return { error: 'Question Not Found' };
+
+  const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
+
+  if (!quizFind) {
+    return {
+      error: 'Invalid quizId'
+    }
   }
+
+  if (quizFind.ownerId !== authUserId) {
+    return {
+      error: 'Quiz does not belong to user'
+    }
+  }
+
+  const questionFind = quizFind.questions.find(questionFind => questionFind.questionId === questionId);
+  if (!questionFind) {
+    return {
+      error: 'QuestionId does not exist under the quiz'
+    }
+  }
+
   if (newPosition < 0 ||
-      newPosition > quiz.questions.length || 
-      newPosition === quiz.questions.findIndex(question => question.questionId === questionId)) {
+      newPosition > quizFind.questions.length || 
+      newPosition === quizFind.questions.findIndex(question => question.questionId === questionId)) {
     return { error: 'Invalid Position' };
   }
-  let removedQuestion = quiz.questions.splice(questionIndex, 1)[0];
-  quiz.questions.splice(newPosition, 0, removedQuestion);
-  quiz.timeLastEdited = Date.now();
+  const questionIndex = quizFind.questions.findIndex(question => question.questionId === questionId);
+  let removedQuestion = quizFind.questions.splice(questionIndex, 1)[0];
+  quizFind.questions.splice(newPosition, 0, removedQuestion);
+  quizFind.timeLastEdited = Date.now();
   setData(data);
   return {};
 }
