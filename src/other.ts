@@ -19,3 +19,6 @@ export const clear = (): object => {
   })
   return {};
 };
+
+=======
+>>>>>>> src/other.ts

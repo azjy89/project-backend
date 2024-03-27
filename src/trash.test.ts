@@ -121,4 +121,4 @@ describe.only('Testing DELETE /v1/admin/quiz/trash/empty', () => {
 
     expect(requestTrashEmpty(resToken2.token, [resquizId1.quizI, resquizId2.quizId, resquizId3.quizId])).toStrictEqual({ error: expect.any(String) });
   });
-})
+});
