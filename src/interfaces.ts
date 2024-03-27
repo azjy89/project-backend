@@ -26,6 +26,7 @@ export interface Quiz {
   timeLastEdited: number,
   description: string,
   questions: Question[],
+  duration: number,
 }
 
 // Token interface
@@ -80,7 +81,7 @@ export interface AdminQuizInfoReturn {
 
 // Question type
 export interface Question {
-  body: QuestionBody,
+  questionBody: QuestionBody,
   questionId: number
 }
 

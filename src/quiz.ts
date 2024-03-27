@@ -295,7 +295,74 @@ export function adminQuizTransfer(authUserId: number, quizId: number, userEmail:
  * @returns {}
  */
 export function adminQuizQuestionCreate(quizId: number, authUserId: number, questionBody: QuestionBody): QuestionId | ErrorObject {
-  return {};
+  const data: Data = getData();
+  const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
+  if (!quizFind)  {
+    return {
+      error: 'Invalid quizId'
+    }
+  }
+
+  if (quizFind.ownerId !== authUserId) {
+    return {
+      error: 'authUserId does not own this quiz'
+    }
+  }
+
+  if (questionBody.duration < 1) {
+    return {
+      error: 'Question duration must be at least 1 second'
+    }
+  }
+
+  if (questionBody.points < 0) {
+    return {
+      error: 'Question points must be positive'
+    }
+  }
+
+  if (questionBody.answers.length === 0) {
+    return {
+      error: 'Question must have 1 or more answer choices'
+    }
+  }
+
+  const findOneTrue = questionBody.answers.some(answer => answer.correct === true);
+  if (!findOneTrue) {
+    return { error: 'At least one answer must be correct' };
+  }  
+
+  //random 6 digit number for questionid
+  const generateId = (): number => {
+    let id: number;
+    do {
+      id = Math.floor(100000 + Math.random() * 900000);
+    } while (data.quizzes.some(quiz => quiz.questions && quiz.questions.some(question => question.questionId === id)));
+
+    return id;
+  };
+
+  const newQuestionId = generateId();
+  
+  
+  quizFind.duration += questionBody.duration;
+
+  quizFind.timeLastEdited = Date.now();
+
+  const newQuestion: Question = {
+    questionId: newQuestionId,
+    question: questionBody.question,
+    duration: questionBody.duration,
+    points: questionBody.points,
+    answers: questionBody.answers
+  };
+  console.log('Before adding new question, questions length:', quizFind.questions.length);
+  quizFind.questions.push(newQuestion);
+  console.log('After adding new question, questions length:', quizFind.questions.length);
+  setData(data);
+  return {
+    questionId: newQuestionId
+  };
 }
 
 /**

@@ -505,9 +505,10 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
+  if ('error' in userId) {
+    return res.status(403).json(userId);
   }
+
   // Call and return adminQuizQuestionCreate
   const response = adminQuizQuestionCreate(quizId, authUserId.authUserId, questionBody);
   if ('error' in response) {
