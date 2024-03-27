@@ -442,11 +442,12 @@ export function adminQuizQuestionMove(quizId: number, questionId: number, authUs
  */
 
 export function adminQuizQuestionDuplicate(quizId: number, questionId: number, authUserId: number): ErrorObject | DupedQuestionId {
-  let data = getData();
+  let data: Data = getData();
   // Error: Invalid questionId
-  const currentQuiz: Quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
-  const currentQuestion: Question = currentQuiz.questions.find(question => question.questionId === questionId)
-  if (!currentQuestion) {
+  const quiz: Quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  const question: Question = quiz.questions.find(question => question.questionId === questionId)
+  const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId)
+  if (!question) {
     return {
       error: 'Question Id does not refer to a valid question within this quiz'
     }
@@ -458,8 +459,7 @@ export function adminQuizQuestionDuplicate(quizId: number, questionId: number, a
       error: 'AuthUserId is not a valid user'
     }
   }
-  // Error: Valid authUserId, wrong quiz.
-  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  // Error: Valid authUserId, but not quiz owner.
   if (quiz.quizOwnerId != authUserId) {
     return {
       error: 'Quiz ID does not refer to a quiz that this user own'
@@ -467,13 +467,15 @@ export function adminQuizQuestionDuplicate(quizId: number, questionId: number, a
   }
 
   // Successful
-  const newQuestionId = currentQuiz.questions.length +1;
-  const newQuestion = currentQuestion;
-  newQuestion.questionId = newQuestionId;
-  currentQuiz.questions.push(newQuestion);
-  const currentQuizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
-  const targetQuizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
-  data.quizzes[currentQuizIndex].timeLastEdited = Date.now();
-  data.quizzes[targetQuizIndex].timeLastEdited = Date.now();
-  return {newQuestionId: newQuestionId};
+  let newQuestion: Question;
+  newQuestion.body = question.body;
+  newQuestion.questionId = quiz.questions.length +1;
+  
+  // splice to right after quiz location
+  quiz.questions.splice(questionIndex, 0, newQuestion);
+  // update timeLastEdited of quiz.
+  const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
+  data.quizzes[quizIndex].timeLastEdited = Date.now();
+
+  return {newQuestionId: newQuestion.questionId};
 }

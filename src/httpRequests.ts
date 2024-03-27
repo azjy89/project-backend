@@ -350,8 +350,9 @@ export const requestQuizQuestionDuplicate = (token: string, quizId: number, ques
       }
     }
   );
+
   return {
     bodyObj: JSON.parse(res.body.toString()),
     statusCode: res.statusCode
   }
-  };  
+};  

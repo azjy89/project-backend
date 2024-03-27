@@ -10,7 +10,8 @@ import {
   requestQuizQuestionUpdate, 
   requestClear, 
   requestQuizQuestionRemove,
-  requestQuizQuestionMove 
+  requestQuizQuestionMove,
+  requestQuizQuestionDuplicate
 } from './httpRequests';
 import { 
   TokenReturn, 
@@ -312,6 +313,7 @@ describe('requestQuizDescriptionUpdate', () => {
   });
 });
 
+/*
 describe('requestQuizQuestionCreate', () => {
   let resToken: TokenReturn;
   let quiz1: QuizId;
@@ -1175,3 +1177,47 @@ describe('requestQuizQuestionMove', () => {
 
 
 */
+
+describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate', () => {
+  let user: any, quiz: any, question: any;
+  beforeEach(() => {
+    user = requestAuthRegister("first@unsw.edu.au", "FirstUser123", "First", "User");
+    quiz = requestQuizCreate(user.token, "COMP1531", "A description of my quiz");
+    question = requestQuizQuestionCreate(user.token, quiz.quizId, { 
+      "question": "Who is the Monarch of England?",
+      "duration": 4,
+      "points": 5,
+      "answers": [
+        {
+          "answer": "Prince Charles",
+          "correct": true
+        }
+      ]
+  });
+});
+
+test('Invalid Question ID', () => {
+  const response = requestQuizQuestionDuplicate(user.token, quiz.quizId, question.questionId + 2);
+  expect(response.statusCode).toStrictEqual(400);
+  expect(response.bodyObj).toStrictEqual({error: expect.any(String)});
+});
+
+test('Invalid Token', () => {
+  const response = requestQuizQuestionDuplicate('1', quiz.quizId, question.questionId); 
+  expect(response.statusCode).toStrictEqual(401);
+  expect(response.bodyObj).toStrictEqual({error: expect.any(String)});
+});
+
+test('Valid token; quiz not owned by user. (userId not found in quiz)', () => {
+  const user2 = requestAuthRegister('quiz1@unsw.edu.au', 'abcd12344', 'Pobby', 'Pickens');
+  const response = requestQuizQuestionDuplicate(user2.token, quiz.quizId, question.questionId);
+  expect(response.statusCode).toStrictEqual(403);
+  expect(response.bodyObj).toStrictEqual({error: expect.any(String)});
+});
+
+test('Successful return and status code', () => {
+  const response = requestQuizQuestionDuplicate(user.token, quiz.quizId, question.questionId);
+  expect(response.statusCode).toStrictEqual(200);
+  expect(response.bodyObj).toStrictEqual({newQuestionId: expect.any(Number)});
+});
+});
