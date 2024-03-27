@@ -399,37 +399,31 @@ export function adminQuizQuestionMove(quizId: number, questionId: number, newPos
 
 export function adminQuizQuestionDuplicate(quizId: number, questionId: number, authUserId: number): ErrorObject | DupedQuestionId {
   let data = getData();
-  // Errors
   // Error: Invalid questionId
-  const currentQuiz = data.quizzes.find(quiz => quiz.quizId === quizId);
-  // FIX: need to add interface for 'question' in dataStore... to access questionId.
-  const currentQuestion = currentQuiz.questions.find(question => question.questionId === questionId)
+  const currentQuiz: Quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  const currentQuestion: Question = currentQuiz.questions.find(question => question.questionId === questionId)
   if (!currentQuestion) {
-    return {
-      error: "Question Id does not refer to a valid question within this quiz"
-    };
+    throw HTTPError(400, 'Question Id does not refer to a valid question within this quiz');
   }
   // Error: Invalid authUserId
   const userIndex = data.users.findIndex(user => user.userId === authUserId);
   if (userIndex === -1) {
-    return {
-      error: 'AuthUserId is not a valid user'
-    };
+    throw HTTPError(401, 'AuthUserId is not a valid user');
   }
   // Error: Valid authUserId, wrong quiz.
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   if (quiz.quizOwnerId != authUserId) {
-    return {
-      error: 'Quiz ID does not refer to a quiz that this user own'
-    };
+    throw HTTPError(403, 'Quiz ID does not refer to a quiz that this user own');
   }
 
   // Successful
   const newQuestionId = currentQuiz.questions.length +1;
   const newQuestion = currentQuestion;
-  newQuestion.questionId = newQuestionId
-  currentQuiz.questions.push(newQuestion)
-  currentQuiz.timeLastEdited = Date.now();
-
+  newQuestion.questionId = newQuestionId;
+  currentQuiz.questions.push(newQuestion);
+  const currentQuizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
+  const targetQuizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
+  data.quizzes[currentQuizIndex].timeLastEdited = Date.now();
+  data.quizzes[targetQuizIndex].timeLastEdited = Date.now();
   return {newQuestionId: newQuestionId};
 }
