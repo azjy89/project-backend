@@ -24,7 +24,7 @@ import {
 beforeEach(() => {
   requestClear();
 });
-/*
+
 describe('requestQuizList', () => {
   test('correct output of list of quizzes', () => {
     const resToken: TokenReturn = requestAuthRegister('quiz@unsw.edu.au',
@@ -311,7 +311,7 @@ describe('requestQuizDescriptionUpdate', () => {
     )).toStrictEqual({ error: expect.any(String) });
   });
 });
-*/
+
 
 
 
@@ -651,8 +651,8 @@ describe('requestQuizQuestionCreate', () => {
     })
   });
 });
-
 /*
+
 describe('requestQuizQuestionUpdate', () => {
   let resToken: TokenReturn;
   let quiz1: QuizId;

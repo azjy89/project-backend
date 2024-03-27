@@ -80,10 +80,9 @@ export const adminQuizCreate = (authUserId: number, name: string, description: s
     }
   }
 
-  const newQuizId = data.quizzes.length + trash.quizzes.length + 1;
-
-
-
+  const newQuizId = data.quizzes.length > 0 
+  ? Math.max(...data.quizzes.map(quiz => quiz.quizId)) + 1 : 1;
+  
   const newQuiz: Quiz = {
     quizId: newQuizId,
     name: name,
@@ -92,7 +91,6 @@ export const adminQuizCreate = (authUserId: number, name: string, description: s
     timeLastEdited: Date.now(),
     description: description,
     questions: [],
-    answers: []
   };
 
   data.quizzes.push(newQuiz);
@@ -343,22 +341,14 @@ export function adminQuizQuestionCreate(quizId: number, authUserId: number, ques
   };
 
   const newQuestionId = generateId();
-  
-  
-  quizFind.duration += questionBody.duration;
-
-  quizFind.timeLastEdited = Date.now();
-
   const newQuestion: Question = {
-    questionId: newQuestionId,
-    question: questionBody.question,
-    duration: questionBody.duration,
-    points: questionBody.points,
-    answers: questionBody.answers
+    questionBody: questionBody,
+    questionId: newQuestionId
   };
-  console.log('Before adding new question, questions length:', quizFind.questions.length);
   quizFind.questions.push(newQuestion);
-  console.log('After adding new question, questions length:', quizFind.questions.length);
+
+  quizFind.duration += questionBody.duration;
+  quizFind.timeLastEdited = Date.now();
   setData(data);
   return {
     questionId: newQuestionId
