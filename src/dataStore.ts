@@ -1,6 +1,6 @@
 import {
   Data
-} from './types';
+} from './interfaces';
 
 import fs from 'fs';
 import path from 'path';
@@ -10,13 +10,12 @@ export const active = true;
 export const inactive = false;
 
 
-/*
 let data: Data = {
   users: [],
   quizzes: [],
   tokens: [],
 };
-*/
+
 
 
 // Data Functions 

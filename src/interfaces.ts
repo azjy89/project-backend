@@ -1,9 +1,11 @@
-//Error interface
+import { QuestionDotToken } from "typescript"
+
+// Error interface
 export interface ErrorObject {
   error: string
 };
 
-//User interface
+// User interface
 export interface User {
   userId: number,
   nameFirst: string,
@@ -15,33 +17,33 @@ export interface User {
   oldPasswords: string[]
 }
 
-//Quiz interface
+// Quiz interface
 export interface Quiz {
   quizId: number,
   name: string,
-  quizCreatorId: number,
+  quizOwnerId: number,
   timeCreated: number,
   timeLastEdited: number,
   description: string,
-  questions: string[],
+  questions: Question[],
   answers: string[]
 }
 
-//Token interface
+// Token interface
 export interface Token {
   token: string,
   userId: number
 }
-//AuthUserId interface
+// AuthUserId interface
 export interface AuthUserId {
   authUserId: number
 }
 
-//QuizId interface
+// QuizId interface
 export interface QuizId {
   quizId: number
 };
-//UserDetails interface (return type)
+// UserDetails interface (return type)
 export interface UserDetails {
 	user: {
 		userId: number,
@@ -52,23 +54,23 @@ export interface UserDetails {
 	}
 }
 
-//Token return type
+// Token return type
 export interface TokenReturn {
   token: string
 }
 
-//Quiz summarised in this form
+// Quiz summarised in this form
 export interface QuizListNameId {
   quizId: number,
   name: string
 }
 
-//adminQuizList return type
+// adminQuizList return type
 export interface AdminQuizListReturn {
   quizzes: QuizListNameId[]
 }
 
-//adminQuizInfo return type
+// adminQuizInfo return type
 export interface AdminQuizInfoReturn {
   quizId: number,
   name: string,
@@ -77,7 +79,13 @@ export interface AdminQuizInfoReturn {
   description: string
 }
 
-//questionBody input type
+// Question type
+export interface Question {
+  body: QuestionBody,
+  questionId: number
+}
+
+// questionBody input type
 export interface QuestionBody {
   question: string,
   duration: number,
@@ -85,22 +93,22 @@ export interface QuestionBody {
   answers: AnswerInput[]
 }
 
-//AnswerInput type
+// AnswerInput type
 export interface AnswerInput {
   answer: string,
   correct: true | false
 }
 
-//questionid return type
+// questionid return type
 export interface QuestionId {
-  question: number
+  questionId: number
 }
 
 export interface DupedQuestionId {
   dupedQuestionId: number
 }
 
-//DataStore interface
+// DataStore interface
 export interface Data {
   users: User[],
   quizzes: Quiz[],
