@@ -2,7 +2,7 @@ import request from 'sync-request-curl';
 import { port, url } from './config.json';
 const SERVER_URL = `${url}:${port}`;
 
-import { QuestionBody } from './types';
+import { QuestionBody } from './interfaces';
 
 // Iteration 1 functions
 
@@ -94,10 +94,10 @@ export const requestUserPasswordUpdate = (token: string, oldPassword: string, ne
 export const requestQuizList = (token: string) => {
   const res = request(
     'GET',
-    SERVER_URL + `/v1/admin/quiz/list`,
+    SERVER_URL + '/v1/admin/quiz/list',
     {
       qs: {
-        token: token,
+        token: JSON.stringify(token),
       }
     }
   );
@@ -192,11 +192,12 @@ export const requestClear = () => {
       }
     }
   );
+  return JSON.parse(res.body.toString());
 };
 
 // Iteration 2 functions
 
-export const requestLogout = (token: string) => {
+export const requestAuthLogout = (token: string) => {
   const res = request(
     'POST',
     SERVER_URL + `/v1/admin/auth/logout`,
@@ -292,7 +293,7 @@ export const requestQuizQuestionCreate = (token: string, quizId: number, questio
   return JSON.parse(res.body.toString());
 };
 
-export const requestQuizQuestionUpdate = (token: string, quizId: number, questionBody: QuestionBody) => {
+export const requestQuizQuestionUpdate = (token: string, quizId: number, questionId: number, questionBody: QuestionBody) => {
   const res = request(
     'PUT',
     SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}`,

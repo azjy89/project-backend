@@ -1,5 +1,3 @@
-import { tokenToString } from 'typescript';
-
 import { 
   getData, 
   setData 
@@ -11,20 +9,19 @@ import {
   Data,
   AuthUserId,
   UserDetails
-} from './types';
-
-import HTTPError from 'http-errors';
+} from './interfaces';
 
 // Global Variables
 const minNameLength = 2;
 const maxNameLength = 20;
 const minPasswordLength = 8;
 const isEmail = require('validator/lib/isEmail');
+const uuid = require('uuid');
 
 // Exported to server to allow token creation for sessions
 export const createToken = ( authUserId: number ): string => {
-  const data = getData();
-  const token: string = (-authUserId).toString();
+  const data: Data = getData();
+  const token: string = uuid.v4();
   data.tokens.push({
     token: token,
     userId: authUserId,
@@ -36,13 +33,26 @@ export const createToken = ( authUserId: number ): string => {
 // This function is exported to server and allows the userId of a user to be
 // retrieved from a token
 export const idFromToken = ( token: string ): ErrorObject | AuthUserId => {
-  const tokenInfo = getData().tokens.find(dataToken => token === dataToken.token);
-  const checkUser = getData().users.find(user => user.userId === tokenInfo.userId);
+  const dataToken = getData().tokens.find(dataToken => dataToken.token === token);
 
-  if (checkUser) {
-    return { authUserId: checkUser.userId };
+  if (dataToken) {
+    return { authUserId: dataToken.userId };
+  } else {
+    return {
+      error: 'Token does not refer to a valid logged in session'
+    }
   }
-  throw HTTPError(403, 'Token does not refer to a valid logged in session');
+}
+
+// Checks the token has a valid structure and returns an error if not
+export const validateToken = ( token: string ): ErrorObject | object  => {
+  const regex = /^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$/;
+  if (!regex.test(token)) {
+    return {
+      error: 'Token is not valid'
+    }
+  }
+  return {};
 }
 
 /** Goes through data array and removes the token that needs to be deleted
@@ -50,7 +60,7 @@ export const idFromToken = ( token: string ): ErrorObject | AuthUserId => {
  * @param {string} token 
  */
 export const removeToken = ( token: string ): void => {
-  const data = getData();
+  const data: Data = getData();
   data.tokens = data.tokens.filter(a => a.token !== token);
   setData(data);
 }
@@ -68,7 +78,7 @@ export const removeToken = ( token: string ): void => {
  * @returns {int}
 */
 export const adminAuthRegister = (email: string, password: string, nameFirst: string, nameLast:string): AuthUserId | ErrorObject => {
-  const data = getData();
+  const data: Data = getData();
   const result = adminAuthRegisterErrors(email, password, nameFirst,
     nameLast, data);
   if (result.error === 'No Error') {
@@ -88,6 +98,7 @@ export const adminAuthRegister = (email: string, password: string, nameFirst: st
     const successfulResult = {
       authUserId: newUserId,
     };
+    setData(data);
     return successfulResult;
   }
 
@@ -166,10 +177,12 @@ const adminAuthRegisterValidPassword = (password: string): boolean => {
  */
 
 export const adminAuthLogin = (email: string, password: string): AuthUserId | ErrorObject => {
-  const data = getData();
-  if (!data.users.some(user => user.email === email)) {
-    return {
-      error: 'Email does not exist'
+  const data: Data = getData();
+  const user = data.users.some(user => user.email === email);
+
+  if (!user) {
+    return { 
+      error: 'User with this email does not exist' 
     };
   }
 
@@ -179,7 +192,7 @@ export const adminAuthLogin = (email: string, password: string): AuthUserId | Er
     setData(data);
     return {
       error: 'Incorrect password'
-    };
+    }
   }
 
   data.users[index].numFailedPasswordsSinceLastLogin = 0;
@@ -191,6 +204,7 @@ export const adminAuthLogin = (email: string, password: string): AuthUserId | Er
   };
 };
 
+
 /**
  * Given an admin user's authUserId, return details about the user. "name" is
  * the first and last name concatenated with a single space between them.
@@ -201,7 +215,7 @@ export const adminAuthLogin = (email: string, password: string): AuthUserId | Er
  */
 
 export const adminUserDetails = (authUserId: number): UserDetails | ErrorObject => {
-  const data = getData();
+  const data: Data = getData();
 
   const userIndex = data.users.findIndex(user => user.userId === authUserId);
   if (userIndex === -1) {
@@ -236,7 +250,7 @@ export const adminUserDetails = (authUserId: number): UserDetails | ErrorObject 
  */
 
 export const adminUserDetailsUpdate = (authUserId: number, email: string, nameFirst: string, nameLast:string): object | ErrorObject => {
-  const data = getData();
+  const data: Data = getData();
   const userIndex = data.users.findIndex(user => user.userId === authUserId);
   if (userIndex === -1) {
     return {
@@ -297,7 +311,7 @@ export const adminUserDetailsUpdate = (authUserId: number, email: string, nameFi
  */
 
 export const adminUserPasswordUpdate = ( authUserId: number, oldPassword: string, newPassword: string ): object | ErrorObject => {
-	const data = getData();
+	const data: Data = getData();
 	const userIndex = data.users.findIndex(user => user.userId === authUserId);
 	if (userIndex === -1) {
 		return {
@@ -305,30 +319,30 @@ export const adminUserPasswordUpdate = ( authUserId: number, oldPassword: string
 		}
 	}
 	if (oldPassword !== data.users[userIndex].password) {
-		return {
-			error: 'Old Password is not the correct old password'
-		}
+    return {
+      error: 'Old password is not the correct old password'
+    }
 	}
 	if (newPassword === data.users[userIndex].password) {
-		return {
-			error: 'Old Password and New Password match exactly'
-		}
+    return {
+      error: 'Old Password and New Password match exactly'
+    }
 	}
 	const GetPassword = findPassword(newPassword, userIndex);
 	if (!GetPassword) {
-		return {
-			error: 'New Password has already been used before by this user'
-		}
+    return {
+      error: 'New Password has already been used before by this user'
+    }
 	}
 	if (newPassword.length < minPasswordLength) {
-		return {
-			error: 'Password is too short'
-		}
+    return {
+      error: 'Password is too short'
+    }
 	}
 	if (!adminAuthRegisterValidPassword(newPassword)) {
-		return {
-			error: 'Unsatisfactory password strength'
-		}
+    return {
+      error: 'Unsatisfactory password strength'
+    }
 	}
 	data.users[userIndex].password = newPassword;
  

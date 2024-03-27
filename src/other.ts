@@ -12,5 +12,10 @@ export const clear = (): object => {
     quizzes: [],
     tokens: []
   });
+  setTrash({
+    users: [],
+    quizzes: [],
+    tokens: []
+  })
   return {};
 };
