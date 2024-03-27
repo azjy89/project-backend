@@ -378,12 +378,6 @@ export function adminQuizQuestionCreate(quizId: number, authUserId: number, ques
     }
   }
 
-  if (questionBody.answers.length === 0) {
-    return {
-      error: 'Question must have 1 or more answer choices'
-    }
-  }
-
   for (const i of questionBody.answers) {
     if (i.answer.length < 1 || i.answer.length > 30) {
       return {
@@ -405,7 +399,7 @@ export function adminQuizQuestionCreate(quizId: number, authUserId: number, ques
   const findOneTrue = questionBody.answers.some(answer => answer.correct === true);
   if (!findOneTrue) {
     return { error: 'At least one answer must be correct' };
-  }  
+  }
   let newQuestionId: number;
   do {
     newQuestionId = Math.floor(100000 + Math.random() * 900000);
@@ -436,77 +430,86 @@ export function adminQuizQuestionCreate(quizId: number, authUserId: number, ques
  */
 export function adminQuizQuestionUpdate(quizId: number, questionId: number, authUserId: number, questionBody: QuestionBody): ErrorObject | object {
   const data: Data = getData();
-  const quiz = data.quizzes.find(quiz => quiz.ownerId === authUserId);
-  const question = quiz.questions.find(question => question.questionId === questionId);
 
-  if (!quiz) {
+  const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
+
+  if (!quizFind) {
     return {
-      error: 'User Does Not Own Quiz'
+      error: 'Invalid quizId'
     }
   }
-  if (!question) {
+
+  if (quizFind.ownerId !== authUserId) {
     return {
-      error: 'Invalid QuestionId'
+      error: 'Quiz does not belong to user'
     }
   }
+
+  const questionFind = quizFind.questions.find(questionFind => questionFind.questionId === questionId);
+  if (!questionFind) {
+    return {
+      error: 'QuestionId does not exist under the quiz'
+    }
+  }
+
   if (questionBody.question.length < 5 || questionBody.question.length > 50) {
     return {
       error: 'Invalid Question String Length'
     }
   }
+
   if (questionBody.duration < 1) {
     return {
       error: 'Invalid Duration'
     }
   }
+
   if (questionBody.answers.length < 2 || questionBody.answers.length > 6) {
     return {
       error: 'Invalid Number of Answers'
     }
   }
-  let totalDuration: number;
-  for (const question of quiz.questions) {
-    totalDuration += question.body.duration;
-  }
-  totalDuration += questionBody.duration;
-  if (totalDuration > 180) {
-    return {
-      error: 'Quiz Exceeded Time Limit'
-    }
-  }
-  if (questionBody.points < 1 || questionBody.points > 10) {
-    error: 'Invalid Question Points'
-  }
-  for (const answer of questionBody.answers) {
-    if (answer.answer.length) {
+
+  for (const i of questionBody.answers) {
+    if (i.answer.length < 1 || i.answer.length > 30) {
       return {
-        error: 'Invalid Answer Length'
+        error: 'Answer length must be between 1 and 30 characters long inclusive'
       }
     }
   }
-  if (sameQuestionString(questionBody)) {
-    return {
-      error: 'Duplicate Answers'
+  
+  for (let i = 0; i < questionBody.answers.length - 1; i++) {
+    for (let j = i + 1; j < questionBody.answers.length; j++) {
+      if (questionBody.answers[i].answer === questionBody.answers[j].answer) {
+        return {
+          error: 'Cannot be duplicate answers for a question'
+        }
+      }
     }
   }
-  if (!questionBody.answers.find(answer => answer.correct === true)) {
+
+  if (questionBody.points < 1 || questionBody.points > 10) {
     return {
-      error: 'No Correct Answers'
+      error: 'Invalid Question Points'
     }
   }
-  question.body = questionBody;
-  quiz.timeLastEdited = Date.now();
+
+  const findOneTrue = questionBody.answers.some(answer => answer.correct === true);
+  if (!findOneTrue) {
+    return { error: 'At least one answer must be correct' };
+  }
+
+  if (questionBody.duration + quizFind.duration - questionFind.questionBody.duration > 180) {
+    return {
+      error: 'Quiz duration exceeds 3 minutes'
+    }
+  }
+
+  questionFind.body = questionBody;
+  quizFind.timeLastEdited = Date.now();
+  quizFind.duration += (questionBody.duration - questionFind.questionBody.duration);
   setData(data);
   return {};
-}
-
-
-const sameQuestionString = (questionBody: QuestionBody): boolean => {
-  return questionBody.answers.some((answer: AnswerInput, index: number) => {
-    return questionBody.answers.slice(index + 1).some(otherAnswer => {
-      return answer.answer === otherAnswer.answer;
-    })
-  })
 }
 
 /**

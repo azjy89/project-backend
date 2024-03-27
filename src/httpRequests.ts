@@ -270,10 +270,7 @@ export const requestQuizTransfer = (token: string, quizId: number, userEmail: st
       }
     }
   );
-  return {
-    bodyObj: JSON.parse(res.body.toString()),
-    //statusCode: res.statusCode
-  }
+  return JSON.parse(res.body.toString());
 };
 
 export const requestQuizQuestionCreate = (token: string, quizId: number, questionBody: QuestionBody) => {
@@ -353,9 +350,5 @@ export const requestQuizQuestionDuplicate = (token: string, quizId: number, ques
       }
     }
   );
-
-  return {
-    bodyObj: JSON.parse(res.body.toString()),
-    //statusCode: res.statusCode
-  }
+  return JSON.parse(res.body.toString());
 };  
