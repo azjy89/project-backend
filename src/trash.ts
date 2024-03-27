@@ -28,9 +28,39 @@ export function trashQuizList(authUserId: number): Error | {quizzes: AdminQuizLi
  * @param {number} quizId 
  * @returns {}
  */
-export function trashQuizRestore(authUserId: number, quizId: number): Error | Record<string, never> {
-  return {};
-}
+export function trashQuizRestore(authUserId: number, quizId: number): object | Error {
+  const data = getData();
+  const trash = getTrash();
+  
+  // Check if authUserId refers to a valid user
+
+  const quizIndex = trash.quizzes.findIndex(quiz => quiz.quizId === quizId);
+  const quizName = trash.quizzes[quizIndex].name;
+
+  const nameExists = data.quizzes.some(quiz => quiz.name === quizName);
+  if (nameExists) {
+    return { error: 'Quiz name is already being used' };
+  }
+  if (!quizIndex) {
+    return { error: 'Quiz is not currently in the trash' };
+  }
+  const userExists = data.users.some(user => user.userId === authUserId);
+  if (!userExists) {
+    return { error: 'authUserId does not refer to a valid user'};
+  }
+  if (userExists && trash.quizzes[quizIndex].quizCreatorId != authUserId) {
+    return { error: 'user is not an owner of this quiz'};
+  }
+
+  trash.quizzes.splice(quizIndex, 1);
+  setTrash(trash);
+
+  data.quizzes.push(data.quizzes[quizIndex]);
+  data.quizzes[quizIndex].timeLastEdited = Date.now();
+
+  setData(data);
+  return{};
+};
 
 /** Permanently delete specific quizzes currently sitting in the trash
  * 
@@ -39,5 +69,29 @@ export function trashQuizRestore(authUserId: number, quizId: number): Error | Re
  * @returns {object}
  */
 export function trashEmpty(authUserId: number, quizIds: number[]): Error | object {
+  const data = getData();
+  const trash = getTrash();
+
+  const userExists = data.users.some(user => user.userId === authUserId);
+  if (!userExists) {
+    return { error: 'authUserId does not refer to a valid user'};
+  }
+
+  for (const quizId of quizIds) {
+    const quizIndex = trash.quizzes.findIndex(quiz => quiz.quizId === quizId);
+
+    if (quizIndex === -1) {
+      return { error: `Quiz with ID ${quizId} is not currently in the trash` };
+    }
+
+    if (userExists && trash.quizzes[quizIndex].quizCreatorId != authUserId) {
+    return { error: 'user is not an owner of this quiz'};
+  }
+
+    trash.quizzes.splice(quizIndex, 1);
+  }
+
+  setTrash(trash);
+
   return {};
 }
