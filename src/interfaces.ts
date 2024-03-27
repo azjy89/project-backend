@@ -105,7 +105,7 @@ export interface QuestionId {
 }
 
 export interface DupedQuestionId {
-  dupedQuestionId: number
+  newQuestionId: number
 }
 
 // DataStore interface

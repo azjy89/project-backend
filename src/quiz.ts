@@ -1,6 +1,5 @@
 import { arrayBuffer } from 'stream/consumers';
 import { getTrash, setTrash, getData, setData } from './dataStore';
-
 import {
   ErrorObject,
   QuizListNameId,
@@ -281,9 +280,52 @@ export const adminQuizDescriptionUpdate = (authUserId: number, quizId: number, d
  * @param {string} userEmail 
  * @returns {}
  */
-export function adminQuizTransfer(authUserId: number, quizId: number, userEmail: string): {} {
+export const adminQuizTransfer = (authUserId: number, quizId: number, userEmail: string): ErrorObject | EmptyObject => {
+  const data = getData();
+
+  // Error: 400 Bad Request
+  const targetUser = data.users.find(user => user.email === userEmail);
+  if (!targetUser) {
+    return {
+      error: "userEmail is not a real user"
+    };
+  }
+  // const currentUser = data.users.find(user => user.userId === authUserId);
+  if (targetUser.userId === authUserId) {
+    return {
+      error: "userEmail is the current logged in user"
+    };
+  }
+  const currentQuiz = data.quizzes.find(quiz => quiz.quizId === quizId)
+  const targetQuizzes = data.quizzes.filter((quiz) => quiz.quizOwnerId === targetUser.userId && quiz.name === currentQuiz.name)
+  const similarNameFound = targetQuizzes.find(quiz => quiz.name === currentQuiz.name)
+  if (similarNameFound) {
+    return {
+      error: "Quiz ID refers to a quiz that has a name that is already used by the target user"
+    };
+  }
+  // Error: 401
+  const currentUserIndex = data.users.findIndex(user => user.userId === authUserId);
+  if (currentUserIndex === -1) {
+    return {
+      error: 'AuthUserId is not a valid user'
+    };
+  }
+  // Error: 403
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (quiz.quizOwnerId !== authUserId) {
+    return {
+      error: 'Quiz ID does not refer to a quiz that this user own'
+    };
+  }
+
+  // Succesful Transfer, i.e. change quizOwnerId of current quiz to the targetUser's userId.
+  const targetUserIndex = data.users.findIndex(user => user.email === userEmail);
+  data.quizzes[currentUserIndex].quizOwnerId = targetUser.userId;
+  data.quizzes[currentUserIndex].timeLastEdited = Date.now();
+  data.quizzes[targetUserIndex].timeLastEdited = Date.now();
   return {};
-}
+};
 
 /**Given a particular quiz, add a question to that quiz
  * 
@@ -498,6 +540,42 @@ export function adminQuizQuestionMove(quizId: number, questionId: number, authUs
  * @param {int} authUserId 
  * @returns {}
  */
-export function adminQuizQuestionDuplicate(quizId: number, questionId: number, authUserId: number): Error | DupedQuestionId {
-  return {};
+
+export function adminQuizQuestionDuplicate(quizId: number, questionId: number, authUserId: number): ErrorObject | DupedQuestionId {
+  let data: Data = getData();
+  // Error: Invalid questionId
+  const quiz: Quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  const question: Question = quiz.questions.find(question => question.questionId === questionId)
+  const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId)
+  if (!question) {
+    return {
+      error: 'Question Id does not refer to a valid question within this quiz'
+    }
+  }
+  // Error: Invalid authUserId
+  const userIndex = data.users.findIndex(user => user.userId === authUserId);
+  if (userIndex === -1) {
+    return {
+      error: 'AuthUserId is not a valid user'
+    }
+  }
+  // Error: Valid authUserId, but not quiz owner.
+  if (quiz.quizOwnerId != authUserId) {
+    return {
+      error: 'Quiz ID does not refer to a quiz that this user own'
+    }
+  }
+
+  // Successful
+  let newQuestion: Question;
+  newQuestion.body = question.body;
+  newQuestion.questionId = quiz.questions.length +1;
+  
+  // splice to right after quiz location
+  quiz.questions.splice(questionIndex, 0, newQuestion);
+  // update timeLastEdited of quiz.
+  const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
+  data.quizzes[quizIndex].timeLastEdited = Date.now();
+
+  return {newQuestionId: newQuestion.questionId};
 }
