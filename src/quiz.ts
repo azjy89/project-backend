@@ -80,9 +80,9 @@ export const adminQuizCreate = (authUserId: number, name: string, description: s
     }
   }
 
-  const newQuizId = data.quizzes.length > 0
-    ? Math.max(...data.quizzes.map(quiz => quiz.quizId)) + 1
-    : 1;
+  const newQuizId = data.quizzes.length + trash.quizzes.length + 1;
+
+
 
   const newQuiz: Quiz = {
     quizId: newQuizId,
