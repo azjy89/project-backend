@@ -10,6 +10,7 @@ tests:
   stage: checks
   only:
     - master
+    - kevin/iter2/server.ts
     - merge_requests
   script:
     - SERVER_LOG=$(mktemp)
