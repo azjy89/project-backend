@@ -38,7 +38,7 @@ export function trashQuizRestore(authUserId: number, quizId: number): object | E
   const quizFind = data.trash.find(quizFind => quizFind.quizId === quizId);
   if(!quizFind) {
     return {
-      error: 'Invalid quizId'
+      error: 'quizId is not in trash'
     }
   }
 
@@ -54,29 +54,10 @@ export function trashQuizRestore(authUserId: number, quizId: number): object | E
       error: 'Quiz name is already being used'
     }
   }
-
-  const quizIndex = trash.quizzes.findIndex(quiz => quiz.quizId === quizId);
-  const quizName = trash.quizzes[quizIndex].name;
-
-  const nameExists = data.quizzes.some(quiz => quiz.name === quizName);
-  if (nameExists) {
-    return { error: 'Quiz name is already being used' };
-  }
-  if (!quizIndex) {
-    return { error: 'Quiz is not currently in the trash' };
-  }
-  const userExists = data.users.some(user => user.userId === authUserId);
-  if (!userExists) {
-    return { error: 'authUserId does not refer to a valid user'};
-  }
-  if (userExists && trash.quizzes[quizIndex].quizCreatorId != authUserId) {
-    return { error: 'user is not an owner of this quiz'};
-  }
-
-  trash.quizzes.splice(quizIndex, 1);
-
-  data.quizzes.push(data.quizzes[quizIndex]);
-  data.quizzes[quizIndex].timeLastEdited = Date.now();
+  quizFind.timeLastEdited = Date.now();
+  const quizIndex = data.trash.findIndex(quiz => quiz.quizId === quizId);
+  const [restoreQuiz] = data.trash.splice(quizIndex, 1);
+  data.quizzes.push(restoreQuiz);
 
   setData(data);
   return{};
