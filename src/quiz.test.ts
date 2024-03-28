@@ -26,7 +26,7 @@ import {
 beforeEach(() => {
   requestClear();
 });
-/*
+
 describe('requestQuizList', () => {
   test('correct output of list of quizzes', () => {
     const resToken: TokenReturn = requestAuthRegister('quiz@unsw.edu.au',
@@ -1092,7 +1092,7 @@ describe('requestQuizQuestionRemove', () => {
     expect(response.bodyObj).toStrictEqual({newQuestionId: expect.any(Number)});
   });
 });
-*/
+
 
 describe('requestQuizQuestionMove', () => {
   let resToken: TokenReturn;
@@ -1181,7 +1181,7 @@ describe('requestQuizQuestionMove', () => {
 
 
 
-/*
+
 describe('Testing POST /v1/admin/quiz/{quizid}/question/{questionid}/duplicate', () => {
   let user: any, quiz: any, question: any;
   beforeEach(() => {
@@ -1286,4 +1286,3 @@ describe('Testing PUT /v1/admin/quiz/{quizId}/transfer', () => {
   });
 });
 
-*/
