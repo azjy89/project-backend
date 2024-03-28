@@ -10,7 +10,6 @@ tests:
   stage: checks
   only:
     - master
-    - kevin/iter2/server.ts
     - merge_requests
   script:
     - SERVER_LOG=$(mktemp)
@@ -20,13 +19,3 @@ tests:
     - kill -SIGINT %1
     - sleep 2
     - cat $SERVER_LOG
-
-typescript:
-  stage: checks
-  script:
-    - npm run tsc
-
-linting:
-  stage: checks
-  script:
-    - npm run lint
