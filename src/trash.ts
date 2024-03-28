@@ -4,7 +4,7 @@ import {
 } from './dataStore';
 
 import {
-  AdminQuizListReturn,
+  TrashQuizListReturn,
   Quiz,
   Data
 } from './interfaces';
@@ -15,15 +15,14 @@ import {
  * @param {number} authUserId 
  * @returns {object}
  */
-export const trashQuizList = (authUserId: number): AdminQuizListReturn => {
+export const trashQuizList = (authUserId: number): TrashQuizListReturn => {
   const data: Data = getData();
   const quizzes = data.trash.filter(quiz => quiz.ownerId === authUserId);
   const trashList = quizzes.map((quiz: Quiz) => ({
     quizId: quiz.quizId,
     name: quiz.name,
   }));
-  console.log(data);
-  return { quizzes: trashList };
+  return { trash: trashList };
 };
 
 /** Restore a particular quiz from the trash back to an active quiz. 
@@ -33,11 +32,28 @@ export const trashQuizList = (authUserId: number): AdminQuizListReturn => {
  * @param {number} quizId 
  * @returns {}
  */
-export function trashQuizRestore(authUserId: number, quizId: number): object | Error {
-  const data = getData();
-  const trash = getTrash();
-  
-  // Check if authUserId refers to a valid user
+export function trashQuizRestore(authUserId: number, quizId: number): object | ErrorObject {
+  const data: Data = getData();  
+
+  const quizFind = data.trash.find(quizFind => quizFind.quizId === quizId);
+  if(!quizFind) {
+    return {
+      error: 'Invalid quizId'
+    }
+  }
+
+  if (quizFind.ownerId !== authUserId) {
+    return {
+      error: 'authUserId does not own this quiz'
+    }
+  }
+
+  const nameExists = data.quizzes.some(quiz => quiz.name === quizFind.name);
+  if (nameExists) {
+    return {
+      error: 'Quiz name is already being used'
+    }
+  }
 
   const quizIndex = trash.quizzes.findIndex(quiz => quiz.quizId === quizId);
   const quizName = trash.quizzes[quizIndex].name;
@@ -58,7 +74,6 @@ export function trashQuizRestore(authUserId: number, quizId: number): object | E
   }
 
   trash.quizzes.splice(quizIndex, 1);
-  setTrash(trash);
 
   data.quizzes.push(data.quizzes[quizIndex]);
   data.quizzes[quizIndex].timeLastEdited = Date.now();

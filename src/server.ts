@@ -74,6 +74,31 @@ app.get('/echo', (req: Request, res: Response) => {
   return res.json(echo(data));
 });
 
+/**GET
+ * Route for /v1/admin/quiz/trash - GET
+ * 
+ * View the quizzes that are currently in the trash for the 
+ * logged in user
+ */
+app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
+  // Request token as a query
+  const token = req.query.token as string;
+  // Validates token
+  const retValidateToken = validateToken(token);
+  if ('error' in retValidateToken) {
+    return res.status(401).json(retValidateToken);
+  }
+  // Retrieves userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+  if ('error' in userId) {
+    return res.status(400).json(userId);
+  }
+  // Calls and returns trashQuizList
+  const response = trashQuizList(authUserId.authUserId);
+  return res.status(200).json(response);
+});
+
 /**POST
  * Route for /v1/admin/auth/register - POST
  * 
@@ -241,6 +266,7 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
  *
  * Given a particular quiz, send it to the trash
  */
+
 app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
   // Parses quizId to int
   const quizId = parseInt(req.params.quizid);
@@ -376,30 +402,6 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
   return res.status(200).json({});
 });
 
-/**GET
- * Route for /v1/admin/quiz/trash - GET
- * 
- * View the quizzes that are currently in the trash for the 
- * logged in user
- */
-app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
-  // Request token as a query
-  const token = req.query.token as string;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
-  // Retrieves userid for the token
-  const userId = idFromToken(token);
-  const authUserId = userId as AuthUserId;
-  if ('error' in userId) {
-    return res.status(400).json(userId);
-  }
-  // Calls and returns trashQuizList
-  const response = trashQuizList(authUserId.authUserId);
-  return res.status(200).json(response);
-});
 
 /**POST
  * Route for /v1/admin/quiz/:quizid/restore - POST
