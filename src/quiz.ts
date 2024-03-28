@@ -79,16 +79,9 @@ export const adminQuizCreate = (authUserId: number, name: string, description: s
     }
   }
 
-<<<<<<< HEAD
-  const newQuizId = data.quizzes.length + trash.quizzes.length + 1;
-
-
-
-=======
   const newQuizId = data.quizzes.length > 0 
   ? Math.max(...data.quizzes.map(quiz => quiz.quizId)) + 1 : 1;
   
->>>>>>> 99db59467d8c3604b65c4b533e1f5b9576b2ff3d
   const newQuiz: Quiz = {
     quizId: newQuizId,
     name: name,

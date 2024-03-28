@@ -32,7 +32,6 @@ describe('trashQuizList', () => {
   });
 });
 
->>>>>>> 99db59467d8c3604b65c4b533e1f5b9576b2ff3d
 describe('Testing POST /v1/admin/quiz/{quizid}/restore', () => {
   test('Succesfully restore quiz', () => {
     const resToken = requestAuthRegister('quiz@unsw.edu.au',
