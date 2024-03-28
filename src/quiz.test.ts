@@ -12,7 +12,8 @@ import {
   requestQuizTransfer,
   requestQuizQuestionRemove,
   requestQuizQuestionMove,
-  requestQuizQuestionDuplicate
+  requestQuizQuestionDuplicate,
+  requestTrashQuizList
 } from './httpRequests';
 import { 
   TokenReturn, 
@@ -27,7 +28,7 @@ import {
 beforeEach(() => {
   requestClear();
 });
-/*
+
 describe('requestQuizList', () => {
   test('correct output of list of quizzes', () => {
     const resToken: TokenReturn = requestAuthRegister('quiz@unsw.edu.au',
@@ -139,6 +140,20 @@ describe('requestQuizRemove', () => {
     expect(requestQuizList(resToken.token)).toStrictEqual({
       quizzes: []
     });
+    expect(requestTrashQuizList(resToken.token)).toStrictEqual({
+      trash: [
+        {
+          quizId: quiz.quizId,
+          name: 'COMP1531',
+          ownerId: expect.any(Number),
+          timeCreated: expect.any(Number),
+          timeLastEdited: expect.any(Number),
+          description: 'Welcome!',
+          questions: [],
+          duration: 0
+        }
+      ]
+    })
   });
 
   test('token doesnt exist', () => {
@@ -1089,8 +1104,7 @@ describe('requestQuizQuestionRemove', () => {
 
   test('Successful return and status code', () => {
     const response = requestQuizQuestionDuplicate(resToken.token, quiz1.quizId, quizQuestion.questionId);
-    expect(response.statusCode).toStrictEqual(200);
-    expect(response.bodyObj).toStrictEqual({newQuestionId: expect.any(Number)});
+    expect(response).toStrictEqual({newQuestionId: expect.any(Number)});
   });
 });
 
@@ -1178,7 +1192,7 @@ describe('requestQuizQuestionMove', () => {
     expect(quizInfo.timeLastEdited).toEqual(expect.any(Number));
   });
 });
-*/
+
 describe('requestQuizQuestionDuplicate', () => {
   let resToken: TokenReturn;
   let quiz1: QuizId;
@@ -1226,15 +1240,18 @@ describe('requestQuizQuestionDuplicate', () => {
   });
 });
 
-/*
+
 // adminQuizTransfer:
 // Goal: Transfer 'user' quiz to 'user2'.
 describe('Testing PUT /v1/admin/quiz/{quizId}/transfer', () => {
-  let user: TokenReturn, quiz: any, user2: TokenReturn, quiz2: any;
+  let user: TokenReturn;
+  let quiz: Quiz;
+  let user2: TokenReturn;
+  let quiz2: Quiz;
   beforeEach(() => {
     // return a token
     user = requestAuthRegister("first@unsw.edu.au", "FirstUser123", "First", "User");
-    // return a quizId
+    // return a quizIdy
     quiz = requestQuizCreate(user.token, "COMP1531", "A description of my quiz");
     // create second user
     user2 = requestAuthRegister("second@unsw.edu.au", "SecondUser123", "Second", "User");
@@ -1243,47 +1260,55 @@ describe('Testing PUT /v1/admin/quiz/{quizId}/transfer', () => {
 
   test('userEmail is not a real user', () => {
     const response = requestQuizTransfer(user2.token, quiz2.quizId, "notReal@unsw.edu.au");
-    //expect(response.statusCode).toStrictEqual(400);
-    expect(response.bodyObj).toStrictEqual({error: expect.any(String)})
+    expect(response).toStrictEqual({ error: expect.any(String) })
   });
   test('userEmail is the currently logged in user.', () => {
     const response = requestQuizTransfer(user.token, quiz.quizId, "first@unsw.edu.au");
-    //expect(response.statusCode).toStrictEqual(400);
-    expect(response.bodyObj).toStrictEqual({error: expect.any(String)})
+    expect(response).toStrictEqual({ error: expect.any(String) })
   });
   test('quiz name same as target\'s quiz name', () => {
-    let user3: any, quiz3: any;
+    let user3: TokenReturn;
+    let quiz3: Quiz;
     // user3 has different same quiz name as user.
     user3 = requestAuthRegister("third@unsw.edu.au", "ThirdUser123", "Third", "User");
     quiz3 = requestQuizCreate(user3.token, "COMP1531", "A description of my quiz");
     const response = requestQuizTransfer(user.token, quiz.quizId, "third@unsw.edu.au");
-    //expect(response.statusCode).toStrictEqual(400);
-    expect(response.bodyObj).toStrictEqual({error: expect.any(String)})
+    expect(response).toStrictEqual({ error: expect.any(String) })
   });
 
   test('Invalid Token', () => {
     // first user
     const response = requestQuizTransfer('1', quiz.quizId, "first@unsw.edu.au"); 
     //expect(response.statusCode).toStrictEqual(401);
-    expect(response.bodyObj).toStrictEqual({error: expect.any(String)});
+    expect(response).toStrictEqual({ error: expect.any(String) });
     // second user
     const response2 = requestQuizTransfer('1', quiz2.quizId, "second@unsw.edu.au", ); 
     //expect(response2.statusCode).toStrictEqual(401);
-    expect(response2.bodyObj).toStrictEqual({error: expect.any(String)});
+    expect(response2).toStrictEqual({ error: expect.any(String) });
   });
   
   test('Valid token; quiz not owned by user. (userId not found in quiz)', () => {
     // first user (testing the user who is transfering quiz)
     const response = requestQuizTransfer(user.token, quiz.quizId + 1, "first@unsw.edu.au")
     //expect(response.statusCode).toStrictEqual(403);
-    expect(response.bodyObj).toStrictEqual({error: expect.any(String)});
+    expect(response).toStrictEqual({error: expect.any(String)});
   });
 
   test('Successful return and status code', () => {
     // Transfer: first user's token, second user's email, first user's quizId.
     const response = requestQuizTransfer(user.token, quiz.quizId, "second@unsw.edu.au",);
     //expect(response.statusCode).toStrictEqual(200);
-    expect(response.bodyObj).toStrictEqual({});
+    expect(response).toStrictEqual({});
+    const quizInfo = requestQuizInfo(user2.token, quiz.quizId);
+    expect(quizInfo).toStrictEqual({
+      quizId: quiz.quizId,
+      name: 'COMP1531',
+      ownerId: expect.any(Number),
+      timeCreated: expect.any(Number),
+      timeLastEdited: expect.any(Number),
+      description: 'A description of my quiz',
+      questions: [],
+      duration: 0,
+    })
   });
 });
-*/

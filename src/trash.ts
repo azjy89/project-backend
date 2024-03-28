@@ -1,15 +1,13 @@
 import {
   getData,
-  setData,
-  getTrash,
-  setTrash
+  setData
 } from './dataStore';
 
-
 import {
-  AdminQuizListReturn
-} from './dataStore.ts';
-
+  AdminQuizListReturn,
+  Quiz,
+  Data
+} from './interfaces';
 
 
 /** View the quizzes that are currently in the trash for the logged in user
@@ -17,9 +15,15 @@ import {
  * @param {number} authUserId 
  * @returns {object}
  */
-export function trashQuizList(authUserId: number): Error | {quizzes: AdminQuizListReturn} {
-  return { quizzes };
-}
+export function trashQuizList(authUserId: number): Error | AdminQuizListReturn {
+  const data: Data = getData();
+  const quizzes = data.trash.filter(quiz => quiz.ownerId === authUserId);
+  const trashList = quizzes.map((quiz: Quiz) => ({
+    quizId: quiz.quizId,
+    name: quiz.name,
+  }));
+  return { quizzes: trashList };
+};
 
 /** Restore a particular quiz from the trash back to an active quiz. 
  * This should update its timeLastEdited timestamp!!!!!

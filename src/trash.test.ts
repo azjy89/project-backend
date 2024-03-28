@@ -1,9 +1,35 @@
-import { before } from 'node:test';
-import { requestAuthRegister, requestQuizCreate, requestQuizList, requestQuizRemove, requestTrashQuizRestore , requestTrashEmpty, requestUserPasswordUpdate, requestClear } from './httpRequests';
-import { response } from 'express';
+import { 
+  requestAuthRegister,
+  requestQuizCreate,
+  requestQuizList,
+  requestQuizRemove,
+  requestTrashQuizList,
+  requestTrashQuizRestore,
+  requestTrashEmpty,
+  requestUserPasswordUpdate,
+  requestClear
+} from './httpRequests';
 
 beforeEach(() => {
   requestClear();
+});
+
+describe('trashQuizList', () => {
+  test.only('Successful run', () => {
+    const resToken = requestAuthRegister('quiz@unsw.edu.au',
+      'abcd1234', 'Bobby', 'Dickens');
+    const resQuizId = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+    requestQuizRemove(resToken.token, resQuizId.quizId);
+    const resTrash = requestTrashQuizList(resToken.token);
+    expect(resTrash).toStrictEqual({
+      quizzes: [
+        {
+          quizId: resQuizId.quizId,
+          name: 'COMP1531'
+        }
+      ]
+    });
+  });
 });
 
 describe('Testing POST /v1/admin/quiz/{quizid}/restore', () => {
@@ -55,14 +81,14 @@ describe('Testing POST /v1/admin/quiz/{quizid}/restore', () => {
   });
 });
 
-describe.only('Testing DELETE /v1/admin/quiz/trash/empty', () => {
+describe('Testing DELETE /v1/admin/quiz/trash/empty', () => {
   test('Succesfully empty trash', () => {
     const resToken = requestAuthRegister('quiz@unsw.edu.au',
       'abcd1234', 'Bobby', 'Dickens');
     const resquizId = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
     expect(requestQuizRemove(resToken.token, resquizId.quizId)).toEqual({});
     expect(requestTrashEmpty(resToken.token, [resquizId.quizId])).toStrictEqual({});
-    expect(requestTrashList(resToken.token)).toStrictEqual({
+    expect(requestTrashQuizList(resToken.token)).toStrictEqual({
       quizzes: [
 
       ]
@@ -80,7 +106,7 @@ describe.only('Testing DELETE /v1/admin/quiz/trash/empty', () => {
     expect(requestQuizRemove(resToken.token, resquizId2.quizId)).toEqual({});
     expect(requestQuizRemove(resToken.token, resquizId3.quizId)).toEqual({});
     expect(requestTrashEmpty(resToken.token, [resquizId1.quizId, resquizId2.quizId, resquizId3.quizId])).toStrictEqual({});
-    expect(requestTrashList(resToken.token)).toStrictEqual({
+    expect(requestTrashQuizList(resToken.token)).toStrictEqual({
       quizzes: [
 
       ]

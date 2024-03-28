@@ -112,5 +112,6 @@ export interface DupedQuestionId {
 export interface Data {
   users: User[],
   quizzes: Quiz[],
-  tokens: Token[]
+  tokens: Token[],
+  trash: Quiz[]
 }

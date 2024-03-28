@@ -1,5 +1,5 @@
 import { arrayBuffer } from 'stream/consumers';
-import { getTrash, setTrash, getData, setData } from './dataStore';
+import { getData, setData } from './dataStore';
 import {
   ErrorObject,
   QuizListNameId,
@@ -110,26 +110,21 @@ export const adminQuizCreate = (authUserId: number, name: string, description: s
 
 export const adminQuizRemove = (authUserId: number, quizId: number): object | ErrorObject => {
   const data: Data = getData();
+  const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
+  if (!quizFind)  {
+    return {
+      error: 'Invalid quizId'
+    }
+  }
 
-  // Check if authUserId refers to a valid user
-  const userExists = data.users.some(user => user.userId === authUserId);
-
-  // Check if quizId refers to a valid quiz
+  if (quizFind.ownerId !== authUserId) {
+    return {
+      error: 'authUserId does not own this quiz'
+    }
+  }
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
-  if (quizIndex === -1) {
-    return {
-      error: 'quizId does not refer to a valid quiz'
-    }
-  }
-
-  // Check if the quiz belongs to the user with authUserId
-  if (data.quizzes[quizIndex].ownerId !== authUserId) {
-    return {
-      error: 'quizId does not refer to a quiz this user owns'
-    }
-  }
-
-  data.quizzes.splice(quizIndex, 1);
+  const [removedQuiz] = data.quizzes.splice(quizIndex, 1);
+  data.trash.push(removedQuiz);
   setData(data);
   return {};
 };
@@ -282,36 +277,40 @@ export const adminQuizDescriptionUpdate = (authUserId: number, quizId: number, d
 export const adminQuizTransfer = (authUserId: number, quizId: number, userEmail: string): ErrorObject | object => {
   const data = getData();
 
-  // Error: 400 Bad Request
   const targetUser = data.users.find(user => user.email === userEmail);
   if (!targetUser) {
     return {
-      error: "userEmail is not a real user"
+      error: 'userEmail is not a real user'
     };
   }
-  // const currentUser = data.users.find(user => user.userId === authUserId);
+
   if (targetUser.userId === authUserId) {
     return {
-      error: "userEmail is the current logged in user"
+      error: 'userEmail is the current logged in user'
     };
   }
-  const currentQuiz = data.quizzes.find(quiz => quiz.quizId === quizId)
-  const targetQuizzes = data.quizzes.filter((quiz) => quiz.ownerId === targetUser.userId && quiz.name === currentQuiz.name)
-  const similarNameFound = targetQuizzes.find(quiz => quiz.name === currentQuiz.name)
+
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (!quiz) {
+    return {
+      error: 'QuizId does not refer to a valid quiz'
+    }
+  }
+
+  const similarNameFound = data.quizzes.some(q => q.ownerId === targetUser.userId && q.name === quiz.name);
   if (similarNameFound) {
     return {
-      error: "Quiz ID refers to a quiz that has a name that is already used by the target user"
+      error: 'Quiz ID refers to a quiz that has a name that is already used by the target user'
     };
   }
-  // Error: 401
+
   const currentUserIndex = data.users.findIndex(user => user.userId === authUserId);
   if (currentUserIndex === -1) {
     return {
       error: 'AuthUserId is not a valid user'
     };
   }
-  // Error: 403
-  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+
   if (quiz.ownerId !== authUserId) {
     return {
       error: 'Quiz ID does not refer to a quiz that this user own'
@@ -319,10 +318,9 @@ export const adminQuizTransfer = (authUserId: number, quizId: number, userEmail:
   }
 
   // Succesful Transfer, i.e. change ownerId of current quiz to the targetUser's userId.
-  const targetUserIndex = data.users.findIndex(user => user.email === userEmail);
-  data.quizzes[currentUserIndex].ownerId = targetUser.userId;
-  data.quizzes[currentUserIndex].timeLastEdited = Date.now();
-  data.quizzes[targetUserIndex].timeLastEdited = Date.now();
+  quiz.ownerId = targetUser.userId;
+  quiz.timeLastEdited = Date.now();
+  setData(data);
   return {};
 };
 
