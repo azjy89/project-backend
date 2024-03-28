@@ -2,15 +2,9 @@ import {
   requestClear,
   requestAuthRegister,
   requestQuizCreate,
-  requestQuizRemove,
   requestQuizList,
-  requestTrashQuizList,
   requestUserDetails
 } from './httpRequests';
-
-import {
-  TokenReturn,
-} from './interfaces'
 
 const ERROR = { error: expect.any(String) };
 

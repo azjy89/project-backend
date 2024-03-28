@@ -9,7 +9,7 @@ import { QuestionBody } from './interfaces';
 export const requestAuthRegister = (email: string, password: string, nameFirst: string, nameLast: string) => {
   const res = request(
     'POST',
-    SERVER_URL + `/v1/admin/auth/register`,
+    SERVER_URL + '/v1/admin/auth/register',
     {
       json: {
         email: email,
@@ -22,11 +22,10 @@ export const requestAuthRegister = (email: string, password: string, nameFirst: 
   return JSON.parse(res.body.toString());
 };
 
-
 export const requestAuthLogin = (email: string, password: string) => {
   const res = request(
     'POST',
-    SERVER_URL + `/v1/admin/auth/login`,
+    SERVER_URL + '/v1/admin/auth/login',
     {
       body: JSON.stringify({
         email: email,
@@ -40,11 +39,10 @@ export const requestAuthLogin = (email: string, password: string) => {
   return JSON.parse(res.body.toString());
 };
 
-
 export const requestUserDetails = (token: string) => {
   const res = request(
     'GET',
-    SERVER_URL + `/v1/admin/user/details`,
+    SERVER_URL + '/v1/admin/user/details',
     {
       qs: {
         token: token,
@@ -57,7 +55,7 @@ export const requestUserDetails = (token: string) => {
 export const requestUserDetailsUpdate = (token: string, email: string, nameFirst: string, nameLast: string) => {
   const res = request(
     'PUT',
-    SERVER_URL + `/v1/admin/user/details`,
+    SERVER_URL + '/v1/admin/user/details',
     {
       body: JSON.stringify({
         token: token,
@@ -66,7 +64,7 @@ export const requestUserDetailsUpdate = (token: string, email: string, nameFirst
         nameLast: nameLast,
       }),
       headers: {
-        'Content-type' : 'application/json',
+        'Content-type': 'application/json',
       }
     }
   );
@@ -76,7 +74,7 @@ export const requestUserDetailsUpdate = (token: string, email: string, nameFirst
 export const requestUserPasswordUpdate = (token: string, oldPassword: string, newPassword: string) => {
   const res = request(
     'PUT',
-    SERVER_URL + `/v1/admin/user/password`,
+    SERVER_URL + '/v1/admin/user/password',
     {
       body: JSON.stringify({
         token: token,
@@ -107,7 +105,7 @@ export const requestQuizList = (token: string) => {
 export const requestQuizCreate = (token: string, name: string, description: string) => {
   const res = request(
     'POST',
-    SERVER_URL + `/v1/admin/quiz`,
+    SERVER_URL + '/v1/admin/quiz',
     {
       body: JSON.stringify({
         token: token,
@@ -185,7 +183,7 @@ export const requestQuizDescriptionUpdate = (token: string, quizId: number, desc
 export const requestClear = () => {
   const res = request(
     'DELETE',
-    SERVER_URL + `/v1/clear`,
+    SERVER_URL + '/v1/clear',
     {
       json: {
 
@@ -200,7 +198,7 @@ export const requestClear = () => {
 export const requestAuthLogout = (token: string) => {
   const res = request(
     'POST',
-    SERVER_URL + `/v1/admin/auth/logout`,
+    SERVER_URL + '/v1/admin/auth/logout',
     {
       body: JSON.stringify({
         token: token,
@@ -216,7 +214,7 @@ export const requestAuthLogout = (token: string) => {
 export const requestTrashQuizList = (token: string) => {
   const res = request(
     'GET',
-    SERVER_URL + `/v1/admin/quiz/trash`,
+    SERVER_URL + '/v1/admin/quiz/trash',
     {
       qs: {
         token: token,
@@ -245,7 +243,7 @@ export const requestTrashQuizRestore = (token: string, quizId: number) => {
 export const requestTrashEmpty = (token: string, quizIds: number[]) => {
   const res = request(
     'DELETE',
-    SERVER_URL + `/v1/admin/quiz/trash/empty`,
+    SERVER_URL + '/v1/admin/quiz/trash/empty',
     {
       qs: {
         token: token,
@@ -351,4 +349,4 @@ export const requestQuizQuestionDuplicate = (token: string, quizId: number, ques
     }
   );
   return JSON.parse(res.body.toString());
-};  
+};

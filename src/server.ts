@@ -74,10 +74,10 @@ app.get('/echo', (req: Request, res: Response) => {
   return res.json(echo(data));
 });
 
-/**GET
+/** GET
  * Route for /v1/admin/quiz/trash - GET
- * 
- * View the quizzes that are currently in the trash for the 
+ *
+ * View the quizzes that are currently in the trash for the
  * logged in user
  */
 app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
@@ -99,9 +99,9 @@ app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
   return res.status(200).json(response);
 });
 
-/**DELETE
+/** DELETE
  * Route for /v1/other/clear - DELETE
- * 
+ *
  * Wipe all details (user, quizzes) back to the beginning as if the
  * data structure is fresh.
  */
@@ -109,10 +109,10 @@ app.delete('/v1/clear', (req:Request, res: Response) => {
   return res.status(200).json(clear());
 });
 
-/**POST
+/** POST
  * Route for /v1/admin/auth/register - POST
- * 
- * Takes in information about a new admin user and registers them in the 
+ *
+ * Takes in information about a new admin user and registers them in the
  * system. This route is not relevant to guests who want to play a particular
  * quiz, but is used for the creation of accounts of people who manage quizzes.
  */
@@ -130,12 +130,12 @@ app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
   return res.status(200).json({ token });
 });
 
-/**POST
+/** POST
  * Route for /v1/admin/auth/login - POST
- * 
+ *
  * Takes in information about an admin user to determine if they can log in
  * to manage quizzes. This route is not relevant to guests who want to play
- * a particular quiz, but is used for the creation of accounts of people 
+ * a particular quiz, but is used for the creation of accounts of people
  * who manage quizzes.
  */
 app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
@@ -152,10 +152,10 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
   return res.status(200).json({ token });
 });
 
-/**GET
+/** GET
  * Route for /v1/admin/user/details - GET
- * 
- * For the given admin user that is logged in, return all of the 
+ *
+ * For the given admin user that is logged in, return all of the
  * relevant details.
  */
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
@@ -169,15 +169,15 @@ app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   // Retrieves userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
-  // Call adminUserDetails 
+  // Call adminUserDetails
   const userDetails = adminUserDetails(authUserId.authUserId);
   return res.status(200).json(userDetails);
 });
 
-/**PUT 
+/** PUT
  * Route for /v1/admin/user/details - PUT
  *
- * Given a set of properties, update those properties of this logged 
+ * Given a set of properties, update those properties of this logged
  * in admin user.
  */
 app.put('/v1/admin/user/details', (req: Request, res: Response) => {
@@ -199,10 +199,10 @@ app.put('/v1/admin/user/details', (req: Request, res: Response) => {
   return res.status(200).json(response);
 });
 
-/**PUT
+/** PUT
  * Route for /v1/admin/user/password - PUT
- * 
- * Given details relating to a password change, update the 
+ *
+ * Given details relating to a password change, update the
  * password of a logged in user.
  */
 app.put('/v1/admin/user/password', (req: Request, res: Response) => {
@@ -224,7 +224,7 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
   return res.status(200).json(response);
 });
 
-/**POST 
+/** POST
  * Route for /v1/admin/quiz - POST
  *
  * Given basic details about a new quiz, create one for the logged in user
@@ -250,9 +250,9 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   return res.status(200).json(response);
 });
 
-/**GET
+/** GET
  * Route for /v1/admin/quiz/list - GET
- * 
+ *
  * Provide a list of all quizzes that are owned by the currently logged in user
  */
 app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
@@ -271,7 +271,7 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   return res.status(200).json(quizList);
 });
 
-/**DELETE 
+/** DELETE
  * Route for /v1/admin/quiz/:quizid - DELETE
  *
  * Given a particular quiz, send it to the trash
@@ -298,7 +298,7 @@ app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
   return res.status(200).json(response);
 });
 
-/**GET 
+/** GET
  * Route for /v1/admin/quiz/:quizid - GET
  *
  * Get all of the relevant information about the current quiz including questions.
@@ -324,9 +324,9 @@ app.get('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
   return res.status(200).json(response);
 });
 
-/**PUT
+/** PUT
  * Route for /v1/admin/quiz/:quizid/description - PUT
- * 
+ *
  * Update the description of the relevant quiz
  */
 app.put('/v1/admin/quiz/:quizid/description', (req: Request, res: Response) => {
@@ -352,7 +352,7 @@ app.put('/v1/admin/quiz/:quizid/description', (req: Request, res: Response) => {
   return res.status(200).json(response);
 });
 
-/**PUT 
+/** PUT
  * Route for /v1/admin/quiz/:quizid/name - PUT
  *
  * Update the name of the relevant quiz
@@ -381,9 +381,9 @@ app.put('/v1/admin/quiz/:quizid/name', (req: Request, res: Response) => {
   return res.status(200).json(response);
 });
 
-/**POST
+/** POST
  * Route for /v1/admin/quiz/:quizid/restore - POST
- * 
+ *
  * Restore a particular quiz from the trash back to an active quiz.
  */
 app.post('/v1/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
@@ -402,7 +402,7 @@ app.post('/v1/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
   if ('error' in authUserId) {
     return res.status(403).json(authUserId);
   }
-  // Calls and returns trashQuizRestore 
+  // Calls and returns trashQuizRestore
   const response = trashQuizRestore(authUserId.authUserId, quizId);
   if ('error' in response) {
     return res.status(400).json(response);
@@ -410,7 +410,7 @@ app.post('/v1/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
   return res.status(200).json(response);
 });
 
-/**DELETE 
+/** DELETE
  * Route for /v1/admin/quiz/trash/empty - DELETE
  *
  * Permanently delete specific quizzes currently sitting in the trash
@@ -441,10 +441,10 @@ app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
   return res.status(200).json(response);
 });
 
-/**POST 
+/** POST
  * Route for /v1/admin/auth/logout - POST
  *
- * Should be called with a token that is returned after either a 
+ * Should be called with a token that is returned after either a
  * login or register has been made.
  */
 app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
@@ -460,7 +460,7 @@ app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
   return res.status(200).json({});
 });
 
-/**POST 
+/** POST
  * Route for /v1/admin/quiz/:quizid/transfer - POST
  *
  * Transfer ownership of a quiz to a different user based on their email
@@ -489,9 +489,9 @@ app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
   return res.status(200).json(response);
 });
 
-/**POST
+/** POST
  * Route for /v1/admin/quiz/:quizid/question - POST
- * 
+ *
  * Create a new stub question for a particular quiz.
  */
 app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
@@ -518,9 +518,9 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   return res.status(200).json(response);
 });
 
-/**PUT
+/** PUT
  * Route for /v1/admin/quiz/:quizid/question/:questionid - PUT
- * 
+ *
  * Update the relevant details of a particular question within a quiz.
  */
 app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
@@ -549,9 +549,9 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Respo
   return res.status(200).json(response);
 });
 
-/**DELETE
+/** DELETE
  * Route for /v1/admin/quiz/:quizid/question/:questionid - DELETE
- * 
+ *
  * Delete a particular question from a quiz
  */
 app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
@@ -580,9 +580,9 @@ app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Re
   return res.status(200).json(response);
 });
 
-/**PUT
+/** PUT
  * Route for /v1/admin/quiz/:quizid/question/:questionid/move - PUT
- * 
+ *
  * Move a question from one particular position in the quiz to another
  */
 app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: Response) => {
@@ -611,10 +611,10 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   return res.status(200).json(response);
 });
 
-/**POST
+/** POST
  * Route for /v1/admin/quiz/:quizid/question/:questionid/duplicate - POST
- * 
- * A particular question gets duplicated to immediately after 
+ *
+ * A particular question gets duplicated to immediately after
  * where the source question is
  */
 app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request, res: Response) => {
@@ -640,7 +640,7 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
   if ('error' in response) {
     return res.status(400).json(response);
   }
-  return res.status(200).json(response);  
+  return res.status(200).json(response);
 });
 
 // ====================================================================

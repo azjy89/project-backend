@@ -1,4 +1,4 @@
-import { 
+import {
   requestAuthRegister,
   requestQuizCreate,
   requestQuizList,
@@ -6,7 +6,6 @@ import {
   requestTrashQuizList,
   requestTrashQuizRestore,
   requestTrashEmpty,
-  requestUserPasswordUpdate,
   requestClear
 } from './httpRequests';
 
@@ -40,7 +39,6 @@ describe('trashQuizList', () => {
   });
 });
 
-
 describe('Testing POST /v1/admin/quiz/{quizid}/restore', () => {
   test('Succesfully restore quiz', () => {
     const resToken = requestAuthRegister('quiz@unsw.edu.au',
@@ -60,7 +58,8 @@ describe('Testing POST /v1/admin/quiz/{quizid}/restore', () => {
       'abcd1234', 'Bobby', 'Dickens');
     const resQuizId1 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
     requestQuizRemove(resToken.token, resQuizId1.quizId);
-    const resQuizId2 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+    // eslint-disable-next-line
+    const resQuizId2 = requestQuizCreate(resToken.token, 'COMP1531', 'HEHEHE');
     expect(requestTrashQuizRestore(resToken.token, resQuizId1.quizId)).toStrictEqual({ error: expect.any(String) });
   });
   test('Quiz is not currently in the trash', () => {
@@ -80,7 +79,7 @@ describe('Testing POST /v1/admin/quiz/{quizid}/restore', () => {
     const resToken1 = requestAuthRegister('quiz@unsw.edu.au',
       'abcd1234', 'Bobby', 'Dickens');
     const resToken2 = requestAuthRegister('quiz@unsw.edu.au',
-    'abcd1234', 'Bobby', 'Dickens');
+      'abcd1234', 'Bobby', 'Dickens');
     const resQuizId1 = requestQuizCreate(resToken1.token, 'COMP1531', 'Welcome!');
     requestQuizRemove(resToken1.token, resQuizId1.quizId);
     expect(requestTrashQuizRestore(resToken2.token, resQuizId1.quizId)).toStrictEqual({ error: expect.any(String) });
@@ -96,9 +95,9 @@ describe('Testing DELETE /v1/admin/quiz/trash/empty', () => {
     expect(requestTrashEmpty(resToken.token, [resQuizId.quizId])).toStrictEqual({});
     expect(requestTrashQuizList(resToken.token)).toStrictEqual({
       trash: []
-    }); 
+    });
   });
-  
+
   test('Succesfully empty trash with multiple quizzes', () => {
     const resToken = requestAuthRegister('quiz@unsw.edu.au',
       'abcd1234', 'Bobby', 'Dickens');
@@ -141,7 +140,7 @@ describe('Testing DELETE /v1/admin/quiz/trash/empty', () => {
     const resToken1 = requestAuthRegister('quiz@unsw.edu.au',
       'abcd1234', 'Bobby', 'Dickens');
     const resToken2 = requestAuthRegister('quiz@unsw.edu.au',
-    'abcd1234', 'Bobby', 'Dickens');
+      'abcd1234', 'Bobby', 'Dickens');
     const resQuizId1 = requestQuizCreate(resToken1.token, 'COMP1531', 'Welcome!');
     const resQuizId2 = requestQuizCreate(resToken1.token, 'COMP1532', 'Welcome!');
     const resQuizId3 = requestQuizCreate(resToken1.token, 'COMP1533', 'Welcome!');
@@ -151,4 +150,4 @@ describe('Testing DELETE /v1/admin/quiz/trash/empty', () => {
 
     expect(requestTrashEmpty(resToken2.token, [resQuizId1.quizI, resQuizId2.quizId, resQuizId3.quizId])).toStrictEqual({ error: expect.any(String) });
   });
-})
+});

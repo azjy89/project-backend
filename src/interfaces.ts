@@ -1,7 +1,7 @@
 // Error interface
 export interface ErrorObject {
   error: string
-};
+}
 
 // User interface
 export interface User {
@@ -40,16 +40,16 @@ export interface AuthUserId {
 // QuizId interface
 export interface QuizId {
   quizId: number
-};
+}
 // UserDetails interface (return type)
 export interface UserDetails {
-	user: {
-		userId: number,
-		name: string,
-		email: string,
-		numSuccessfulLogins: number,
-		numFailedPasswordsSinceLastLogin: number
-	}
+  user: {
+    userId: number,
+    name: string,
+    email: string,
+    numSuccessfulLogins: number,
+    numFailedPasswordsSinceLastLogin: number
+  }
 }
 
 // Token return type
