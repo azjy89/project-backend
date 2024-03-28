@@ -1,49 +1,21 @@
-export interface User {
-    userId: number,
-    nameFirst: string,
-    nameLast: string,
-    email: string,
-    password: string,
-    numSuccessfulLogins: number,
-    numFailedPasswordsSinceLastLogin: number,
-    oldPasswords: string[]
+import {
+  Data
+} from './interfaces';
+
+import fs from 'fs';
+import path from 'path';
+
+// Session Activity Definitions
+export const active = true;
+export const inactive = false;
+
+// Use get() to sync the data with database.json and access the data
+export function getData (): Data {
+  return JSON.parse(String(fs.readFileSync(path.resolve(__dirname, './database.json'))));
 }
-
-export interface Quiz {
-    quizId: number,
-    name: string,
-    quizCreatorId: number,
-    timeCreated: number,
-    timeLastEdited: number,
-    description: string,
-    questions: string[],
-    answers: string[]
-}
-
-export interface Data {
-    users: User[],
-    quizzes: Quiz[]
-}
-
-let data: Data = {
-  users: [],
-  quizzes: []
-};
-
-// Use get() to access the data
-export const getData = (): Data => {
-  return data;
-};
 
 // Use set(newData) to pass in the entire data object, with modifications made
-export const setData = (newData: Data): void => {
-  data = newData;
-};
-
-export function getTrash() {
-  return;
-}
-
-export function setTrash() {
-
+// and then save the made changes to database.json
+export function setData (newData: Data): void {
+  fs.writeFileSync(path.resolve(__dirname, './database.json'), JSON.stringify(newData));
 }
