@@ -145,12 +145,6 @@ describe('requestQuizRemove', () => {
         {
           quizId: quiz.quizId,
           name: 'COMP1531',
-          ownerId: expect.any(Number),
-          timeCreated: expect.any(Number),
-          timeLastEdited: expect.any(Number),
-          description: 'Welcome!',
-          questions: [],
-          duration: 0
         }
       ]
     })

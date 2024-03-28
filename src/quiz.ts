@@ -146,7 +146,7 @@ export const adminQuizInfo = (authUserId: number, quizId: number): Quiz | ErrorO
   // Checks dataStore.quizzes to find if a quizId matches; else is invalid quiz.
   if (quizIndex === -1) {
     return {
-      error: 'Quiz ID does not refer to valid quiz.'
+      error: 'Quiz id does not refer to valid quiz.'
     }
   }
 

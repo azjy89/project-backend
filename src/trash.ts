@@ -15,13 +15,14 @@ import {
  * @param {number} authUserId 
  * @returns {object}
  */
-export function trashQuizList(authUserId: number): Error | AdminQuizListReturn {
+export const trashQuizList = (authUserId: number): AdminQuizListReturn => {
   const data: Data = getData();
   const quizzes = data.trash.filter(quiz => quiz.ownerId === authUserId);
   const trashList = quizzes.map((quiz: Quiz) => ({
     quizId: quiz.quizId,
     name: quiz.name,
   }));
+  console.log(data);
   return { quizzes: trashList };
 };
 
