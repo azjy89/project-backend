@@ -6,7 +6,8 @@ import {
 import {
   TrashQuizListReturn,
   Quiz,
-  Data
+  Data,
+  ErrorObject
 } from './interfaces';
 
 
