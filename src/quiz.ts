@@ -279,7 +279,7 @@ export const adminQuizDescriptionUpdate = (authUserId: number, quizId: number, d
  * @param {string} userEmail 
  * @returns {}
  */
-export const adminQuizTransfer = (authUserId: number, quizId: number, userEmail: string): ErrorObject | EmptyObject => {
+export const adminQuizTransfer = (authUserId: number, quizId: number, userEmail: string): ErrorObject | object => {
   const data = getData();
 
   // Error: 400 Bad Request
@@ -296,7 +296,7 @@ export const adminQuizTransfer = (authUserId: number, quizId: number, userEmail:
     };
   }
   const currentQuiz = data.quizzes.find(quiz => quiz.quizId === quizId)
-  const targetQuizzes = data.quizzes.filter((quiz) => quiz.quizOwnerId === targetUser.userId && quiz.name === currentQuiz.name)
+  const targetQuizzes = data.quizzes.filter((quiz) => quiz.ownerId === targetUser.userId && quiz.name === currentQuiz.name)
   const similarNameFound = targetQuizzes.find(quiz => quiz.name === currentQuiz.name)
   if (similarNameFound) {
     return {
@@ -312,15 +312,15 @@ export const adminQuizTransfer = (authUserId: number, quizId: number, userEmail:
   }
   // Error: 403
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
-  if (quiz.quizOwnerId !== authUserId) {
+  if (quiz.ownerId !== authUserId) {
     return {
       error: 'Quiz ID does not refer to a quiz that this user own'
     };
   }
 
-  // Succesful Transfer, i.e. change quizOwnerId of current quiz to the targetUser's userId.
+  // Succesful Transfer, i.e. change ownerId of current quiz to the targetUser's userId.
   const targetUserIndex = data.users.findIndex(user => user.email === userEmail);
-  data.quizzes[currentUserIndex].quizOwnerId = targetUser.userId;
+  data.quizzes[currentUserIndex].ownerId = targetUser.userId;
   data.quizzes[currentUserIndex].timeLastEdited = Date.now();
   data.quizzes[targetUserIndex].timeLastEdited = Date.now();
   return {};
@@ -505,7 +505,7 @@ export function adminQuizQuestionUpdate(quizId: number, questionId: number, auth
     }
   }
 
-  questionFind.body = questionBody;
+  questionFind.questionBody = questionBody;
   quizFind.timeLastEdited = Date.now();
   quizFind.duration += (questionBody.duration - questionFind.questionBody.duration);
   setData(data);
@@ -528,6 +528,8 @@ export function adminQuizQuestionRemove(quizId: number, questionId: number, auth
   if (!quiz.questions.find(question => question.questionId === questionId)) {
     return { error: 'Question Not Found' };
   }
+  // need to do something to put quiz in trash (do with trash)
+  // pseudocode example data.trash.quizzes.push({quiz.something, quiz.otherThing})
   quiz.questions.filter(question => question.questionId !== questionId);
   setData(data);
   return {};
@@ -567,13 +569,13 @@ export function adminQuizQuestionMove(quizId: number, questionId: number, authUs
       error: 'QuestionId does not exist under the quiz'
     }
   }
-
+  const questionIndex = quizFind.questions.findIndex(question => question.questionId === questionId);
   if (newPosition < 0 ||
-      newPosition > quizFind.questions.length || 
-      newPosition === quizFind.questions.findIndex(question => question.questionId === questionId)) {
+      newPosition > quizFind.questions.length - 1 || 
+      newPosition === questionIndex) {
     return { error: 'Invalid Position' };
   }
-  const questionIndex = quizFind.questions.findIndex(question => question.questionId === questionId);
+
   let removedQuestion = quizFind.questions.splice(questionIndex, 1)[0];
   quizFind.questions.splice(newPosition, 0, removedQuestion);
   quizFind.timeLastEdited = Date.now();
@@ -610,7 +612,7 @@ export function adminQuizQuestionDuplicate(quizId: number, questionId: number, a
     }
   }
   // Error: Valid authUserId, but not quiz owner.
-  if (quiz.quizOwnerId != authUserId) {
+  if (quiz.ownerId != authUserId) {
     return {
       error: 'Quiz ID does not refer to a quiz that this user own'
     }
@@ -618,7 +620,7 @@ export function adminQuizQuestionDuplicate(quizId: number, questionId: number, a
 
   // Successful
   let newQuestion: Question;
-  newQuestion.body = question.body;
+  newQuestion.questionBody = question.questionBody;
   newQuestion.questionId = quiz.questions.length +1;
   
   // splice to right after quiz location
