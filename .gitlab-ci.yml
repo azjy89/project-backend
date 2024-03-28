@@ -21,13 +21,11 @@ tests:
     - cat $SERVER_LOG
 
 typescript:
-  stage: 
-    - checks
+  stage: checks
   script:
     - npm run tsc
 
 linting:
-  stage:
-    - checks
+  stage: checks
   script:
     - npm run lint

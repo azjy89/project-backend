@@ -2,8 +2,8 @@
     "scripts": {
         "test": "jest",
         "tsc": "tsc --project tsconfig.json",
-        "lint": "eslint '**/*.ts'",
-        "lint-fix": "eslint --fix '**/*.ts'",
+        "lint": "eslint \"**/*.ts\"",
+        "lint-fix": "eslint --fix \"**/*.ts\"",
         "start": "ts-node -T src/server.ts",
         "cleanup-sync-request": "pkill -f node_modules/sync-rpc/lib/worker.js > /dev/null 2>&1",
         "posttest": "npm run cleanup-sync-request || true"
