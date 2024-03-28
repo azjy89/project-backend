@@ -74,7 +74,7 @@ describe('Testing POST /v1/admin/quiz/{quizid}/restore', () => {
       'abcd1234', 'Bobby', 'Dickens');
     const resQuizId1 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
     requestQuizRemove(resToken.token, resQuizId1.quizId);
-    expect(requestTrashQuizRestore(resToken.token + 1, resQuizId1.quizId)).toStrictEqual({ error: expect.any(String) });
+    expect(requestTrashQuizRestore('1', resQuizId1.quizId)).toStrictEqual({ error: expect.any(String) });
   });
   test('user is not an owner of this quiz', () => {
     const resToken1 = requestAuthRegister('quiz@unsw.edu.au',
@@ -92,7 +92,7 @@ describe('Testing DELETE /v1/admin/quiz/trash/empty', () => {
     const resToken = requestAuthRegister('quiz@unsw.edu.au',
       'abcd1234', 'Bobby', 'Dickens');
     const resQuizId = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
-    expect(requestQuizRemove(resToken.token, resQuizId.quizId)).toEqual({});
+    requestQuizRemove(resToken.token, resQuizId.quizId);
     expect(requestTrashEmpty(resToken.token, [resQuizId.quizId])).toStrictEqual({});
     expect(requestTrashQuizList(resToken.token)).toStrictEqual({
       trash: []
@@ -111,7 +111,7 @@ describe('Testing DELETE /v1/admin/quiz/trash/empty', () => {
     expect(requestQuizRemove(resToken.token, resQuizId3.quizId)).toEqual({});
     expect(requestTrashEmpty(resToken.token, [resQuizId1.quizId, resQuizId2.quizId, resQuizId3.quizId])).toStrictEqual({});
     expect(requestTrashQuizList(resToken.token)).toStrictEqual({
-      quizzes: [
+      trash: [
 
       ]
     });
