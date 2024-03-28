@@ -571,6 +571,43 @@ describe('requestQuizQuestionCreate', () => {
   ])("Invalid question body: '$questionBody'", ({ questionBody }) => {
     expect(requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody)).toStrictEqual({ error: expect.any(String) });
   });
+  test('token is not a token', () => {
+    const questionBody: QuestionBody = {
+      question: 'When are you sleeping?',
+      duration: 5,
+      points: 5,
+      answers: [
+        {
+          answer: 'Bobby the builder',
+          correct: true
+        },
+        {
+          answer: 'Bobby the breaker',
+          correct: false
+        }
+      ]
+    }
+    expect(requestQuizQuestionCreate('1', quiz1.quizId, questionBody)).toStrictEqual({ error: expect.any(String) });
+  });
+  test('quiz is not owned by user', () => {
+    const questionBody: QuestionBody = {
+      question: 'When are you sleeping?',
+      duration: 5,
+      points: 5,
+      answers: [
+        {
+          answer: 'Bobby the builder',
+          correct: true
+        },
+        {
+          answer: 'Bobby the breaker',
+          correct: false
+        }
+      ]
+    }
+    let resToken2 = requestAuthRegister('quiz1@unsw.edu.au', 'abcd1234', 'Bob', 'Builder');
+    expect(requestQuizQuestionCreate(resToken2.token, quiz1.quizId, questionBody)).toStrictEqual({ error: expect.any(String) });
+  });
   test('successful requestQuizQuestionCreate', () => {
     const questionBody: QuestionBody = {
       question: 'When are you sleeping?',
@@ -1069,7 +1106,6 @@ describe('requestQuizQuestionUpdate', () => {
   })
 });
 
-
 describe('requestQuizQuestionRemove', () => {
   let resToken: TokenReturn;
   let quiz1: QuizId;
@@ -1095,7 +1131,9 @@ describe('requestQuizQuestionRemove', () => {
     }
     quizQuestion = requestQuizQuestionCreate(resToken.token, quiz1.quizId, question);
   });
-
+  test('invalid token', () => {
+    expect(requestQuizQuestionRemove('1', quiz1.quizId, quizQuestion.questionId)).toStrictEqual({ error: expect.any(String) });
+  });
   test('Successful return and status code', () => {
     const response = requestQuizQuestionDuplicate(resToken.token, quiz1.quizId, quizQuestion.questionId);
     expect(response).toStrictEqual({newQuestionId: expect.any(Number)});
@@ -1233,7 +1271,6 @@ describe('requestQuizQuestionDuplicate', () => {
     expect(response).toStrictEqual({ newQuestionId: expect.any(Number) });
   });
 });
-
 
 // adminQuizTransfer:
 // Goal: Transfer 'user' quiz to 'user2'.

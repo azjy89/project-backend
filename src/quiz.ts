@@ -553,6 +553,18 @@ export function adminQuizQuestionRemove(quizId: number, questionId: number, auth
   const data: Data = getData();
   // Finds quiz
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  // Quiz not found
+  if (!quiz) {
+    return {
+      error: 'Invalid quizId'
+    }
+  }
+  // Quiz is not owned by user
+  if (quiz.ownerId !== authUserId) {
+    return {
+      error: 'authUserId does not own this quiz'
+    }
+  }
   // Checks if there is a question in that quiz
   if (!quiz.questions.find(question => question.questionId === questionId)) {
     return { error: 'Question Not Found' };
