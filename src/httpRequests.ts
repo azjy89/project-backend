@@ -452,7 +452,7 @@ export const requestQuizList = (token: string) => {
     SERVER_URL + '/v1/admin/quiz/list',
     {
       qs: {
-        token: JSON.stringify(token),
+        token: token,
       }
     }
   );
@@ -692,7 +692,7 @@ export const requestQuizQuestionMove = (token: string, quizId: number, questionI
   return JSON.parse(res.body.toString());
 };
 
-export const requestQuizQustionDuplicate = (token: string, quizId: number, questionId: number) => {
+export const requestQuizQuestionDuplicate = (token: string, quizId: number, questionId: number) => {
   const res = request(
     'POST',
     SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}/duplicate`,

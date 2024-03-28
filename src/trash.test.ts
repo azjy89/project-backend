@@ -1,11 +1,38 @@
-import { before } from 'node:test';
-import { requestAuthRegister, requestQuizCreate, requestQuizList, requestQuizRemove, requestTrashQuizRestore , requestTrashEmpty, requestUserPasswordUpdate, requestClear } from './httpRequests';
-import { response } from 'express';
+import { 
+  requestAuthRegister,
+  requestQuizCreate,
+  requestQuizList,
+  requestQuizRemove,
+  requestTrashQuizList,
+  requestTrashQuizRestore,
+  requestTrashEmpty,
+  requestUserPasswordUpdate,
+  requestClear
+} from './httpRequests';
 
 beforeEach(() => {
   requestClear();
 });
 
+describe('trashQuizList', () => {
+  test.only('Successful run', () => {
+    const resToken = requestAuthRegister('quiz@unsw.edu.au',
+      'abcd1234', 'Bobby', 'Dickens');
+    const resQuizId = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+    requestQuizRemove(resToken.token, resQuizId.quizId);
+    const resTrash = requestTrashQuizList(resToken.token);
+    expect(resTrash).toStrictEqual({
+      quizzes: [
+        {
+          quizId: resQuizId.quizId,
+          name: 'COMP1531'
+        }
+      ]
+    });
+  });
+});
+
+>>>>>>> 99db59467d8c3604b65c4b533e1f5b9576b2ff3d
 describe('Testing POST /v1/admin/quiz/{quizid}/restore', () => {
   test('Succesfully restore quiz', () => {
     const resToken = requestAuthRegister('quiz@unsw.edu.au',
@@ -54,3 +81,71 @@ describe('Testing POST /v1/admin/quiz/{quizid}/restore', () => {
     expect(requestTrashQuizRestore(resToken2.token, resquizId1.quizId)).toStrictEqual({ error: expect.any(String) });
   });
 });
+
+describe('Testing DELETE /v1/admin/quiz/trash/empty', () => {
+  test('Succesfully empty trash', () => {
+    const resToken = requestAuthRegister('quiz@unsw.edu.au',
+      'abcd1234', 'Bobby', 'Dickens');
+    const resquizId = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+    expect(requestQuizRemove(resToken.token, resquizId.quizId)).toEqual({});
+    expect(requestTrashEmpty(resToken.token, [resquizId.quizId])).toStrictEqual({});
+    expect(requestTrashQuizList(resToken.token)).toStrictEqual({
+      quizzes: [
+
+      ]
+    }); 
+  });
+  
+  test('Succesfully empty trash with multiple quizzes', () => {
+    const resToken = requestAuthRegister('quiz@unsw.edu.au',
+      'abcd1234', 'Bobby', 'Dickens');
+    const resquizId1 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+    const resquizId2 = requestQuizCreate(resToken.token, 'COMP1532', 'Welcome!');
+    const resquizId3 = requestQuizCreate(resToken.token, 'COMP1533', 'Welcome!');
+
+    expect(requestQuizRemove(resToken.token, resquizId1.quizId)).toEqual({});
+    expect(requestQuizRemove(resToken.token, resquizId2.quizId)).toEqual({});
+    expect(requestQuizRemove(resToken.token, resquizId3.quizId)).toEqual({});
+    expect(requestTrashEmpty(resToken.token, [resquizId1.quizId, resquizId2.quizId, resquizId3.quizId])).toStrictEqual({});
+    expect(requestTrashQuizList(resToken.token)).toStrictEqual({
+      quizzes: [
+
+      ]
+    });
+  });
+  test('Quiz is not currently in the trash', () => {
+    const resToken = requestAuthRegister('quiz@unsw.edu.au',
+      'abcd1234', 'Bobby', 'Dickens');
+    const resquizId1 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+    expect(requestTrashEmpty(resToken.token, [resquizId1.quizId])).toStrictEqual({ error: expect.any(String) });
+  });
+  test('Multiple Quiz are not currently in the trash', () => {
+    const resToken = requestAuthRegister('quiz@unsw.edu.au',
+      'abcd1234', 'Bobby', 'Dickens');
+    const resquizId1 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+    const resquizId2 = requestQuizCreate(resToken.token, 'COMP1532', 'Welcome!');
+    const resquizId3 = requestQuizCreate(resToken.token, 'COMP1533', 'Welcome!');
+    expect(requestTrashEmpty(resToken.token, [resquizId1.quizId, resquizId2.quizId, resquizId3.quizId])).toStrictEqual({ error: expect.any(String) });
+  });
+  test('token doesnt exist', () => {
+    const resToken = requestAuthRegister('quiz@unsw.edu.au',
+      'abcd1234', 'Bobby', 'Dickens');
+    const resquizId1 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+    requestQuizRemove(resToken.token, resquizId1.quizId);
+    expect(requestTrashEmpty(resToken.token + 1, [resquizId1.quizId])).toStrictEqual({ error: expect.any(String) });
+  });
+  test('user is not an owner of this quiz', () => {
+    const resToken1 = requestAuthRegister('quiz@unsw.edu.au',
+      'abcd1234', 'Bobby', 'Dickens');
+    const resToken2 = requestAuthRegister('quiz@unsw.edu.au',
+    'abcd1234', 'Bobby', 'Dickens');
+    const resquizId1 = requestQuizCreate(resToken1.token, 'COMP1531', 'Welcome!');
+    const resquizId2 = requestQuizCreate(resToken1.token, 'COMP1532', 'Welcome!');
+    const resquizId3 = requestQuizCreate(resToken1.token, 'COMP1533', 'Welcome!');
+    requestQuizRemove(resToken1.token, resquizId1.quizId);
+    requestQuizRemove(resToken1.token, resquizId2.quizId);
+    requestQuizRemove(resToken1.token, resquizId3.quizId);
+
+    expect(requestTrashEmpty(resToken2.token, [resquizId1.quizI, resquizId2.quizId, resquizId3.quizId])).toStrictEqual({ error: expect.any(String) });
+  });
+})

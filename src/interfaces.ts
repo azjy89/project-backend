@@ -136,11 +136,12 @@ export interface User {
 export interface Quiz {
   quizId: number,
   name: string,
-  quizOwnerId: number,
+  ownerId: number,
   timeCreated: number,
   timeLastEdited: number,
   description: string,
   questions: Question[],
+  duration: number,
 }
 
 // Token interface
@@ -195,7 +196,7 @@ export interface AdminQuizInfoReturn {
 
 // Question type
 export interface Question {
-  body: QuestionBody,
+  questionBody: QuestionBody,
   questionId: number
 }
 
@@ -210,7 +211,7 @@ export interface QuestionBody {
 // AnswerInput type
 export interface AnswerInput {
   answer: string,
-  correct: true | false
+  correct: boolean
 }
 
 // questionid return type
@@ -219,12 +220,13 @@ export interface QuestionId {
 }
 
 export interface DupedQuestionId {
-  dupedQuestionId: number
+  newQuestionId: number
 }
 
 // DataStore interface
 export interface Data {
   users: User[],
   quizzes: Quiz[],
-  tokens: Token[]
+  tokens: Token[],
+  trash: Quiz[]
 }

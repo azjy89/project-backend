@@ -14,6 +14,7 @@ let data: Data = {
   users: [],
   quizzes: [],
   tokens: [],
+  trash: [],
 };
 
 
@@ -31,16 +32,4 @@ export function setData (newData: Data): void {
   fs.writeFileSync(path.resolve(__dirname, './database.json'), JSON.stringify(newData));
 };
 
-export const getTrash = (): Data => {
-  const trashFilePath = path.resolve(__dirname, './dataTrash.json');
-  const trashFileBuffer = fs.readFileSync(trashFilePath);
-  const trashData = JSON.parse(trashFileBuffer.toString());
-  return trashData;
-}
-
-export const setTrash = (newTrash: Data): void => {
-  const trashFilePath = path.resolve(__dirname, './dataTrash.json');
-  const trashDataString = JSON.stringify(newTrash);
-  fs.writeFileSync(trashFilePath, trashDataString);
-}
 
