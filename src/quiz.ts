@@ -619,15 +619,20 @@ export function adminQuizQuestionDuplicate(quizId: number, questionId: number, a
   }
 
   // Successful
-  let newQuestion: Question;
-  newQuestion.questionBody = question.questionBody;
-  newQuestion.questionId = quiz.questions.length +1;
+  let newQuestionId: number;
+  do {
+    newQuestionId = Math.floor(100000 + Math.random() * 900000);
+  } while (data.quizzes.some(quiz => quiz.questions && quiz.questions.some(question => question.questionId === newQuestionId)));
+
+  const newQuestion: Question = {
+    questionBody: question.questionBody,
+    questionId: newQuestionId
+  }
   
   // splice to right after quiz location
-  quiz.questions.splice(questionIndex, 0, newQuestion);
+  quiz.questions.splice(questionIndex + 1, 0, newQuestion);
   // update timeLastEdited of quiz.
-  const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
-  data.quizzes[quizIndex].timeLastEdited = Date.now();
-
-  return {newQuestionId: newQuestion.questionId};
+  quiz.timeLastEdited = Date.now();
+  setData(data);
+  return { newQuestionId: newQuestion.questionId };
 }
