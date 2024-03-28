@@ -21,7 +21,9 @@ const uuid = require('uuid');
 // Exported to server to allow token creation for sessions
 export const createToken = ( authUserId: number ): string => {
   const data: Data = getData();
+  // unique identifier
   const token: string = uuid.v4();
+  // pushed onto data
   data.tokens.push({
     token: token,
     userId: authUserId,
@@ -34,10 +36,11 @@ export const createToken = ( authUserId: number ): string => {
 // retrieved from a token
 export const idFromToken = ( token: string ): ErrorObject | AuthUserId => {
   const dataToken = getData().tokens.find(dataToken => dataToken.token === token);
-
+  //if token found
   if (dataToken) {
     return { authUserId: dataToken.userId };
   } else {
+  //if token not found
     return {
       error: 'Token does not refer to a valid logged in session'
     }
@@ -179,13 +182,13 @@ const adminAuthRegisterValidPassword = (password: string): boolean => {
 export const adminAuthLogin = (email: string, password: string): AuthUserId | ErrorObject => {
   const data: Data = getData();
   const user = data.users.some(user => user.email === email);
-
+  //User not found
   if (!user) {
     return { 
       error: 'User with this email does not exist' 
     };
   }
-
+  //Checks password
   const index = data.users.findIndex(user => user.email === email);
   if (data.users[index].password !== password) {
     data.users[index].numFailedPasswordsSinceLastLogin++;
@@ -194,7 +197,7 @@ export const adminAuthLogin = (email: string, password: string): AuthUserId | Er
       error: 'Incorrect password'
     }
   }
-
+  //Updates fields
   data.users[index].numFailedPasswordsSinceLastLogin = 0;
   data.users[index].numSuccessfulLogins++;
 
@@ -216,14 +219,15 @@ export const adminAuthLogin = (email: string, password: string): AuthUserId | Er
 
 export const adminUserDetails = (authUserId: number): UserDetails | ErrorObject => {
   const data: Data = getData();
-
+  //Finds user
   const userIndex = data.users.findIndex(user => user.userId === authUserId);
+  //User not found
   if (userIndex === -1) {
     return {
       error: 'AuthUserId is not a valid user'
     };
   }
-
+  //Sets up return object
   const user = data.users.find(user => user.userId === authUserId);
   return {
     user:
@@ -251,45 +255,52 @@ export const adminUserDetails = (authUserId: number): UserDetails | ErrorObject 
 
 export const adminUserDetailsUpdate = (authUserId: number, email: string, nameFirst: string, nameLast:string): object | ErrorObject => {
   const data: Data = getData();
+  //Finds user
   const userIndex = data.users.findIndex(user => user.userId === authUserId);
+  //User not found
   if (userIndex === -1) {
     return {
       error: 'AuthUserId is not a valid user'
     };
   }
-
+  //Email is already occupied
   if (data.users.some(user => user.email === email && user.userId !== authUserId)) {
     return {
       error: 'Email is currently used by another user'
     };
   }
-
+  //Email not found
   if (!isEmail(email)) {
     return {
       error: 'Email is not valid'
     };
   }
+  //Invalid nameFirst characters
   if (!adminAuthRegisterValidNameCharacters(nameFirst)) {
     return {
       error: 'First name contains invalid characters'
     };
   }
+  //Invalid nameLast characters
   if (!adminAuthRegisterValidNameCharacters(nameLast)) {
     return {
       error: 'Last name contains invalid characters'
     };
   }
+  //Invalid nameFirst length
   if (!adminAuthRegisterValidNameLength(nameFirst)) {
     return {
       error: 'First name is too long or too short'
     };
   }
+  //Invalid nameLast length
   if (!adminAuthRegisterValidNameLength(nameLast)) {
     return {
       error: 'Last name is too long or too short'
     };
   }
 
+  //Updates details
   data.users[userIndex].nameFirst = nameFirst;
   data.users[userIndex].nameLast = nameLast;
   data.users[userIndex].email = email;
@@ -312,54 +323,61 @@ export const adminUserDetailsUpdate = (authUserId: number, email: string, nameFi
 
 export const adminUserPasswordUpdate = ( authUserId: number, oldPassword: string, newPassword: string ): object | ErrorObject => {
 	const data: Data = getData();
+  //Finds user
 	const userIndex = data.users.findIndex(user => user.userId === authUserId);
+  //User not found
 	if (userIndex === -1) {
 		return {
 			error: 'AuthUserId is not a valid user'
 		}
 	}
+  //Old password is incorrect
 	if (oldPassword !== data.users[userIndex].password) {
     return {
       error: 'Old password is not the correct old password'
     }
 	}
+  //New password is the same as old password
 	if (newPassword === data.users[userIndex].password) {
     return {
       error: 'Old Password and New Password match exactly'
     }
 	}
+  //Password used before
 	const GetPassword = findPassword(newPassword, userIndex);
 	if (!GetPassword) {
     return {
       error: 'New Password has already been used before by this user'
     }
 	}
+  //Password is less than 8 characters
 	if (newPassword.length < minPasswordLength) {
     return {
       error: 'Password is too short'
     }
 	}
+  //Password is not strong enough
 	if (!adminAuthRegisterValidPassword(newPassword)) {
     return {
       error: 'Unsatisfactory password strength'
     }
 	}
+  //Updates password
 	data.users[userIndex].password = newPassword;
- 
  
 	data.users[userIndex].oldPasswords.push(oldPassword);
 	data.users[userIndex].oldPasswords.push(newPassword);
    
 	setData(data);
+
 	return {}
  }
- 
- 
+
+//Searches oldPasswords to see if password has been used before
 const findPassword = ( password: string, userIndex: number ): boolean => {
 	let data = getData();
 	let user = data.users[userIndex];
- 
- 
+
 	for (let oldpassword of user.oldPasswords) {
 		if (password === oldpassword) {
 			return false;
