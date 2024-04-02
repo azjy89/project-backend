@@ -2,6 +2,7 @@ image: comp1531/automarking:latest
 
 stages:
   - checks
+  - linting
 
 before_script:
   - npm install
@@ -20,3 +21,6 @@ tests:
     - sleep 2
     - cat $SERVER_LOG
 
+linting:
+  stage: linting
+  script: npm run lint
