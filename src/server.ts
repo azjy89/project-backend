@@ -3,6 +3,7 @@ import { echo } from './newecho';
 import morgan from 'morgan';
 import config from './config.json';
 import cors from 'cors';
+import errorHandler from 'middleware-http-errors';
 import YAML from 'yaml';
 import sui from 'swagger-ui-express';
 import fs from 'fs';
@@ -62,7 +63,7 @@ app.get('/', (req: Request, res: Response) => res.redirect('/docs'));
 app.use('/docs', sui.serve, sui.setup(YAML.parse(file), { swaggerOptions: { docExpansion: config.expandDocs ? 'full' : 'list' } }));
 
 const PORT: number = parseInt(process.env.PORT || config.port);
-const HOST: string = process.env.IP || 'localhost';
+const HOST: string = process.env.IP || '127.0.0.1';
 
 // ====================================================================
 //  ================= WORK IS DONE BELOW THIS LINE ===================
@@ -661,6 +662,9 @@ app.use((req: Request, res: Response) => {
   `;
   res.json({ error });
 });
+
+// For handling errors
+app.use(errorHandler());
 
 // start server
 const server = app.listen(PORT, HOST, () => {
