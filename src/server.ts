@@ -49,6 +49,7 @@ import {
   trashEmpty
 } from './trash';
 
+
 // Set up web app
 const app = express();
 // Use middleware that allows us to access the JSON body of requests
