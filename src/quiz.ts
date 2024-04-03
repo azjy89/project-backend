@@ -681,3 +681,16 @@ export function adminQuizQuestionDuplicate(quizId: number, questionId: number, a
     newQuestionId: newQuestion.questionId
   };
 }
+
+/**
+ * Update the thumbnail for the quiz. When this route is
+ * called, the timeLastEdited is updated.
+ *
+ * @param {number} authUserId
+ * @param {number} quizId
+ * @param {string} imgUrl
+ * @returns
+ */
+export function adminQuizThumbnailUpdate(authUserId: number, quizId: number, imgUrl: string): ErrorObject | object {
+  return {};
+}
