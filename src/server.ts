@@ -32,7 +32,8 @@ import {
   adminQuizQuestionRemove,
   adminQuizQuestionMove,
   adminQuizTransfer,
-  adminQuizQuestionDuplicate
+  adminQuizQuestionDuplicate,
+  adminQuizThumbnailUpdate
 } from './quiz';
 
 import {
@@ -73,31 +74,6 @@ const HOST: string = process.env.IP || '127.0.0.1';
 app.get('/echo', (req: Request, res: Response) => {
   const data = req.query.echo as string;
   return res.json(echo(data));
-});
-
-/** GET
- * Route for /v1/admin/quiz/trash - GET
- *
- * View the quizzes that are currently in the trash for the
- * logged in user
- */
-app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
-  // Request token as a query
-  const token = req.query.token as string;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
-  // Retrieves userid for the token
-  const userId = idFromToken(token);
-  const authUserId = userId as AuthUserId;
-  if ('error' in userId) {
-    return res.status(400).json(userId);
-  }
-  // Calls and returns trashQuizList
-  const response = trashQuizList(authUserId.authUserId);
-  return res.status(200).json(response);
 });
 
 /** DELETE
@@ -153,20 +129,56 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
   return res.status(200).json({ token });
 });
 
+// ====================================================================
+//  ================= ITERATION 3 ROUTES BELOW ===================
+// ====================================================================
+
 /** GET
- * Route for /v1/admin/user/details - GET
+ * Route for /v2/admin/quiz/trash - GET
+ *
+ * View the quizzes that are currently in the trash for the
+ * logged in user
+ */
+app.get('/v2/admin/quiz/trash', (req: Request, res: Response) => {
+  // Request token as a header
+  const token = req.headers.token as string;
+  // Validates token
+  validateToken(token);
+  // Retrieves userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+  // Calls and returns trashQuizList
+  const response = trashQuizList(authUserId.authUserId);
+  return res.status(200).json(response);
+});
+
+/** POST
+ * Route for /v2/admin/auth/logout - POST
+ *
+ * Should be called with a token that is returned after either a
+ * login or register has been made.
+ */
+app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
+  // Request token as a header
+  const token = req.headers.token as string;
+  // Validates token
+  validateToken(token);
+  // Token deleted (logged out)
+  removeToken(token);
+  return res.status(200).json({});
+});
+
+/** GET
+ * Route for /v2/admin/user/details - GET
  *
  * For the given admin user that is logged in, return all of the
  * relevant details.
  */
-app.get('/v1/admin/user/details', (req: Request, res: Response) => {
-  // Request token as a query
-  const token = req.query.token as string;
+app.get('/v2/admin/user/details', (req: Request, res: Response) => {
+  // Request token as a header
+  const token = req.headers.token as string;
   // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
+  validateToken(token);
   // Retrieves userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -176,68 +188,57 @@ app.get('/v1/admin/user/details', (req: Request, res: Response) => {
 });
 
 /** PUT
- * Route for /v1/admin/user/details - PUT
+ * Route for /v2/admin/user/details - PUT
  *
  * Given a set of properties, update those properties of this logged
  * in admin user.
  */
-app.put('/v1/admin/user/details', (req: Request, res: Response) => {
+app.put('/v2/admin/user/details', (req: Request, res: Response) => {
   // Request parameters from body
-  const { token, email, nameFirst, nameLast } = req.body;
+  const { email, nameFirst, nameLast } = req.body;
+  // Request token as a header
+  const token = req.headers.token as string;
   // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
+  validateToken(token);
   // Retrieve userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
-  }
   // Call and return adminUserDetailsUpdate
   const response = adminUserDetailsUpdate(authUserId.authUserId, email, nameFirst, nameLast);
   return res.status(200).json(response);
 });
 
 /** PUT
- * Route for /v1/admin/user/password - PUT
+ * Route for /v2/admin/user/password - PUT
  *
  * Given details relating to a password change, update the
  * password of a logged in user.
  */
-app.put('/v1/admin/user/password', (req: Request, res: Response) => {
+app.put('/v2/admin/user/password', (req: Request, res: Response) => {
   // Request parameters from body
-  const { token, oldPassword, newPassword } = req.body;
+  const { oldPassword, newPassword } = req.body;
+  // Request token as a header
+  const token = req.headers.token as string;
   // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
+  validateToken(token);
   // Retrieve userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
   // Call and return adminPasswordUpdate
   const response = adminUserPasswordUpdate(authUserId.authUserId, oldPassword, newPassword);
-  if ('error' in response) {
-    return res.status(400).json(response);
-  }
   return res.status(200).json(response);
 });
 
 /** POST
- * Route for /v1/admin/quiz - POST
+ * Route for /v2/admin/quiz - POST
  *
  * Given basic details about a new quiz, create one for the logged in user
  */
-app.post('/v1/admin/quiz', (req: Request, res: Response) => {
-  // Request parameter from body
-  const { token } = req.body;
+app.post('/v2/admin/quiz', (req: Request, res: Response) => {
+  // Request token as a header
+  const token = req.headers.token as string;
   // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
+  validateToken(token);
   // Retrieve userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -245,25 +246,19 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   const { name, description } = req.body;
   // Call and return quizId from adminQuizCreate
   const response = adminQuizCreate(authUserId.authUserId, name, description);
-  if ('error' in response) {
-    return res.status(400).json(response);
-  }
   return res.status(200).json(response);
 });
 
 /** GET
- * Route for /v1/admin/quiz/list - GET
+ * Route for /v2/admin/quiz/list - GET
  *
  * Provide a list of all quizzes that are owned by the currently logged in user
  */
-app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
-  // Request token as a query
-  const token = req.query.token as string;
+app.get('/v2/admin/quiz/list', (req: Request, res: Response) => {
+  // Request token as a header
+  const token = req.headers.token as string;
   // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
+  validateToken(token);
   // Retrieve userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -273,396 +268,294 @@ app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
 });
 
 /** DELETE
- * Route for /v1/admin/quiz/:quizid - DELETE
+ * Route for /v2/admin/quiz/:quizid - DELETE
  *
  * Given a particular quiz, send it to the trash
  */
 
-app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
+app.delete('/v2/admin/quiz/:quizid', (req: Request, res: Response) => {
   // Parses quizId to int
   const quizId = parseInt(req.params.quizid);
-  // Requests token as a query
-  const token = req.query.token as string;
+  // Requests token as a header
+  const token = req.headers.token as string;
   // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
+  validateToken(token);
   // Retrieves user for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
-  }
   // Call and return adminQuizRemove
   const response = adminQuizRemove(authUserId.authUserId, quizId);
   return res.status(200).json(response);
 });
 
 /** GET
- * Route for /v1/admin/quiz/:quizid - GET
+ * Route for /v2/admin/quiz/:quizid - GET
  *
  * Get all of the relevant information about the current quiz including questions.
  */
-app.get('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
+app.get('/v2/admin/quiz/:quizid', (req: Request, res: Response) => {
   // Parses quizId to int
   const quizId = parseInt(req.params.quizid);
-  // Requests token as a query
-  const token = req.query.token as string;
+  // Requests token as a header
+  const token = req.headers.token as string;
   // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
+  validateToken(token);
   // Retrieves user for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
-  }
   // Call and return info for the quiz
   const response = adminQuizInfo(authUserId.authUserId, quizId);
   return res.status(200).json(response);
 });
 
 /** PUT
- * Route for /v1/admin/quiz/:quizid/description - PUT
+ * Route for /v2/admin/quiz/:quizid/description - PUT
  *
  * Update the description of the relevant quiz
  */
-app.put('/v1/admin/quiz/:quizid/description', (req: Request, res: Response) => {
+app.put('/v2/admin/quiz/:quizid/description', (req: Request, res: Response) => {
   // Parses quizId to int
   const quizId = parseInt(req.params.quizid);
   // Requests params from body
-  const { token, description } = req.body;
+  const { description } = req.body;
+  // Requests token as a header
+  const token = req.headers.token as string;
   // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
+  validateToken(token);
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
-  }
   // Calls and returns an empty object from adminQuizDescriptionUpdate
   const response = adminQuizDescriptionUpdate(authUserId.authUserId, quizId, description);
-  if ('error' in response) {
-    return res.status(400).json(response);
-  }
   return res.status(200).json(response);
 });
 
 /** PUT
- * Route for /v1/admin/quiz/:quizid/name - PUT
+ * Route for /v2/admin/quiz/:quizid/name - PUT
  *
  * Update the name of the relevant quiz
  */
-app.put('/v1/admin/quiz/:quizid/name', (req: Request, res: Response) => {
+app.put('/v2/admin/quiz/:quizid/name', (req: Request, res: Response) => {
   // Parses quizId to int
   const quizId = parseInt(req.params.quizid);
   // Requests parameters from body
-  const { token, name } = req.body;
+  const { name } = req.body;
+  // Request token as a header
+  const token = req.headers.token as string;
   // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
+  validateToken(token);
   // Retrieves userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
-  }
   // Calls and returns an empty object from adminQuizNameUpdate
   const response = adminQuizNameUpdate(authUserId.authUserId, quizId, name);
-  if ('error' in response) {
-    return res.status(400).json(response);
-  }
   return res.status(200).json(response);
 });
 
 /** POST
- * Route for /v1/admin/quiz/:quizid/restore - POST
+ * Route for /v2/admin/quiz/:quizid/restore - POST
  *
  * Restore a particular quiz from the trash back to an active quiz.
  */
-app.post('/v1/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
+app.post('/v2/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
   // Parses quizId to int
   const quizId = parseInt(req.params.quizid);
-  // Request parameter from body
-  const { token } = req.body;
+  // Request token as a header
+  const token = req.headers.token as string;
   // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
+  validateToken(token);
   // Retrieves userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
-  }
   // Calls and returns trashQuizRestore
   const response = trashQuizRestore(authUserId.authUserId, quizId);
-  if ('error' in response) {
-    return res.status(400).json(response);
-  }
   return res.status(200).json(response);
 });
 
 /** DELETE
- * Route for /v1/admin/quiz/trash/empty - DELETE
+ * Route for /v2/admin/quiz/trash/empty - DELETE
  *
  * Permanently delete specific quizzes currently sitting in the trash
  */
-app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
+app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response) => {
   // Requests quizIdString as a query
   const quizIdString = req.query.quizIds as string;
   // Parse it as a JSON object
   const quizIds = JSON.parse(quizIdString);
-  // Requests token as a query
-  const token = req.query.token as string;
+  // Requests token as a header
+  const token = req.headers.token as string;
   // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
+  validateToken(token);
   // Retrieve userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
-  }
   // Call and returns trashEmpty
   const response = trashEmpty(authUserId.authUserId, quizIds);
-  if ('error' in response) {
-    return res.status(400).json(response);
-  }
   return res.status(200).json(response);
 });
 
 /** POST
- * Route for /v1/admin/auth/logout - POST
- *
- * Should be called with a token that is returned after either a
- * login or register has been made.
- */
-app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
-  // Request parameter from body
-  const { token } = req.body;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
-  // Token deleted (logged out)
-  removeToken(token);
-  return res.status(200).json({});
-});
-
-/** POST
- * Route for /v1/admin/quiz/:quizid/transfer - POST
+ * Route for /v2/admin/quiz/:quizid/transfer - POST
  *
  * Transfer ownership of a quiz to a different user based on their email
  */
-app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
+app.post('/v2/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
   // Parse quizId to int
   const quizId = parseInt(req.params.quizid);
   // Request params from body
-  const { token, userEmail } = req.body;
+  const { userEmail } = req.body;
+  // Request token as a header
+  const token = req.headers.token as string;
   // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
+  validateToken(token);
   // Retrieves userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
-  }
   // Calls and returns adminQuizTransfer
   const response = adminQuizTransfer(authUserId.authUserId, quizId, userEmail);
-  if ('error' in response) {
-    return res.status(400).json(response);
-  }
   return res.status(200).json(response);
 });
 
 /** POST
- * Route for /v1/admin/quiz/:quizid/question - POST
+ * Route for /v2/admin/quiz/:quizid/question - POST
  *
  * Create a new stub question for a particular quiz.
  */
-app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
+app.post('/v2/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   // Parse quizid to int
   const quizId = parseInt(req.params.quizid);
   // Request params from body
-  const { token, questionBody } = req.body;
+  const { questionBody } = req.body;
+  // Request token as a header
+  const token = req.headers.token as string;
   // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
+  validateToken(token);
   // Retrieve userid for the token
   const userId = idFromToken(token);
-  if ('error' in userId) {
-    return res.status(403).json(userId);
-  }
   const authUserId = userId as AuthUserId;
   // Call and return adminQuizQuestionCreate
   const response = adminQuizQuestionCreate(quizId, authUserId.authUserId, questionBody);
-  if ('error' in response) {
-    return res.status(400).json(response);
-  }
   return res.status(200).json(response);
 });
 
 /** PUT
- * Route for /v1/admin/quiz/:quizid/question/:questionid - PUT
+ * Route for /v2/admin/quiz/:quizid/question/:questionid - PUT
  *
  * Update the relevant details of a particular question within a quiz.
  */
-app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
+app.put('/v2/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
   // Parse quizid to int
   const quizId = parseInt(req.params.quizid);
   // Parse questionid to int
   const questionId = parseInt(req.params.questionid);
   // Request params from body
-  const { token, questionBody } = req.body;
+  const { questionBody } = req.body;
+  // Request token as a header
+  const token = req.headers.token as string;
   // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
+  validateToken(token);
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
-  }
   // Call and return adminQuizQuestionUpdate
   const response = adminQuizQuestionUpdate(quizId, questionId, authUserId.authUserId, questionBody);
-  if ('error' in response) {
-    return res.status(400).json(response);
-  }
   return res.status(200).json(response);
 });
 
 /** DELETE
- * Route for /v1/admin/quiz/:quizid/question/:questionid - DELETE
+ * Route for /v2/admin/quiz/:quizid/question/:questionid - DELETE
  *
  * Delete a particular question from a quiz
  */
-app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
+app.delete('/v2/admin/quiz/:quizid/question/:questionid', (req: Request, res: Response) => {
   // Parse quizid to int
   const quizId = parseInt(req.params.quizid);
   // Parse questionid to int
   const questionId = parseInt(req.params.questionid);
-  // Request token as query
-  const token = req.query.token as string;
+  // Request token as header
+  const token = req.headers.token as string;
   // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
+  validateToken(token);
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
-  }
   // Call and return adminQuizQuestionRemove
   const response = adminQuizQuestionRemove(quizId, questionId, authUserId.authUserId);
-  if ('error' in response) {
-    return res.status(400).json(response);
-  }
   return res.status(200).json(response);
 });
 
 /** PUT
- * Route for /v1/admin/quiz/:quizid/question/:questionid/move - PUT
+ * Route for /v2/admin/quiz/:quizid/question/:questionid/move - PUT
  *
  * Move a question from one particular position in the quiz to another
  */
-app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: Response) => {
+app.put('/v2/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: Response) => {
   // Parse quizid to int
   const quizId = parseInt(req.params.quizid);
   // Parse questionid to int
   const questionId = parseInt(req.params.questionid);
   // Request params from body
-  const { token, newPosition } = req.body;
+  const { newPosition } = req.body;
+  // Request token as a header
+  const token = req.headers.token as string;
   // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
+  validateToken(token);
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
-  }
   // Call and return adminQuizQuestionMove
   const response = adminQuizQuestionMove(quizId, questionId, authUserId.authUserId, newPosition);
-  if ('error' in response) {
-    return res.status(400).json(response);
-  }
   return res.status(200).json(response);
 });
 
 /** POST
- * Route for /v1/admin/quiz/:quizid/question/:questionid/duplicate - POST
+ * Route for /v2/admin/quiz/:quizid/question/:questionid/duplicate - POST
  *
  * A particular question gets duplicated to immediately after
  * where the source question is
  */
-app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request, res: Response) => {
+app.post('/v2/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request, res: Response) => {
   // Parse quizid to int
   const quizId = parseInt(req.params.quizid);
   // Parse questionid to int
   const questionId = parseInt(req.params.questionid);
-  // Request params from body
-  const { token } = req.body;
+  // Request token as a header
+  const token = req.headers.token as string;
   // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
+  validateToken(token);
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
-  }
   // Call and return adminQuizQuestionDuplicate
   const response = adminQuizQuestionDuplicate(quizId, questionId, authUserId.authUserId);
-  if ('error' in response) {
-    return res.status(400).json(response);
-  }
+  return res.status(200).json(response);
+});
+
+/** PUT
+ * Request for /v1/admin/quiz/:quizid/thumbnail - PUT
+ *
+ * Update the thumbnail for the quiz. When this route is called,
+ * the timeLastEdited is updated.
+ */
+app.put('/v1/admin/quiz/:quizid/thumbnail', (req: Request, res: Response) => {
+  // Parse quizId as int
+  const quizId = parseInt(req.params.quizid);
+  // Request thumbnail from body
+  const thumbnail = req.body.imgUrl as string;
+  // Request token as a header
+  const token = req.headers.token as string;
+  // Validates token
+  validateToken(token);
+  // Retrieve userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+  // Call and return adminQuizThumbnailUpdate
+  const response = adminQuizThumbnailUpdate(authUserId.authUserId, quizId, thumbnail);
   return res.status(200).json(response);
 });
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
-
-app.use((req: Request, res: Response) => {
-  const error = `
-    Route not found - This could be because:
-      0. You have defined routes below (not above) this middleware in server.ts
-      1. You have not implemented the route ${req.method} ${req.path}
-      2. There is a typo in either your test or server, e.g. /posts/list in one
-         and, incorrectly, /post/list in the other
-      3. You are using ts-node (instead of ts-node-dev) to start your server and
-         have forgotten to manually restart to load the new changes
-      4. You've forgotten a leading slash (/), e.g. you have posts/list instead
-         of /posts/list in your server.ts or test file
-  `;
-  res.json({ error });
-});
-
 // For handling errors
 app.use(errorHandler());
 

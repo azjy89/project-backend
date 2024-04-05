@@ -42,10 +42,11 @@ export const requestAuthLogin = (email: string, password: string) => {
 export const requestUserDetails = (token: string) => {
   const res = request(
     'GET',
-    SERVER_URL + '/v1/admin/user/details',
+    SERVER_URL + '/v2/admin/user/details',
     {
-      qs: {
-        token: token,
+      headers: {
+        'Content-type': 'application/json',
+        token: `${token}`,
       }
     }
   );
@@ -55,16 +56,16 @@ export const requestUserDetails = (token: string) => {
 export const requestUserDetailsUpdate = (token: string, email: string, nameFirst: string, nameLast: string) => {
   const res = request(
     'PUT',
-    SERVER_URL + '/v1/admin/user/details',
+    SERVER_URL + '/v2/admin/user/details',
     {
       body: JSON.stringify({
-        token: token,
         email: email,
         nameFirst: nameFirst,
         nameLast: nameLast,
       }),
       headers: {
         'Content-type': 'application/json',
+        token: `${token}`,
       }
     }
   );
@@ -74,15 +75,15 @@ export const requestUserDetailsUpdate = (token: string, email: string, nameFirst
 export const requestUserPasswordUpdate = (token: string, oldPassword: string, newPassword: string) => {
   const res = request(
     'PUT',
-    SERVER_URL + '/v1/admin/user/password',
+    SERVER_URL + '/v2/admin/user/password',
     {
       body: JSON.stringify({
-        token: token,
         oldPassword: oldPassword,
         newPassword: newPassword,
       }),
       headers: {
         'Content-type': 'application/json',
+        token: `${token}`,
       }
     }
   );
@@ -92,10 +93,11 @@ export const requestUserPasswordUpdate = (token: string, oldPassword: string, ne
 export const requestQuizList = (token: string) => {
   const res = request(
     'GET',
-    SERVER_URL + '/v1/admin/quiz/list',
+    SERVER_URL + '/v2/admin/quiz/list',
     {
-      qs: {
-        token: token,
+      headers: {
+        'Content-type': 'application/json',
+        token: `${token}`,
       }
     }
   );
@@ -105,15 +107,15 @@ export const requestQuizList = (token: string) => {
 export const requestQuizCreate = (token: string, name: string, description: string) => {
   const res = request(
     'POST',
-    SERVER_URL + '/v1/admin/quiz',
+    SERVER_URL + '/v2/admin/quiz',
     {
       body: JSON.stringify({
-        token: token,
         name: name,
         description: description,
       }),
       headers: {
         'Content-type': 'application/json',
+        token: `${token}`,
       }
     }
   );
@@ -123,11 +125,12 @@ export const requestQuizCreate = (token: string, name: string, description: stri
 export const requestQuizRemove = (token: string, quizId: number) => {
   const res = request(
     'DELETE',
-    SERVER_URL + `/v1/admin/quiz/${quizId}`,
+    SERVER_URL + `/v2/admin/quiz/${quizId}`,
     {
-      qs: {
-        token: token,
-      },
+      headers: {
+        'Content-type': 'application/json',
+        token: `${token}`,
+      }
     }
   );
   return JSON.parse(res.body.toString());
@@ -136,10 +139,11 @@ export const requestQuizRemove = (token: string, quizId: number) => {
 export const requestQuizInfo = (token: string, quizId: number) => {
   const res = request(
     'GET',
-    SERVER_URL + `/v1/admin/quiz/${quizId}`,
+    SERVER_URL + `/v2/admin/quiz/${quizId}`,
     {
-      qs: {
-        token: token,
+      headers: {
+        'Content-type': 'application/json',
+        token: `${token}`,
       }
     }
   );
@@ -149,14 +153,14 @@ export const requestQuizInfo = (token: string, quizId: number) => {
 export const requestQuizNameUpdate = (token: string, quizId: number, name: string) => {
   const res = request(
     'PUT',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/name`,
+    SERVER_URL + `/v2/admin/quiz/${quizId}/name`,
     {
       body: JSON.stringify({
-        token: token,
         name: name,
       }),
       headers: {
         'Content-type': 'application/json',
+        token: `${token}`,
       }
     }
   );
@@ -166,14 +170,14 @@ export const requestQuizNameUpdate = (token: string, quizId: number, name: strin
 export const requestQuizDescriptionUpdate = (token: string, quizId: number, description: string) => {
   const res = request(
     'PUT',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/description`,
+    SERVER_URL + `/v2/admin/quiz/${quizId}/description`,
     {
       body: JSON.stringify({
-        token: token,
         description: description,
       }),
       headers: {
         'Content-type': 'application/json',
+        token: `${token}`,
       }
     }
   );
@@ -198,13 +202,11 @@ export const requestClear = () => {
 export const requestAuthLogout = (token: string) => {
   const res = request(
     'POST',
-    SERVER_URL + '/v1/admin/auth/logout',
+    SERVER_URL + '/v2/admin/auth/logout',
     {
-      body: JSON.stringify({
-        token: token,
-      }),
       headers: {
         'Content-type': 'application/json',
+        token: `${token}`,
       }
     }
   );
@@ -214,10 +216,11 @@ export const requestAuthLogout = (token: string) => {
 export const requestTrashQuizList = (token: string) => {
   const res = request(
     'GET',
-    SERVER_URL + '/v1/admin/quiz/trash',
+    SERVER_URL + '/v2/admin/quiz/trash',
     {
-      qs: {
-        token: token,
+      headers: {
+        'Content-type': 'application/json',
+        token: `${token}`,
       }
     }
   );
@@ -227,13 +230,11 @@ export const requestTrashQuizList = (token: string) => {
 export const requestTrashQuizRestore = (token: string, quizId: number) => {
   const res = request(
     'POST',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/restore`,
+    SERVER_URL + `/v2/admin/quiz/${quizId}/restore`,
     {
-      body: JSON.stringify({
-        token: token,
-      }),
       headers: {
         'Content-type': 'application/json',
+        token: `${token}`,
       }
     }
   );
@@ -243,12 +244,15 @@ export const requestTrashQuizRestore = (token: string, quizId: number) => {
 export const requestTrashEmpty = (token: string, quizIds: number[]) => {
   const res = request(
     'DELETE',
-    SERVER_URL + '/v1/admin/quiz/trash/empty',
+    SERVER_URL + '/v2/admin/quiz/trash/empty',
     {
       qs: {
-        token: token,
         quizIds: JSON.stringify(quizIds),
       },
+      headers: {
+        'Content-type': 'application/json',
+        token: `${token}`,
+      }
     }
   );
   return JSON.parse(res.body.toString());
@@ -257,14 +261,14 @@ export const requestTrashEmpty = (token: string, quizIds: number[]) => {
 export const requestQuizTransfer = (token: string, quizId: number, userEmail: string) => {
   const res = request(
     'POST',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/transfer`,
+    SERVER_URL + `/v2/admin/quiz/${quizId}/transfer`,
     {
       body: JSON.stringify({
-        token: token,
         userEmail: userEmail,
       }),
       headers: {
         'Content-type': 'application/json',
+        token: `${token}`,
       }
     }
   );
@@ -274,14 +278,14 @@ export const requestQuizTransfer = (token: string, quizId: number, userEmail: st
 export const requestQuizQuestionCreate = (token: string, quizId: number, questionBody: QuestionBody) => {
   const res = request(
     'POST',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/question`,
+    SERVER_URL + `/v2/admin/quiz/${quizId}/question`,
     {
       body: JSON.stringify({
-        token: token,
         questionBody: questionBody,
       }),
       headers: {
         'Content-type': 'application/json',
+        token: `${token}`,
       }
     }
   );
@@ -291,14 +295,14 @@ export const requestQuizQuestionCreate = (token: string, quizId: number, questio
 export const requestQuizQuestionUpdate = (token: string, quizId: number, questionId: number, questionBody: QuestionBody) => {
   const res = request(
     'PUT',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}`,
+    SERVER_URL + `/v2/admin/quiz/${quizId}/question/${questionId}`,
     {
       body: JSON.stringify({
-        token: token,
         questionBody: questionBody,
       }),
       headers: {
         'Content-type': 'application/json',
+        token: `${token}`,
       }
     }
   );
@@ -308,11 +312,12 @@ export const requestQuizQuestionUpdate = (token: string, quizId: number, questio
 export const requestQuizQuestionRemove = (token: string, quizId: number, questionId: number) => {
   const res = request(
     'DELETE',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}`,
+    SERVER_URL + `/v2/admin/quiz/${quizId}/question/${questionId}`,
     {
-      qs: {
-        token: token,
-      },
+      headers: {
+        'Content-type': 'application/json',
+        token: `${token}`,
+      }
     }
   );
   return JSON.parse(res.body.toString());
@@ -321,14 +326,14 @@ export const requestQuizQuestionRemove = (token: string, quizId: number, questio
 export const requestQuizQuestionMove = (token: string, quizId: number, questionId: number, newPosition: number) => {
   const res = request(
     'PUT',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}/move`,
+    SERVER_URL + `/v2/admin/quiz/${quizId}/question/${questionId}/move`,
     {
       body: JSON.stringify({
-        token: token,
         newPosition: newPosition,
       }),
       headers: {
         'Content-type': 'application/json',
+        token: `${token}`,
       }
     }
   );
@@ -338,13 +343,11 @@ export const requestQuizQuestionMove = (token: string, quizId: number, questionI
 export const requestQuizQuestionDuplicate = (token: string, quizId: number, questionId: number) => {
   const res = request(
     'POST',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/question/${questionId}/duplicate`,
+    SERVER_URL + `/v2/admin/quiz/${quizId}/question/${questionId}/duplicate`,
     {
-      body: JSON.stringify({
-        token: token,
-      }),
       headers: {
         'Content-type': 'application/json',
+        token: `${token}`,
       }
     }
   );
