@@ -129,35 +129,6 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
   return res.status(200).json({ token });
 });
 
-/** PUT
- * Route for /v1/admin/quiz/:quizid/name - PUT
- *
- * Update the name of the relevant quiz
- */
-app.put('/v1/admin/quiz/:quizid/name', (req: Request, res: Response) => {
-  // Parses quizId to int
-  const quizId = parseInt(req.params.quizid);
-  // Requests parameters from body
-  const { token, name } = req.body;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
-  // Retrieves userId for the token
-  const userId = idFromToken(token);
-  const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
-  }
-  // Calls and returns an empty object from adminQuizNameUpdate
-  const response = adminQuizNameUpdate(authUserId.authUserId, quizId, name);
-  if ('error' in response) {
-    return res.status(400).json(response);
-  }
-  return res.status(200).json(response);
-});
-
 // ====================================================================
 //  ================= ITERATION 3 ROUTES BELOW ===================
 // ====================================================================
@@ -585,22 +556,6 @@ app.put('/v1/admin/quiz/:quizid/thumbnail', (req: Request, res: Response) => {
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
-
-app.use((req: Request, res: Response) => {
-  const error = `
-    Route not found - This could be because:
-      0. You have defined routes below (not above) this middleware in server.ts
-      1. You have not implemented the route ${req.method} ${req.path}
-      2. There is a typo in either your test or server, e.g. /posts/list in one
-         and, incorrectly, /post/list in the other
-      3. You are using ts-node (instead of ts-node-dev) to start your server and
-         have forgotten to manually restart to load the new changes
-      4. You've forgotten a leading slash (/), e.g. you have posts/list instead
-         of /posts/list in your server.ts or test file
-  `;
-  res.json({ error });
-});
-
 // For handling errors
 app.use(errorHandler());
 

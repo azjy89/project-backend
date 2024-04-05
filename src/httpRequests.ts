@@ -210,7 +210,7 @@ export const requestAuthLogout = (token: string) => {
       }
     }
   );
-  return JSON.parse(res.headers.toString());
+  return JSON.parse(res.body.toString());
 };
 
 export const requestTrashQuizList = (token: string) => {
