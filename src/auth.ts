@@ -181,7 +181,7 @@ const adminAuthRegisterValidPassword = (password: string): boolean => {
 export const adminAuthLogin = (email: string, password: string): AuthUserId | ErrorObject => {
   const data: Data = getData();
   const user = data.users.some(user => user.email === email);
-  // User not found
+  // User not found!
   if (!user) {
     return {
       error: 'User with this email does not exist'
