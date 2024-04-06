@@ -47,17 +47,6 @@ export const idFromToken = (token: string): ErrorObject | AuthUserId => {
   }
 };
 
-// Checks the token has a valid structure and returns an error if not
-export const validateToken = (token: string): ErrorObject | object => {
-  const regex = /^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$/;
-  if (!regex.test(token)) {
-    return {
-      error: 'Token is not valid'
-    };
-  }
-  return {};
-};
-
 /** Goes through data array and removes the token that needs to be deleted
  *
  * @param {string} token

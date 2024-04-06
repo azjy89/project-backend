@@ -11,7 +11,6 @@ import {
   createToken,
   removeToken,
   idFromToken,
-  validateToken,
   adminAuthRegister,
   adminAuthLogin,
   adminUserDetails,
@@ -83,13 +82,12 @@ app.get('/echo', (req: Request, res: Response) => {
 app.get('/v1/admin/quiz/trash', (req: Request, res: Response) => {
   // Request token as a query
   const token = req.query.token as string;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
+
   // Retrieves userid for the token
   const userId = idFromToken(token);
+  if ('error' in userId) {
+    return res.status(401).json(userId);
+  }
   const authUserId = userId as AuthUserId;
   if ('error' in userId) {
     return res.status(400).json(userId);
@@ -161,13 +159,11 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
 app.get('/v1/admin/user/details', (req: Request, res: Response) => {
   // Request token as a query
   const token = req.query.token as string;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
   // Retrieves userid for the token
   const userId = idFromToken(token);
+  if ('error' in userId) {
+    return res.status(401).json(userId);
+  }
   const authUserId = userId as AuthUserId;
   // Call adminUserDetails
   const userDetails = adminUserDetails(authUserId.authUserId);
@@ -183,17 +179,12 @@ app.get('/v1/admin/user/details', (req: Request, res: Response) => {
 app.put('/v1/admin/user/details', (req: Request, res: Response) => {
   // Request parameters from body
   const { token, email, nameFirst, nameLast } = req.body;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
   // Retrieve userId for the token
   const userId = idFromToken(token);
-  const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
+  if ('error' in userId) {
+    return res.status(401).json(userId);
   }
+  const authUserId = userId as AuthUserId;
   // Call and return adminUserDetailsUpdate
   const response = adminUserDetailsUpdate(authUserId.authUserId, email, nameFirst, nameLast);
   return res.status(200).json(response);
@@ -208,13 +199,11 @@ app.put('/v1/admin/user/details', (req: Request, res: Response) => {
 app.put('/v1/admin/user/password', (req: Request, res: Response) => {
   // Request parameters from body
   const { token, oldPassword, newPassword } = req.body;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
   // Retrieve userId for the token
   const userId = idFromToken(token);
+  if ('error' in userId) {
+    return res.status(401).json(userId);
+  }
   const authUserId = userId as AuthUserId;
   // Call and return adminPasswordUpdate
   const response = adminUserPasswordUpdate(authUserId.authUserId, oldPassword, newPassword);
@@ -232,13 +221,11 @@ app.put('/v1/admin/user/password', (req: Request, res: Response) => {
 app.post('/v1/admin/quiz', (req: Request, res: Response) => {
   // Request parameter from body
   const { token } = req.body;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
-  // Retrieve userId for the token
+
   const userId = idFromToken(token);
+  if ('error' in userId) {
+    return res.status(401).json(userId);
+  }
   const authUserId = userId as AuthUserId;
   // Request name and description as parameters
   const { name, description } = req.body;
@@ -258,13 +245,12 @@ app.post('/v1/admin/quiz', (req: Request, res: Response) => {
 app.get('/v1/admin/quiz/list', (req: Request, res: Response) => {
   // Request token as a query
   const token = req.query.token as string;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
+
   // Retrieve userId for the token
   const userId = idFromToken(token);
+  if ('error' in userId) {
+    return res.status(401).json(userId);
+  }
   const authUserId = userId as AuthUserId;
   // Call and return list of quizzes from adminQuizList
   const quizList = adminQuizList(authUserId.authUserId);
@@ -282,19 +268,20 @@ app.delete('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   // Requests token as a query
   const token = req.query.token as string;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
+
   // Retrieves user for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
+  if ('error' in userId) {
+    return res.status(401).json(userId);
   }
   // Call and return adminQuizRemove
   const response = adminQuizRemove(authUserId.authUserId, quizId);
+  if ('error' in response) {
+    if (response.error === 'authUserId does not own this quiz') {
+      return res.status(403).json(response);
+    }
+  }
   return res.status(200).json(response);
 });
 
@@ -308,19 +295,19 @@ app.get('/v1/admin/quiz/:quizid', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   // Requests token as a query
   const token = req.query.token as string;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
   // Retrieves user for the token
   const userId = idFromToken(token);
-  const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
+  if ('error' in userId) {
+    return res.status(401).json(userId);
   }
+  const authUserId = userId as AuthUserId;
   // Call and return info for the quiz
   const response = adminQuizInfo(authUserId.authUserId, quizId);
+  if ('error' in response) {
+    if (response.error === 'authUserId does not own this quiz') {
+      return res.status(403).json(response);
+    }
+  }
   return res.status(200).json(response);
 });
 
@@ -334,20 +321,21 @@ app.put('/v1/admin/quiz/:quizid/description', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   // Requests params from body
   const { token, description } = req.body;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
+
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
+  if ('error' in userId) {
+    return res.status(401).json(userId);
   }
   // Calls and returns an empty object from adminQuizDescriptionUpdate
   const response = adminQuizDescriptionUpdate(authUserId.authUserId, quizId, description);
   if ('error' in response) {
     return res.status(400).json(response);
+  }
+  if ('error' in response) {
+    if (response.error === 'Quiz ID does not refer to a quiz that this user own') {
+      return res.status(403).json(response);
+    }
   }
   return res.status(200).json(response);
 });
@@ -362,20 +350,18 @@ app.put('/v1/admin/quiz/:quizid/name', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   // Requests parameters from body
   const { token, name } = req.body;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
   // Retrieves userId for the token
   const userId = idFromToken(token);
-  const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
+  if ('error' in userId) {
+    return res.status(401).json(userId);
   }
+  const authUserId = userId as AuthUserId;
   // Calls and returns an empty object from adminQuizNameUpdate
   const response = adminQuizNameUpdate(authUserId.authUserId, quizId, name);
   if ('error' in response) {
+    if (response.error === 'Quiz ID does not refer to a quiz that this user owns.') {
+      return res.status(403).json(response);
+    }
     return res.status(400).json(response);
   }
   return res.status(200).json(response);
@@ -391,20 +377,18 @@ app.post('/v1/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   // Request parameter from body
   const { token } = req.body;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
   // Retrieves userid for the token
   const userId = idFromToken(token);
-  const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
+  if ('error' in userId) {
+    return res.status(401).json(userId);
   }
+  const authUserId = userId as AuthUserId;
   // Calls and returns trashQuizRestore
   const response = trashQuizRestore(authUserId.authUserId, quizId);
   if ('error' in response) {
+    if (response.error === 'authUserId does not own this quiz') {
+      return res.status(403).json(response);
+    }
     return res.status(400).json(response);
   }
   return res.status(200).json(response);
@@ -422,20 +406,18 @@ app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
   const quizIds = JSON.parse(quizIdString);
   // Requests token as a query
   const token = req.query.token as string;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
   // Retrieve userId for the token
   const userId = idFromToken(token);
-  const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
+  if ('error' in userId) {
+    return res.status(401).json(userId);
   }
+  const authUserId = userId as AuthUserId;
   // Call and returns trashEmpty
   const response = trashEmpty(authUserId.authUserId, quizIds);
   if ('error' in response) {
+    if (response.error === 'Quiz does not belong to user') {
+      return res.status(403).json(response);
+    }
     return res.status(400).json(response);
   }
   return res.status(200).json(response);
@@ -450,10 +432,10 @@ app.delete('/v1/admin/quiz/trash/empty', (req: Request, res: Response) => {
 app.post('/v1/admin/auth/logout', (req: Request, res: Response) => {
   // Request parameter from body
   const { token } = req.body;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
+
+  const userId = idFromToken(token);
+  if ('error' in userId) {
+    return res.status(401).json(userId);
   }
   // Token deleted (logged out)
   removeToken(token);
@@ -470,20 +452,18 @@ app.post('/v1/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   // Request params from body
   const { token, userEmail } = req.body;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
   // Retrieves userId for the token
   const userId = idFromToken(token);
-  const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
+  if ('error' in userId) {
+    return res.status(401).json(userId);
   }
+  const authUserId = userId as AuthUserId;
   // Calls and returns adminQuizTransfer
   const response = adminQuizTransfer(authUserId.authUserId, quizId, userEmail);
   if ('error' in response) {
+    if (response.error === 'Quiz ID does not refer to a quiz that this user own') {
+      return res.status(403).json(response);
+    }
     return res.status(400).json(response);
   }
   return res.status(200).json(response);
@@ -499,20 +479,19 @@ app.post('/v1/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   // Request params from body
   const { token, questionBody } = req.body;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
+
   // Retrieve userid for the token
   const userId = idFromToken(token);
   if ('error' in userId) {
-    return res.status(403).json(userId);
+    return res.status(401).json(userId);
   }
   const authUserId = userId as AuthUserId;
   // Call and return adminQuizQuestionCreate
   const response = adminQuizQuestionCreate(quizId, authUserId.authUserId, questionBody);
   if ('error' in response) {
+    if (response.error === 'authUserId does not own this quiz') {
+      return res.status(403).json(response);
+    }
     return res.status(400).json(response);
   }
   return res.status(200).json(response);
@@ -530,20 +509,18 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Respo
   const questionId = parseInt(req.params.questionid);
   // Request params from body
   const { token, questionBody } = req.body;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
   // Retrieve userid for the token
   const userId = idFromToken(token);
-  const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
+  if ('error' in userId) {
+    return res.status(401).json(userId);
   }
+  const authUserId = userId as AuthUserId;
   // Call and return adminQuizQuestionUpdate
   const response = adminQuizQuestionUpdate(quizId, questionId, authUserId.authUserId, questionBody);
   if ('error' in response) {
+    if (response.error === 'Quiz does not belong to user') {
+      return res.status(403).json(response);
+    }
     return res.status(400).json(response);
   }
   return res.status(200).json(response);
@@ -561,20 +538,18 @@ app.delete('/v1/admin/quiz/:quizid/question/:questionid', (req: Request, res: Re
   const questionId = parseInt(req.params.questionid);
   // Request token as query
   const token = req.query.token as string;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
   // Retrieve userid for the token
   const userId = idFromToken(token);
-  const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
+  if ('error' in userId) {
+    return res.status(401).json(userId);
   }
+  const authUserId = userId as AuthUserId;
   // Call and return adminQuizQuestionRemove
   const response = adminQuizQuestionRemove(quizId, questionId, authUserId.authUserId);
   if ('error' in response) {
+    if (response.error === 'authUserId does not own this quiz') {
+      return res.status(403).json(response);
+    }
     return res.status(400).json(response);
   }
   return res.status(200).json(response);
@@ -592,20 +567,18 @@ app.put('/v1/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   const questionId = parseInt(req.params.questionid);
   // Request params from body
   const { token, newPosition } = req.body;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
   // Retrieve userid for the token
   const userId = idFromToken(token);
-  const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
+  if ('error' in userId) {
+    return res.status(401).json(userId);
   }
+  const authUserId = userId as AuthUserId;
   // Call and return adminQuizQuestionMove
   const response = adminQuizQuestionMove(quizId, questionId, authUserId.authUserId, newPosition);
   if ('error' in response) {
+    if (response.error === 'Quiz does not belong to user') {
+      return res.status(403).json(response);
+    }
     return res.status(400).json(response);
   }
   return res.status(200).json(response);
@@ -624,20 +597,18 @@ app.post('/v1/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
   const questionId = parseInt(req.params.questionid);
   // Request params from body
   const { token } = req.body;
-  // Validates token
-  const retValidateToken = validateToken(token);
-  if ('error' in retValidateToken) {
-    return res.status(401).json(retValidateToken);
-  }
   // Retrieve userid for the token
   const userId = idFromToken(token);
-  const authUserId = userId as AuthUserId;
-  if ('error' in authUserId) {
-    return res.status(403).json(authUserId);
+  if ('error' in userId) {
+    return res.status(401).json(userId);
   }
+  const authUserId = userId as AuthUserId;
   // Call and return adminQuizQuestionDuplicate
   const response = adminQuizQuestionDuplicate(quizId, questionId, authUserId.authUserId);
   if ('error' in response) {
+    if (response.error === 'Quiz ID does not refer to a quiz that this user own') {
+      return res.status(403).json(response);
+    }
     return res.status(400).json(response);
   }
   return res.status(200).json(response);

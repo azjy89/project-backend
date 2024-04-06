@@ -269,7 +269,6 @@ describe('requestUserDetailsUpdate', () => {
     const responseToken = requestAuthRegister('users@unsw.edu.au', '1234abcd', 'FirstName', 'LastName');
     expect(requestUserDetailsUpdate(responseToken.token, 'users@unsw.edu.au', 'FirstName', 'Chen')).toEqual({});
     const details = requestUserDetails(responseToken.token);
-    console.log(details);
     expect(details.user.name).toEqual('FirstName Chen');
     expect(details.user.email).toEqual('users@unsw.edu.au');
   });

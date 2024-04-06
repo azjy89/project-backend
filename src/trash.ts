@@ -73,7 +73,11 @@ export function trashEmpty(authUserId: number, quizIds: number[]): ErrorObject |
   const data = getData();
   for (const quizId of quizIds) {
     const quizIndex = data.trash.findIndex(quiz => quiz.quizId === quizId);
-
+    if (quizIndex !== -1) {
+      if (data.trash[quizIndex].ownerId !== authUserId) {
+        return { error: 'Quiz does not belong to user' };
+      }
+    }
     if (quizIndex === -1) {
       return {
         error: `Quiz with ID ${quizId} is not currently in the trash`
