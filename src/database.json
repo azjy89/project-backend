@@ -1,1 +1,1 @@
-{"users":[{"userId":1,"nameFirst":"Bobby","nameLast":"Dickens","email":"quiz@unsw.edu.au","password":"abcd1234","numSuccessfulLogins":1,"numFailedPasswordsSinceLastLogin":0,"oldPasswords":[]}],"quizzes":[],"tokens":[{"token":"2c27c4fe-71d1-48d8-aecd-f3fbd31ad5a2","userId":1}],"trash":[]}
+{"users":[{"userId":1,"nameFirst":"Bobby","nameLast":"Dickens","email":"quiz@unsw.edu.au","password":"abcd1234","numSuccessfulLogins":1,"numFailedPasswordsSinceLastLogin":0,"oldPasswords":[]}],"quizzes":[],"tokens":[{"token":"7483e934-0872-41ba-a78e-c1e49dfd3739","userId":1}],"trash":[]}

@@ -2,6 +2,7 @@ import { getData, setData } from './dataStore';
 import {
   ErrorObject,
   AdminQuizListReturn,
+  AdminQuizInfoReturn,
   QuizId,
   Data,
   Quiz,
@@ -140,7 +141,7 @@ export const adminQuizRemove = (authUserId: number, quizId: number): object | Er
  * @returns {object}
  */
 
-export const adminQuizInfo = (authUserId: number, quizId: number): Quiz | ErrorObject => {
+export const adminQuizInfo = (authUserId: number, quizId: number): AdminQuizInfoReturn | ErrorObject => {
   const data: Data = getData();
   // Finds the quiz index
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
@@ -160,16 +161,17 @@ export const adminQuizInfo = (authUserId: number, quizId: number): Quiz | ErrorO
     };
   }
 
-  return {
+  const info = {
     quizId: quizId,
     name: quiz.name,
-    ownerId: quiz.ownerId,
     timeCreated: quiz.timeCreated,
     timeLastEdited: quiz.timeLastEdited,
     description: quiz.description,
+    numQuestions: quiz.questions.length,
     questions: quiz.questions,
-    duration: quiz.duration
   };
+
+  return info;
 };
 
 /**
@@ -418,9 +420,23 @@ export function adminQuizQuestionCreate(quizId: number, authUserId: number, ques
 
   // Prepares object for saving data
   const newQuestion: Question = {
-    questionBody: questionBody,
-    questionId: newQuestionId
+    questionId: newQuestionId,
+    question: questionBody.question,
+    duration: questionBody.duration,
+    points: questionBody.points,
+    answers: [],
   };
+
+  const colours = ['red', 'blue', 'green', 'yellow'];
+  for (const answer of questionBody.answers) {
+    const randomIndex = Math.floor(Math.random() * colours.length);
+    newQuestion.answers.push({
+      answerId: newQuestion.answers.length,
+      answer: answer.answer,
+      colour: colours[randomIndex],
+      correct: answer.correct,
+    });
+  }
 
   // Saving data
   quizFind.questions.push(newQuestion);
@@ -447,23 +463,23 @@ export function adminQuizQuestionCreate(quizId: number, authUserId: number, ques
 export function adminQuizQuestionUpdate(quizId: number, questionId: number, authUserId: number, questionBody: QuestionBody): ErrorObject | object {
   const data: Data = getData();
   // Finds quiz
-  const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
+  const quizIndex = data.quizzes.findIndex(quizFind => quizFind.quizId === quizId);
   // Quiz not found
-  if (!quizFind) {
+  if (quizIndex === -1) {
     return {
       error: 'Invalid quizId'
     };
   }
   // Quiz is not owned by user
-  if (quizFind.ownerId !== authUserId) {
+  if (data.quizzes[quizIndex].ownerId !== authUserId) {
     return {
       error: 'Quiz does not belong to user'
     };
   }
   // Finds question
-  const questionFind = quizFind.questions.find(questionFind => questionFind.questionId === questionId);
+  const questionIndex = data.quizzes[quizIndex].questions.findIndex(questionFind => questionFind.questionId === questionId);
   // Question not found
-  if (!questionFind) {
+  if (questionIndex === -1) {
     return {
       error: 'QuestionId does not exist under the quiz'
     };
@@ -516,15 +532,28 @@ export function adminQuizQuestionUpdate(quizId: number, questionId: number, auth
     return { error: 'At least one answer must be correct' };
   }
   // Duration too long
-  if (questionBody.duration + quizFind.duration - questionFind.questionBody.duration > 180) {
+  if (questionBody.duration + data.quizzes[quizIndex].duration - data.quizzes[quizIndex].questions[questionIndex].duration > 180) {
     return {
       error: 'Quiz duration exceeds 3 minutes'
     };
   }
   // Updates details
-  questionFind.questionBody = questionBody;
-  quizFind.timeLastEdited = Date.now();
-  quizFind.duration += (questionBody.duration - questionFind.questionBody.duration);
+  data.quizzes[quizIndex].questions[questionIndex].question = questionBody.question;
+  data.quizzes[quizIndex].questions[questionIndex].points = questionBody.points;
+  const colours = ['red', 'blue', 'green', 'yellow'];
+
+  for (const answer of questionBody.answers) {
+    const randomIndex = Math.floor(Math.random() * colours.length);
+    data.quizzes[quizIndex].questions[questionIndex].answers.push({
+      answerId: data.quizzes[quizIndex].questions[questionIndex].answers.length,
+      answer: answer.answer,
+      colour: colours[randomIndex],
+      correct: answer.correct,
+    });
+  }
+
+  data.quizzes[quizIndex].timeLastEdited = Date.now();
+  data.quizzes[quizIndex].duration += (questionBody.duration - data.quizzes[quizIndex].questions[questionIndex].duration);
 
   setData(data);
 
@@ -666,9 +695,23 @@ export function adminQuizQuestionDuplicate(quizId: number, questionId: number, a
   } while (data.quizzes.some(quiz => quiz.questions && quiz.questions.some(question => question.questionId === newQuestionId)));
 
   const newQuestion: Question = {
-    questionBody: question.questionBody,
-    questionId: newQuestionId
+    questionId: newQuestionId,
+    question: question.question,
+    duration: question.duration,
+    points: question.points,
+    answers: [],
   };
+
+  const colours = ['red', 'blue', 'green', 'yellow'];
+  for (const answer of question.answers) {
+    const randomIndex = Math.floor(Math.random() * colours.length);
+    newQuestion.answers.push({
+      answerId: newQuestion.answers.length,
+      answer: answer.answer,
+      colour: colours[randomIndex],
+      correct: answer.correct,
+    });
+  }
 
   // splice to right after quiz location
   quiz.questions.splice(questionIndex + 1, 0, newQuestion);

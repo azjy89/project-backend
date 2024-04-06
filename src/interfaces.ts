@@ -68,19 +68,20 @@ export interface AdminQuizListReturn {
   quizzes: QuizListNameId[]
 }
 
-// adminQuizInfo return type
-export interface AdminQuizInfoReturn {
-  quizId: number,
-  name: string,
-  timeCreated: number,
-  timeLastEdited: number,
-  description: string
-}
-
 // Question type
 export interface Question {
-  questionBody: QuestionBody,
-  questionId: number
+  questionId: number,
+  question: string,
+  duration: number,
+  points: number,
+  answers: Answer[]
+}
+
+export interface Answer {
+  answerId: number,
+  answer: string,
+  colour: string,
+  correct: boolean
 }
 
 // questionBody input type
@@ -116,4 +117,14 @@ export interface Data {
   quizzes: Quiz[],
   tokens: Token[],
   trash: Quiz[]
+}
+
+export interface AdminQuizInfoReturn {
+  quizId: number,
+  name: string,
+  timeCreated: number,
+  timeLastEdited: number,
+  description: string,
+  numQuestions: number,
+  questions: Question[]
 }

@@ -21,7 +21,8 @@ import {
   Quiz,
   QuestionBody,
   QuestionId,
-  Question
+  Question,
+  AdminQuizInfoReturn
 } from './interfaces';
 
 beforeEach(() => {
@@ -175,15 +176,14 @@ describe('requestQuizInfo', () => {
     const quizId = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
     const quizInfo = requestQuizInfo(resToken.token, quizId.quizId);
     // Define the expected quiz information structure
-    const expectedQuizInfo: Quiz = {
+    const expectedQuizInfo: AdminQuizInfoReturn = {
       quizId: expect.any(Number),
       name: 'COMP1531',
-      ownerId: expect.any(Number),
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
       description: 'Welcome!',
+      numQuestions: 0,
       questions: [],
-      duration: 0
     };
 
     // Compare quizInfo object with the expected quiz information structure
@@ -652,47 +652,44 @@ describe('requestQuizQuestionCreate', () => {
         }
       ]
     };
-    const questionBody3: QuestionBody = {
-      question: 'When are you always sleeping?',
-      duration: 5,
-      points: 5,
-      answers: [
-        {
-          answer: 'Bobby the brooder',
-          correct: true
-        },
-        {
-          answer: 'Bobby the boomer',
-          correct: false
-        }
-      ]
-    };
-    const question1 = requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody1);
-    const question2 = requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody2);
-    const question3 = requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody3);
-    expect(requestQuizInfo(resToken.token, quiz1.quizId)).toStrictEqual({
-      quizId: quiz1.quizId,
-      name: 'COMP1531',
-      ownerId: expect.any(Number),
-      timeCreated: expect.any(Number),
-      timeLastEdited: expect.any(Number),
-      description: 'Welcome!',
-      questions: [
-        {
-          questionBody: questionBody1,
-          questionId: question1.questionId
-        },
-        {
-          questionBody: questionBody2,
-          questionId: question2.questionId
-        },
-        {
-          questionBody: questionBody3,
-          questionId: question3.questionId
-        }
-      ],
-      duration: 15
-    });
+    // resToken = requestAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
+    // quiz1 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+
+    requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody1);
+    requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody2);
+    const info = requestQuizInfo(resToken.token, quiz1.quizId);
+    expect(info.quizId).toStrictEqual(expect.any(Number));
+    expect(info.name).toStrictEqual('COMP1531');
+    expect(info.timeCreated).toStrictEqual(expect.any(Number));
+    expect(info.timeLastEdited).toStrictEqual(expect.any(Number));
+    expect(info.description).toStrictEqual('Welcome!');
+    expect(info.numQuestions).toStrictEqual(2);
+
+    expect(info.questions[0].questionId).toStrictEqual(expect.any(Number));
+    expect(info.questions[0].question).toStrictEqual('When are you sleeping?');
+    expect(info.questions[0].duration).toStrictEqual(5);
+    expect(info.questions[0].points).toStrictEqual(5);
+    expect(info.questions[0].answers[0].answerId).toStrictEqual(0);
+    expect(info.questions[0].answers[0].answer).toStrictEqual('Bobby the builder');
+    expect(info.questions[0].answers[0].colour).toStrictEqual(expect.any(String));
+    expect(info.questions[0].answers[0].correct).toStrictEqual(true);
+    expect(info.questions[0].answers[1].answerId).toStrictEqual(1);
+    expect(info.questions[0].answers[1].answer).toStrictEqual('Bobby the breaker');
+    expect(info.questions[0].answers[1].colour).toStrictEqual(expect.any(String));
+    expect(info.questions[0].answers[1].correct).toStrictEqual(false);
+
+    expect(info.questions[1].questionId).toStrictEqual(expect.any(Number));
+    expect(info.questions[1].question).toStrictEqual('When are you not sleeping?');
+    expect(info.questions[1].duration).toStrictEqual(5);
+    expect(info.questions[1].points).toStrictEqual(5);
+    expect(info.questions[1].answers[0].answerId).toStrictEqual(0);
+    expect(info.questions[1].answers[0].answer).toStrictEqual('Bobby the buulder');
+    expect(info.questions[1].answers[0].colour).toStrictEqual(expect.any(String));
+    expect(info.questions[1].answers[0].correct).toStrictEqual(true);
+    expect(info.questions[1].answers[1].answerId).toStrictEqual(1);
+    expect(info.questions[1].answers[1].answer).toStrictEqual('Bobby the breeker');
+    expect(info.questions[1].answers[1].colour).toStrictEqual(expect.any(String));
+    expect(info.questions[1].answers[1].correct).toStrictEqual(false);
   });
 });
 
@@ -1312,12 +1309,11 @@ describe('Testing PUT /v1/admin/quiz/{quizId}/transfer', () => {
     expect(quizInfo).toStrictEqual({
       quizId: quiz.quizId,
       name: 'COMP1531',
-      ownerId: expect.any(Number),
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
       description: 'A description of my quiz',
+      numQuestions: 0,
       questions: [],
-      duration: 0,
     });
   });
 });
