@@ -137,7 +137,7 @@ describe('requestQuizRemove', () => {
       quizzes: []
     });
     expect(requestTrashQuizList(resToken.token)).toStrictEqual({
-      trash: [
+      quizzes: [
         {
           quizId: quiz.quizId,
           name: 'COMP1531',

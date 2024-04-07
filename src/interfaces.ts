@@ -108,7 +108,7 @@ export interface DupedQuestionId {
 }
 
 export interface TrashQuizListReturn {
-  trash: QuizListNameId[]
+  quizzes: QuizListNameId[]
 }
 
 // DataStore interface

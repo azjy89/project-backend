@@ -22,7 +22,7 @@ export const trashQuizList = (authUserId: number): TrashQuizListReturn => {
     quizId: quiz.quizId,
     name: quiz.name,
   }));
-  return { trash: trashList };
+  return { quizzes: trashList };
 };
 
 /** Restore a particular quiz from the trash back to an active quiz.

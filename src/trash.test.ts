@@ -21,7 +21,7 @@ describe('trashQuizList', () => {
     requestQuizRemove(resToken.token, resQuizId.quizId);
     const resTrash = requestTrashQuizList(resToken.token);
     expect(resTrash).toStrictEqual({
-      trash: [
+      quizzes: [
         {
           quizId: resQuizId.quizId,
           name: 'COMP1531'
@@ -94,7 +94,7 @@ describe('Testing DELETE /v1/admin/quiz/trash/empty', () => {
     requestQuizRemove(resToken.token, resQuizId.quizId);
     expect(requestTrashEmpty(resToken.token, [resQuizId.quizId])).toStrictEqual({});
     expect(requestTrashQuizList(resToken.token)).toStrictEqual({
-      trash: []
+      quizzes: []
     });
   });
 
@@ -110,7 +110,7 @@ describe('Testing DELETE /v1/admin/quiz/trash/empty', () => {
     expect(requestQuizRemove(resToken.token, resQuizId3.quizId)).toEqual({});
     expect(requestTrashEmpty(resToken.token, [resQuizId1.quizId, resQuizId2.quizId, resQuizId3.quizId])).toStrictEqual({});
     expect(requestTrashQuizList(resToken.token)).toStrictEqual({
-      trash: [
+      quizzes: [
 
       ]
     });
