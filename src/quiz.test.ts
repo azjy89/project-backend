@@ -1,3 +1,4 @@
+import { url } from 'inspector';
 import {
   requestAuthRegister,
   requestQuizList,
@@ -183,7 +184,8 @@ describe('requestQuizInfo', () => {
       timeLastEdited: expect.any(Number),
       description: 'Welcome!',
       questions: [],
-      duration: 0
+      duration: 0,
+      thumbnailUrl: '',
     };
 
     // Compare quizInfo object with the expected quiz information structure
@@ -691,7 +693,8 @@ describe('requestQuizQuestionCreate', () => {
           questionId: question3.questionId
         }
       ],
-      duration: 15
+      duration: 15,
+      thumbnailUrl: '',
     });
   });
 });
@@ -1318,6 +1321,7 @@ describe('Testing PUT /v1/admin/quiz/{quizId}/transfer', () => {
       description: 'A description of my quiz',
       questions: [],
       duration: 0,
+      thumbnailUrl: '',
     });
   });
 });

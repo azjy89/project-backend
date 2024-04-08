@@ -33,7 +33,6 @@ describe('requestAuthRegister', () => {
     // eslint-disable-next-line
     const responseToken = requestAuthRegister('users@unsw.edu.au', '1234abcd', 'Bobby', 'Builder');
     const responseToken2 = requestAuthRegister('users@unsw.edu.au', '1234abcd', 'FirstName', 'LastName');
-    console.error(responseToken2);
     expect(responseToken2).toEqual({ error: expect.any(String) });
   });
 
@@ -297,7 +296,7 @@ describe('requestUserPasswordUpdate', () => {
   test('invalid password length', () => {
     const responseToken = requestAuthRegister('users@unsw.edu.au', '1234abcd'
       , 'FirstName', 'LastName');
-    expect(requestUserPasswordUpdate(responseToken.body.token, 'abcd1234', '')).toEqual({ error: expect.any(String) });
+    expect(requestUserPasswordUpdate(responseToken.token, 'abcd1234', '')).toEqual({ error: expect.any(String) });
     const responseToken2 = requestAuthRegister('users@unsw.edu.au', '1234abcd'
       , 'FirstName', 'LastName');
     expect(requestUserPasswordUpdate(responseToken2.token, 'abcd1234', '1')).toEqual({ error: expect.any(String) });
