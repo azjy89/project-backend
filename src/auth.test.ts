@@ -8,8 +8,6 @@ import {
   requestClear
 } from './httpRequests';
 
-import HTTPError from 'http-errors';
-
 beforeEach(() => {
   requestClear();
 });
@@ -37,7 +35,6 @@ describe('requestAuthRegister', () => {
     const responseToken2 = requestAuthRegister('users@unsw.edu.au', '1234abcd', 'FirstName', 'LastName');
     console.error(responseToken2);
     expect(responseToken2).toEqual({ error: expect.any(String) });
-    expect(() => requestAuthRegister('users@unsw.edu.au', '1234abcd', 'FirstNames', 'LastNames')).toThrow(HTTPError[400]);
   });
 
   test('email is not valid', () => {

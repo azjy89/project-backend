@@ -25,6 +25,7 @@ export interface Quiz {
   description: string,
   questions: Question[],
   duration: number,
+  thumbnailUrl: string,
 }
 
 // Token interface
