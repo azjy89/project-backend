@@ -31,7 +31,7 @@ describe('requestAuthRegister', () => {
     });
   });
 
-  test.only('duplicate email', () => {
+  test('duplicate email', () => {
     // eslint-disable-next-line
     const responseToken = requestAuthRegister('users@unsw.edu.au', '1234abcd', 'Bobby', 'Builder');
     const responseToken2 = requestAuthRegister('users@unsw.edu.au', '1234abcd', 'FirstName', 'LastName');
