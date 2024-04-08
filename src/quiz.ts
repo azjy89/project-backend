@@ -81,7 +81,8 @@ export const adminQuizCreate = (authUserId: number, name: string, description: s
     timeLastEdited: Date.now(),
     description: description,
     questions: [],
-    duration: 0
+    duration: 0,
+    thumbnailUrl: '',
   };
   // Saves data
   data.quizzes.push(newQuiz);
@@ -153,7 +154,8 @@ export const adminQuizInfo = (authUserId: number, quizId: number): Quiz | ErrorO
     timeLastEdited: quiz.timeLastEdited,
     description: quiz.description,
     questions: quiz.questions,
-    duration: quiz.duration
+    duration: quiz.duration,
+    thumbnailUrl: quiz.thumbnailUrl,
   };
 };
 
@@ -595,5 +597,22 @@ export function adminQuizQuestionDuplicate(quizId: number, questionId: number, a
  * @returns
  */
 export function adminQuizThumbnailUpdate(authUserId: number, quizId: number, imgUrl: string): ErrorObject | object {
+  const data = getData();
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (quiz.ownerId !== authUserId) {
+    throw HTTPError(403, 'User does not own quiz');
+  }
+
+  if (!(imgUrl.endsWith('.jpeg')) && !(imgUrl.endsWith('.jpg')) && !(imgUrl.endsWith('.png'))) {
+    throw HTTPError(400, 'Invalid url');
+  }
+
+  if (!(imgUrl.startsWith('http://')) && !(imgUrl.startsWith('https://'))) {
+    throw HTTPError(400, 'Invalid url');
+  }
+
+  quiz.thumbnailUrl = imgUrl;
+  setData(data);
+
   return {};
 }
