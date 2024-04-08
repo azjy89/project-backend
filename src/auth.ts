@@ -11,6 +11,8 @@ import {
   UserDetails
 } from './interfaces';
 
+import HTTPError from 'http-errors';
+
 // Global Variables
 const minNameLength = 2;
 const maxNameLength = 20;
@@ -40,10 +42,8 @@ export const idFromToken = (token: string): ErrorObject | AuthUserId => {
   if (dataToken) {
     return { authUserId: dataToken.userId };
   } else {
-  // if token not found
-    return {
-      error: 'Token does not refer to a valid logged in session'
-    };
+    // if token not found
+    throw HTTPError(403, 'Token does not refer to a valid logged in session');
   }
 };
 
@@ -51,9 +51,7 @@ export const idFromToken = (token: string): ErrorObject | AuthUserId => {
 export const validateToken = (token: string): ErrorObject | object => {
   const regex = /^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$/;
   if (!regex.test(token)) {
-    return {
-      error: 'Token is not valid'
-    };
+    throw HTTPError(401, 'Token is not valid');
   }
   return {};
 };
@@ -181,20 +179,16 @@ const adminAuthRegisterValidPassword = (password: string): boolean => {
 export const adminAuthLogin = (email: string, password: string): AuthUserId | ErrorObject => {
   const data: Data = getData();
   const user = data.users.some(user => user.email === email);
-  // User not found
+  // User not found!
   if (!user) {
-    return {
-      error: 'User with this email does not exist'
-    };
+    throw HTTPError(400, 'User with this email does not exist');
   }
   // Checks password
   const index = data.users.findIndex(user => user.email === email);
   if (data.users[index].password !== password) {
     data.users[index].numFailedPasswordsSinceLastLogin++;
     setData(data);
-    return {
-      error: 'Incorrect password'
-    };
+    throw HTTPError(400, 'Incorrect password');
   }
   // Updates fields
   data.users[index].numFailedPasswordsSinceLastLogin = 0;
@@ -256,45 +250,31 @@ export const adminUserDetailsUpdate = (authUserId: number, email: string, nameFi
   const userIndex = data.users.findIndex(user => user.userId === authUserId);
   // User not found
   if (userIndex === -1) {
-    return {
-      error: 'AuthUserId is not a valid user'
-    };
+    throw HTTPError(400, 'AuthUserId is not a valid user');
   }
   // Email is already occupied
   if (data.users.some(user => user.email === email && user.userId !== authUserId)) {
-    return {
-      error: 'Email is currently used by another user'
-    };
+    throw HTTPError(400, 'Email is currently used by another user');
   }
   // Email not found
   if (!isEmail(email)) {
-    return {
-      error: 'Email is not valid'
-    };
+    throw HTTPError(400, 'Email is not valid');
   }
   // Invalid nameFirst characters
   if (!adminAuthRegisterValidNameCharacters(nameFirst)) {
-    return {
-      error: 'First name contains invalid characters'
-    };
+    throw HTTPError(400, 'First name contains invalid characters');
   }
   // Invalid nameLast characters
   if (!adminAuthRegisterValidNameCharacters(nameLast)) {
-    return {
-      error: 'Last name contains invalid characters'
-    };
+    throw HTTPError(400, 'Last name contains invalid characters');
   }
   // Invalid nameFirst length
   if (!adminAuthRegisterValidNameLength(nameFirst)) {
-    return {
-      error: 'First name is too long or too short'
-    };
+    throw HTTPError(400, 'First name is too long or too short');
   }
   // Invalid nameLast length
   if (!adminAuthRegisterValidNameLength(nameLast)) {
-    return {
-      error: 'Last name is too long or too short'
-    };
+    throw HTTPError(400, 'Last name is too long or too short');
   }
 
   // Updates details
@@ -324,40 +304,28 @@ export const adminUserPasswordUpdate = (authUserId: number, oldPassword: string,
   const userIndex = data.users.findIndex(user => user.userId === authUserId);
   // User not found
   if (userIndex === -1) {
-    return {
-      error: 'AuthUserId is not a valid user'
-    };
+    throw HTTPError(400, 'AuthUserId is not a valid user');
   }
   // Old password is incorrect
   if (oldPassword !== data.users[userIndex].password) {
-    return {
-      error: 'Old password is not the correct old password'
-    };
+    throw HTTPError(400, 'Old password is not the correct old password');
   }
   // New password is the same as old password
   if (newPassword === data.users[userIndex].password) {
-    return {
-      error: 'Old Password and New Password match exactly'
-    };
+    throw HTTPError(400, 'Old Password and New Password match exactly');
   }
   // Password used before
   const GetPassword = findPassword(newPassword, userIndex);
   if (!GetPassword) {
-    return {
-      error: 'New Password has already been used before by this user'
-    };
+    throw HTTPError(400, 'New Password has already been used before by this user');
   }
   // Password is less than 8 characters
   if (newPassword.length < minPasswordLength) {
-    return {
-      error: 'Password is too short'
-    };
+    throw HTTPError(400, 'Password is too short');
   }
   // Password is not strong enough
   if (!adminAuthRegisterValidPassword(newPassword)) {
-    return {
-      error: 'Unsatisfactory password strength'
-    };
+    throw HTTPError(400, 'Unsatisfactory password strength');
   }
   // Updates password
   data.users[userIndex].password = newPassword;
