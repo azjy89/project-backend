@@ -12,6 +12,8 @@ import {
   DupedQuestionId
 } from './interfaces';
 
+import HTTPError from 'http-errors';
+
 // Global Variables
 const maxNameLength = 30;
 const minNameLength = 3;
@@ -52,28 +54,20 @@ export const adminQuizCreate = (authUserId: number, name: string, description: s
   const data: Data = getData();
   // Check if name contains valid characters
   if (!/^[a-zA-Z0-9 ]+$/.test(name)) {
-    return {
-      error: 'Quiz name must contain only alphanumeric characters and spaces'
-    };
+    throw HTTPError(400, 'Quiz name must contain only alphanumeric characters and spaces');
   }
   // Check if the name is within the character limits
   if (name.length < minNameLength || name.length > maxNameLength) {
-    return {
-      error: 'Quiz name must be between 3 and 30 characters long'
-    };
+    throw HTTPError(400, 'Quiz name must be between 3 and 30 characters long');
   }
   // Check if the name is already being used
   const nameExists = data.quizzes.some(quiz => quiz.name === name && quiz.ownerId === authUserId);
   if (nameExists) {
-    return {
-      error: 'Quiz name is already being used'
-    };
+    throw HTTPError(400, 'Quiz name is already being used');
   }
   // Check if the description is within the character limit
   if (description.length > maxDescriptionLength) {
-    return {
-      error: 'Description must be 100 characters or less'
-    };
+    throw HTTPError(400, 'Description must be 100 characters or less');
   }
   // Looks through quizzes and finds the highest quizId and adds 1 for new Id
   const newQuizId = data.quizzes.length > 0
@@ -112,15 +106,11 @@ export const adminQuizRemove = (authUserId: number, quizId: number): object | Er
   const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
   // Quiz not found
   if (!quizFind) {
-    return {
-      error: 'Invalid quizId'
-    };
+    throw HTTPError(400, 'Invalid quizId');
   }
   // Quiz isn't owned by user
   if (quizFind.ownerId !== authUserId) {
-    return {
-      error: 'authUserId does not own this quiz'
-    };
+    throw HTTPError(400, 'authUserId does not own this quiz');
   }
   // Find index of the quiz
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
@@ -148,17 +138,13 @@ export const adminQuizInfo = (authUserId: number, quizId: number): AdminQuizInfo
 
   // Checks dataStore.quizzes to find if a quizId matches; else is invalid quiz.
   if (quizIndex === -1) {
-    return {
-      error: 'Quiz id does not refer to valid quiz.'
-    };
+    throw HTTPError(400, 'Quiz id does not refer to valid quiz.');
   }
 
   // Checks dataStore.quizzes for a quiz.ownerId that doesn't match authUserId.
   const quiz = data.quizzes[quizIndex];
   if (authUserId !== quiz.ownerId) {
-    return {
-      error: 'Quiz ID does not refer to a quiz that this user owns.'
-    };
+    throw HTTPError(400, 'Quiz ID does not refer to a quiz that this user owns.');
   }
 
   const info = {
@@ -190,34 +176,24 @@ export const adminQuizNameUpdate = (authUserId: number, quizId: number, name: st
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
   // Quiz not found
   if (quizIndex === -1) {
-    return {
-      error: 'Quiz ID does not refer to valid quiz.'
-    };
+    throw HTTPError(400, 'Quiz ID does not refer to valid quiz.');
   }
   // Quiz is not owned by the user
   if (authUserId !== data.quizzes[quizIndex].ownerId) {
-    return {
-      error: 'Quiz ID does not refer to a quiz that this user owns.'
-    };
+    throw HTTPError(400, 'Quiz ID does not refer to a quiz that this user owns.');
   }
   // Verifies the name is of valid structure
   const regex = /^[a-zA-Z0-9\s]*$/;
   if (!regex.test(name)) {
-    return {
-      error: 'Name contains invalid characters. Valid characters are alphanumeric and spaces.'
-    };
+    throw HTTPError(400, 'Name contains invalid characters. Valid characters are alphanumeric and spaces.');
   }
   // Invalid name length
   if (name.length > maxNameLength || name.length < minNameLength) {
-    return {
-      error: 'Name is either less than 3 characters long or more than 30 characters long.'
-    };
+    throw HTTPError(400, 'Name is either less than 3 characters long or more than 30 characters long.');
   }
   // Name is already used in another quiz
   if (data.quizzes.find(q => q.name === name && q.ownerId === authUserId)) {
-    return {
-      error: 'Name is already used by the current logged in user for another quiz.'
-    };
+    throw HTTPError(400, 'Name is already used by the current logged in user for another quiz.');
   }
   // Update the quiz name in the data store
   data.quizzes[quizIndex].name = name;
@@ -244,22 +220,16 @@ export const adminQuizDescriptionUpdate = (authUserId: number, quizId: number, d
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
   // Quiz not found
   if (quizIndex === -1) {
-    return {
-      error: 'Quiz ID does not refer to a valid quiz'
-    };
+    throw HTTPError(400, 'Quiz ID does not refer to a valid quiz');
   }
   // Quiz not owned by user
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   if (quiz.ownerId !== authUserId) {
-    return {
-      error: 'Quiz ID does not refer to a quiz that this user own'
-    };
+    throw HTTPError(400, 'Quiz ID does not refer to a quiz that this user own');
   }
   // Description is too long
   if (description.length >= maxDescriptionLength) {
-    return {
-      error: 'Description is more than 100 characters in length'
-    };
+    throw HTTPError(400, 'Description is more than 100 characters in length');
   }
   // Updates description
   data.quizzes[quizIndex].description = description;
@@ -284,47 +254,35 @@ export const adminQuizTransfer = (authUserId: number, quizId: number, userEmail:
   const targetUser = data.users.find(user => user.email === userEmail);
   // User not found
   if (!targetUser) {
-    return {
-      error: 'userEmail is not a real user'
-    };
+    throw HTTPError(400, 'userEmail is not a real user');
   }
   // Email is the user's, not the one they want to transfer to
   if (targetUser.userId === authUserId) {
-    return {
-      error: 'userEmail is the current logged in user'
-    };
+    throw HTTPError(400, 'userEmail is the current logged in user');
   }
   // Find quiz
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   // Quiz not found
   if (!quiz) {
-    return {
-      error: 'QuizId does not refer to a valid quiz'
-    };
+    throw HTTPError(400, 'QuizId does not refer to a valid quiz');
   }
   // Find same quiz name
   const similarNameFound = data.quizzes.some(q => q.ownerId === targetUser.userId && q.name === quiz.name);
   // Same quiz name found
   if (similarNameFound) {
-    return {
-      error: 'Quiz ID refers to a quiz that has a name that is already used by the target user'
-    };
+    throw HTTPError(400, 'Quiz ID refers to a quiz that has a name that is already used by the target user');
   }
   // Find user index
   const currentUserIndex = data.users.findIndex(user => user.userId === authUserId);
   // User not found
   if (currentUserIndex === -1) {
-    return {
-      error: 'AuthUserId is not a valid user'
-    };
+    throw HTTPError(400, 'AuthUserId is not a valid user');
   }
   // Quiz is not owned by user
   if (quiz.ownerId !== authUserId) {
-    return {
-      error: 'Quiz ID does not refer to a quiz that this user own'
-    };
+    throw HTTPError(400, 'Quiz ID does not refer to a quiz that this user own');
   }
-  // Succesful Transfer, i.e. change ownerId of current quiz to the targetUser's userId.
+  // Successful Transfer, i.e. change ownerId of current quiz to the targetUser's userId.
   quiz.ownerId = targetUser.userId;
   quiz.timeLastEdited = Date.now();
 
@@ -346,61 +304,43 @@ export function adminQuizQuestionCreate(quizId: number, authUserId: number, ques
   const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
   // Quiz not found
   if (!quizFind) {
-    return {
-      error: 'Invalid quizId'
-    };
+    throw HTTPError(400, 'Invalid quizId');
   }
   // Quiz is not owned by user
   if (quizFind.ownerId !== authUserId) {
-    return {
-      error: 'authUserId does not own this quiz'
-    };
+    throw HTTPError(400, 'authUserId does not own this quiz');
   }
   // Invalid question length
   if (questionBody.question.length < 5 || questionBody.question.length > 50) {
-    return {
-      error: 'Invalid question string length'
-    };
+    throw HTTPError(400, 'Invalid question string length');
   }
   // Invalid number of answer choices
   if (questionBody.answers.length < 2 || questionBody.answers.length > 6) {
-    return {
-      error: 'Question must have between 2 and 6 answer choices inclusive'
-    };
+    throw HTTPError(400, 'Question must have between 2 and 6 answer choices inclusive');
   }
   // Quiz duration too long
   if (questionBody.duration + quizFind.duration > 180) {
-    return {
-      error: 'Quiz duration exceeds 3 minutes'
-    };
+    throw HTTPError(400, 'Quiz duration exceeds 3 minutes');
   }
   // Quiz duration too short
   if (questionBody.duration <= 0) {
-    return {
-      error: 'Question duration must be at least 1 second'
-    };
+    throw HTTPError(400, 'Question duration must be at least 1 second');
   }
   // Invalid question points
   if (questionBody.points < 1 || questionBody.points > 10) {
-    return {
-      error: 'Invalid question points rewarded'
-    };
+    throw HTTPError(400, 'Invalid question points rewarded');
   }
   // Checking every answer for correct length
   for (const i of questionBody.answers) {
     if (i.answer.length < 1 || i.answer.length > 30) {
-      return {
-        error: 'Answer length must be between 1 and 30 characters long inclusive'
-      };
+      throw HTTPError(400, 'Answer length must be between 1 and 30 characters long inclusive');
     }
   }
   // Checking for duplicate answer choices
   for (let i = 0; i < questionBody.answers.length - 1; i++) {
     for (let j = i + 1; j < questionBody.answers.length; j++) {
       if (questionBody.answers[i].answer === questionBody.answers[j].answer) {
-        return {
-          error: 'Cannot be duplicate answers for a question'
-        };
+        throw HTTPError(400, 'Cannot be duplicate answers for a question');
       }
     }
   }
@@ -408,7 +348,7 @@ export function adminQuizQuestionCreate(quizId: number, authUserId: number, ques
   const findOneTrue = questionBody.answers.some(answer => answer.correct === true);
   // One correct answer not found
   if (!findOneTrue) {
-    return { error: 'At least one answer must be correct' };
+    throw HTTPError(400, 'At least one answer must be correct');
   }
 
   // Generating newQuestionId (which is just a random 6 digit number)
@@ -486,50 +426,38 @@ export function adminQuizQuestionUpdate(quizId: number, questionId: number, auth
   }
   // Invalid question length
   if (questionBody.question.length < 5 || questionBody.question.length > 50) {
-    return {
-      error: 'Invalid Question String Length'
-    };
+    throw HTTPError(400, 'Invalid Question String Length');
   }
   // Duration too short
   if (questionBody.duration < 1) {
-    return {
-      error: 'Invalid Duration'
-    };
+    throw HTTPError(400, 'Invalid Duration');
   }
   // Invalid number of answers
   if (questionBody.answers.length < 2 || questionBody.answers.length > 6) {
-    return {
-      error: 'Invalid Number of Answers'
-    };
+    throw HTTPError(400, 'Invalid Number of Answers');
   }
   // Checks every answer for correct length
   for (const i of questionBody.answers) {
     if (i.answer.length < 1 || i.answer.length > 30) {
-      return {
-        error: 'Answer length must be between 1 and 30 characters long inclusive'
-      };
+      throw HTTPError(400, 'Answer length must be between 1 and 30 characters long inclusive');
     }
   }
   // Checks for duplicate answers
   for (let i = 0; i < questionBody.answers.length - 1; i++) {
     for (let j = i + 1; j < questionBody.answers.length; j++) {
       if (questionBody.answers[i].answer === questionBody.answers[j].answer) {
-        return {
-          error: 'Cannot be duplicate answers for a question'
-        };
+        throw HTTPError(400, 'Cannot be duplicate answers for a question');
       }
     }
   }
   // Invalid question points
   if (questionBody.points < 1 || questionBody.points > 10) {
-    return {
-      error: 'Invalid Question Points'
-    };
+    throw HTTPError(400, 'Invalid Question Points');
   }
   // Searches for at least one correct answer
   const findOneTrue = questionBody.answers.some(answer => answer.correct === true);
   if (!findOneTrue) {
-    return { error: 'At least one answer must be correct' };
+    throw HTTPError(400, 'At least one answer must be correct');
   }
   // Duration too long
   if (questionBody.duration + data.quizzes[quizIndex].duration - data.quizzes[quizIndex].questions[questionIndex].duration > 180) {
@@ -576,19 +504,15 @@ export function adminQuizQuestionRemove(quizId: number, questionId: number, auth
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   // Quiz not found
   if (!quiz) {
-    return {
-      error: 'Invalid quizId'
-    };
+    throw HTTPError(400, 'Invalid quizId');
   }
   // Quiz is not owned by user
   if (quiz.ownerId !== authUserId) {
-    return {
-      error: 'authUserId does not own this quiz'
-    };
+    throw HTTPError(400, 'authUserId does not own this quiz');
   }
   // Checks if there is a question in that quiz
   if (!quiz.questions.find(question => question.questionId === questionId)) {
-    return { error: 'Question Not Found' };
+    throw HTTPError(400, 'Question Not Found');
   }
   // Removes the question from the quiz
   quiz.questions.filter(question => question.questionId !== questionId);
@@ -615,23 +539,17 @@ export function adminQuizQuestionMove(quizId: number, questionId: number, authUs
   const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
   // Quiz not found
   if (!quizFind) {
-    return {
-      error: 'Invalid quizId'
-    };
+    throw HTTPError(400, 'Invalid quizId');
   }
   // Quiz not owned by user
   if (quizFind.ownerId !== authUserId) {
-    return {
-      error: 'Quiz does not belong to user'
-    };
+    throw HTTPError(400, 'Quiz does not belong to user');
   }
   // Finds question
   const questionFind = quizFind.questions.find(questionFind => questionFind.questionId === questionId);
   // Question not found
   if (!questionFind) {
-    return {
-      error: 'QuestionId does not exist under the quiz'
-    };
+    throw HTTPError(400, 'QuestionId does not exist under the quiz');
   }
   // Gets index of question
   const questionIndex = quizFind.questions.findIndex(question => question.questionId === questionId);
@@ -639,7 +557,7 @@ export function adminQuizQuestionMove(quizId: number, questionId: number, authUs
   if (newPosition < 0 ||
       newPosition > quizFind.questions.length - 1 ||
       newPosition === questionIndex) {
-    return { error: 'Invalid Position' };
+    throw HTTPError(400, 'Invalid Position');
   }
   // Removes and inserts question from original position to new position
   const removedQuestion = quizFind.questions.splice(questionIndex, 1)[0];
@@ -669,22 +587,16 @@ export function adminQuizQuestionDuplicate(quizId: number, questionId: number, a
   const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId);
   // Question not found
   if (!question) {
-    return {
-      error: 'Question Id does not refer to a valid question within this quiz'
-    };
+    throw HTTPError(400, 'Question Id does not refer to a valid question within this quiz');
   }
   // Error: Invalid authUserId
   const userIndex = data.users.findIndex(user => user.userId === authUserId);
   if (userIndex === -1) {
-    return {
-      error: 'AuthUserId is not a valid user'
-    };
+    throw HTTPError(400, 'AuthUserId is not a valid user');
   }
   // Error: Valid authUserId, but not quiz owner.
   if (quiz.ownerId !== authUserId) {
-    return {
-      error: 'Quiz ID does not refer to a quiz that this user own'
-    };
+    throw HTTPError(400, 'Quiz ID does not refer to a quiz that this user own');
   }
 
   // Generates a newQuestionId (a random 6 digit number)
@@ -723,4 +635,17 @@ export function adminQuizQuestionDuplicate(quizId: number, questionId: number, a
   return {
     newQuestionId: newQuestion.questionId
   };
+}
+
+/**
+ * Update the thumbnail for the quiz. When this route is
+ * called, the timeLastEdited is updated.
+ *
+ * @param {number} authUserId
+ * @param {number} quizId
+ * @param {string} imgUrl
+ * @returns
+ */
+export function adminQuizThumbnailUpdate(authUserId: number, quizId: number, imgUrl: string): ErrorObject | object {
+  return {};
 }
