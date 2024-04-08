@@ -81,7 +81,8 @@ export const adminQuizCreate = (authUserId: number, name: string, description: s
     timeLastEdited: Date.now(),
     description: description,
     questions: [],
-    duration: 0
+    duration: 0,
+    thumbnailUrl: '',
   };
   // Saves data
   data.quizzes.push(newQuiz);
@@ -103,13 +104,13 @@ export const adminQuizRemove = (authUserId: number, quizId: number): object | Er
   const data: Data = getData();
   // Finds quiz with quizId
   const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
+  // Quiz isn't owned by user
+  if (quizFind.ownerId !== authUserId) {
+    throw HTTPError(403, 'authUserId does not own this quiz');
+  }
   // Quiz not found
   if (!quizFind) {
     throw HTTPError(400, 'Invalid quizId');
-  }
-  // Quiz isn't owned by user
-  if (quizFind.ownerId !== authUserId) {
-    throw HTTPError(400, 'authUserId does not own this quiz');
   }
   // Find index of the quiz
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
@@ -134,16 +135,15 @@ export const adminQuizInfo = (authUserId: number, quizId: number): Quiz | ErrorO
   const data: Data = getData();
   // Finds the quiz index
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
+  // Checks dataStore.quizzes for a quiz.ownerId that doesn't match authUserId.
+  const quiz = data.quizzes[quizIndex];
+  if (authUserId !== quiz.ownerId) {
+    throw HTTPError(403, 'Quiz ID does not refer to a quiz that this user owns.');
+  }
 
   // Checks dataStore.quizzes to find if a quizId matches; else is invalid quiz.
   if (quizIndex === -1) {
     throw HTTPError(400, 'Quiz id does not refer to valid quiz.');
-  }
-
-  // Checks dataStore.quizzes for a quiz.ownerId that doesn't match authUserId.
-  const quiz = data.quizzes[quizIndex];
-  if (authUserId !== quiz.ownerId) {
-    throw HTTPError(400, 'Quiz ID does not refer to a quiz that this user owns.');
   }
 
   return {
@@ -154,7 +154,8 @@ export const adminQuizInfo = (authUserId: number, quizId: number): Quiz | ErrorO
     timeLastEdited: quiz.timeLastEdited,
     description: quiz.description,
     questions: quiz.questions,
-    duration: quiz.duration
+    duration: quiz.duration,
+    thumbnailUrl: quiz.thumbnailUrl,
   };
 };
 
@@ -172,13 +173,14 @@ export const adminQuizNameUpdate = (authUserId: number, quizId: number, name: st
   const data: Data = getData();
   // Finds quiz index
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
+  // Quiz is not owned by the user
+  if (authUserId !== data.quizzes[quizIndex].ownerId) {
+    throw HTTPError(403, 'Quiz ID does not refer to a quiz that this user owns.');
+  }
+
   // Quiz not found
   if (quizIndex === -1) {
     throw HTTPError(400, 'Quiz ID does not refer to valid quiz.');
-  }
-  // Quiz is not owned by the user
-  if (authUserId !== data.quizzes[quizIndex].ownerId) {
-    throw HTTPError(400, 'Quiz ID does not refer to a quiz that this user owns.');
   }
   // Verifies the name is of valid structure
   const regex = /^[a-zA-Z0-9\s]*$/;
@@ -216,14 +218,14 @@ export const adminQuizDescriptionUpdate = (authUserId: number, quizId: number, d
   const data: Data = getData();
   // Finds quiz index
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
-  // Quiz not found
-  if (quizIndex === -1) {
-    throw HTTPError(400, 'Quiz ID does not refer to a valid quiz');
-  }
   // Quiz not owned by user
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   if (quiz.ownerId !== authUserId) {
-    throw HTTPError(400, 'Quiz ID does not refer to a quiz that this user own');
+    throw HTTPError(403, 'Quiz ID does not refer to a quiz that this user own');
+  }
+  // Quiz not found
+  if (quizIndex === -1) {
+    throw HTTPError(400, 'Quiz ID does not refer to a valid quiz');
   }
   // Description is too long
   if (description.length >= maxDescriptionLength) {
@@ -260,6 +262,10 @@ export const adminQuizTransfer = (authUserId: number, quizId: number, userEmail:
   }
   // Find quiz
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  // Quiz is not owned by user
+  if (quiz.ownerId !== authUserId) {
+    throw HTTPError(403, 'Quiz ID does not refer to a quiz that this user own');
+  }
   // Quiz not found
   if (!quiz) {
     throw HTTPError(400, 'QuizId does not refer to a valid quiz');
@@ -275,10 +281,6 @@ export const adminQuizTransfer = (authUserId: number, quizId: number, userEmail:
   // User not found
   if (currentUserIndex === -1) {
     throw HTTPError(400, 'AuthUserId is not a valid user');
-  }
-  // Quiz is not owned by user
-  if (quiz.ownerId !== authUserId) {
-    throw HTTPError(400, 'Quiz ID does not refer to a quiz that this user own');
   }
   // Successful Transfer, i.e. change ownerId of current quiz to the targetUser's userId.
   quiz.ownerId = targetUser.userId;
@@ -300,13 +302,13 @@ export function adminQuizQuestionCreate(quizId: number, authUserId: number, ques
   const data: Data = getData();
   // Find quiz
   const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
+  // Quiz is not owned by user
+  if (quizFind.ownerId !== authUserId) {
+    throw HTTPError(403, 'authUserId does not own this quiz');
+  }
   // Quiz not found
   if (!quizFind) {
     throw HTTPError(400, 'Invalid quizId');
-  }
-  // Quiz is not owned by user
-  if (quizFind.ownerId !== authUserId) {
-    throw HTTPError(400, 'authUserId does not own this quiz');
   }
   // Invalid question length
   if (questionBody.question.length < 5 || questionBody.question.length > 50) {
@@ -388,13 +390,13 @@ export function adminQuizQuestionUpdate(quizId: number, questionId: number, auth
   const data: Data = getData();
   // Finds quiz
   const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
+  // Quiz is not owned by user
+  if (quizFind.ownerId !== authUserId) {
+    throw HTTPError(403, 'Quiz does not belong to user');
+  }
   // Quiz not found
   if (!quizFind) {
     throw HTTPError(400, 'Invalid quizId');
-  }
-  // Quiz is not owned by user
-  if (quizFind.ownerId !== authUserId) {
-    throw HTTPError(400, 'Quiz does not belong to user');
   }
   // Finds question
   const questionFind = quizFind.questions.find(questionFind => questionFind.questionId === questionId);
@@ -465,13 +467,13 @@ export function adminQuizQuestionRemove(quizId: number, questionId: number, auth
   const data: Data = getData();
   // Finds quiz
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  // Quiz is not owned by user
+  if (quiz.ownerId !== authUserId) {
+    throw HTTPError(403, 'authUserId does not own this quiz');
+  }
   // Quiz not found
   if (!quiz) {
     throw HTTPError(400, 'Invalid quizId');
-  }
-  // Quiz is not owned by user
-  if (quiz.ownerId !== authUserId) {
-    throw HTTPError(400, 'authUserId does not own this quiz');
   }
   // Checks if there is a question in that quiz
   if (!quiz.questions.find(question => question.questionId === questionId)) {
@@ -500,13 +502,13 @@ export function adminQuizQuestionMove(quizId: number, questionId: number, authUs
   const data: Data = getData();
   // Finds quiz
   const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
+  // Quiz not owned by user
+  if (quizFind.ownerId !== authUserId) {
+    throw HTTPError(403, 'Quiz does not belong to user');
+  }
   // Quiz not found
   if (!quizFind) {
     throw HTTPError(400, 'Invalid quizId');
-  }
-  // Quiz not owned by user
-  if (quizFind.ownerId !== authUserId) {
-    throw HTTPError(400, 'Quiz does not belong to user');
   }
   // Finds question
   const questionFind = quizFind.questions.find(questionFind => questionFind.questionId === questionId);
@@ -548,6 +550,10 @@ export function adminQuizQuestionDuplicate(quizId: number, questionId: number, a
   const quiz: Quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   const question: Question = quiz.questions.find(question => question.questionId === questionId);
   const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId);
+  // Error: Valid authUserId, but not quiz owner.
+  if (quiz.ownerId !== authUserId) {
+    throw HTTPError(403, 'Quiz ID does not refer to a quiz that this user own');
+  }
   // Question not found
   if (!question) {
     throw HTTPError(400, 'Question Id does not refer to a valid question within this quiz');
@@ -557,11 +563,6 @@ export function adminQuizQuestionDuplicate(quizId: number, questionId: number, a
   if (userIndex === -1) {
     throw HTTPError(400, 'AuthUserId is not a valid user');
   }
-  // Error: Valid authUserId, but not quiz owner.
-  if (quiz.ownerId !== authUserId) {
-    throw HTTPError(400, 'Quiz ID does not refer to a quiz that this user own');
-  }
-
   // Generates a newQuestionId (a random 6 digit number)
   // Keeps doing it until a new ID is generated
   let newQuestionId: number;
@@ -596,5 +597,22 @@ export function adminQuizQuestionDuplicate(quizId: number, questionId: number, a
  * @returns
  */
 export function adminQuizThumbnailUpdate(authUserId: number, quizId: number, imgUrl: string): ErrorObject | object {
+  const data = getData();
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (quiz.ownerId !== authUserId) {
+    throw HTTPError(403, 'User does not own quiz');
+  }
+
+  if (!(imgUrl.endsWith('.jpeg')) && !(imgUrl.endsWith('.jpg')) && !(imgUrl.endsWith('.png'))) {
+    throw HTTPError(400, 'Invalid url');
+  }
+
+  if (!(imgUrl.startsWith('http://')) && !(imgUrl.startsWith('https://'))) {
+    throw HTTPError(400, 'Invalid url');
+  }
+
+  quiz.thumbnailUrl = imgUrl;
+  setData(data);
+
   return {};
 }

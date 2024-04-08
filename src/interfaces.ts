@@ -25,6 +25,7 @@ export interface Quiz {
   description: string,
   questions: Question[],
   duration: number,
+  thumbnailUrl: string,
 }
 
 // Token interface
@@ -110,10 +111,44 @@ export interface TrashQuizListReturn {
   trash: QuizListNameId[]
 }
 
+export interface Player {
+  playerId: number,
+  name: string,
+  score: number,
+}
+
+export interface Message {
+  messageBody: string,
+  playerId: number,
+  playerName: string,
+  timeSent: number,
+}
+
+export interface QuestionResult {
+  questionId: number,
+  playersCorrectList: Player[],
+  averageAnswerTime: number,
+  percentCorrect: number,
+}
+
+export interface QuizSession {
+  sessionId: number,
+  quizId: number,
+  atQuestion: number,
+  autoStartNum: number,
+  state: string,
+  players: Player[],
+  messages: Message[],
+  quiz: Quiz,
+  questionResults: QuestionResult[],
+  questionStartTime: number,
+}
+
 // DataStore interface
 export interface Data {
   users: User[],
   quizzes: Quiz[],
   tokens: Token[],
-  trash: Quiz[]
+  trash: Quiz[],
+  quizSessions: QuizSession[],
 }
