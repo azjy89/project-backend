@@ -112,6 +112,11 @@ export const adminQuizRemove = (authUserId: number, quizId: number): object | Er
   if (!quizFind) {
     throw HTTPError(400, 'Invalid quizId');
   }
+
+  if (data.quizSessions.find(session => session.quizId === quizId)) {
+    throw HTTPError(400, 'Quiz has active sessions');
+  }
+
   // Find index of the quiz
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
   // Removes quiz and stores that element in removedQuiz
@@ -282,6 +287,11 @@ export const adminQuizTransfer = (authUserId: number, quizId: number, userEmail:
   if (currentUserIndex === -1) {
     throw HTTPError(400, 'AuthUserId is not a valid user');
   }
+
+  if (data.quizSessions.find(session => session.quizId === quizId)) {
+    throw HTTPError(400, 'Quiz has active sessions');
+  }
+
   // Successful Transfer, i.e. change ownerId of current quiz to the targetUser's userId.
   quiz.ownerId = targetUser.userId;
   quiz.timeLastEdited = Date.now();
@@ -496,6 +506,11 @@ export function adminQuizQuestionRemove(quizId: number, questionId: number, auth
   if (!quiz.questions.find(question => question.questionId === questionId)) {
     throw HTTPError(400, 'Question Not Found');
   }
+
+  if (data.quizSessions.find(session => session.quizId === quizId)) {
+    throw HTTPError(400, 'Quiz has active sessions');
+  }
+
   // Removes the question from the quiz
   quiz.questions.filter(question => question.questionId !== questionId);
 
@@ -628,6 +643,7 @@ export function adminQuizThumbnailUpdate(authUserId: number, quizId: number, img
     throw HTTPError(400, 'Invalid url');
   }
 
+  quiz.timeLastEdited = Date.now();
   quiz.thumbnailUrl = imgUrl;
   setData(data);
 
