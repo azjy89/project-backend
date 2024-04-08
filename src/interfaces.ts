@@ -89,7 +89,8 @@ export interface QuestionBody {
   question: string,
   duration: number,
   points: number,
-  answers: AnswerInput[]
+  answers: AnswerInput[],
+  thumbnailUrl: string,
 }
 
 // AnswerInput type

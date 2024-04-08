@@ -351,6 +351,14 @@ export function adminQuizQuestionCreate(quizId: number, authUserId: number, ques
     throw HTTPError(400, 'At least one answer must be correct');
   }
 
+  if (!(questionBody.thumbnailUrl.endsWith('.jpeg')) && !(questionBody.thumbnailUrl.endsWith('.jpg')) && !(questionBody.thumbnailUrl.endsWith('.png'))) {
+    throw HTTPError(400, 'Invalid url');
+  }
+
+  if (!(questionBody.thumbnailUrl.startsWith('http://')) && !(questionBody.thumbnailUrl.startsWith('https://'))) {
+    throw HTTPError(400, 'Invalid url');
+  }
+
   // Generating newQuestionId (which is just a random 6 digit number)
   // Searches questions to see if questionId has been used yet
   let newQuestionId: number;
@@ -443,6 +451,15 @@ export function adminQuizQuestionUpdate(quizId: number, questionId: number, auth
   if (questionBody.duration + quizFind.duration - questionFind.questionBody.duration > 180) {
     throw HTTPError(400, 'Quiz duration exceeds 3 minutes');
   }
+
+  if (!(questionBody.thumbnailUrl.endsWith('.jpeg')) && !(questionBody.thumbnailUrl.endsWith('.jpg')) && !(questionBody.thumbnailUrl.endsWith('.png'))) {
+    throw HTTPError(400, 'Invalid url');
+  }
+
+  if (!(questionBody.thumbnailUrl.startsWith('http://')) && !(questionBody.thumbnailUrl.startsWith('https://'))) {
+    throw HTTPError(400, 'Invalid url');
+  }
+
   // Updates details
   questionFind.questionBody = questionBody;
   quizFind.timeLastEdited = Date.now();

@@ -13,6 +13,7 @@ export const clear = (): object => {
     quizzes: [],
     tokens: [],
     trash: [],
+    quizSessions: [],
   });
   return {};
 };
