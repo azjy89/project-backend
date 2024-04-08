@@ -1,1 +1,1 @@
-{"users":[{"userId":1,"nameFirst":"Bobby","nameLast":"Dickens","email":"quiz@unsw.edu.au","password":"abcd1234","numSuccessfulLogins":1,"numFailedPasswordsSinceLastLogin":0,"oldPasswords":[]}],"quizzes":[],"tokens":[{"token":"3e87ed4f-7c21-4775-90b5-e47a7a08f78c","userId":1}],"trash":[]}
+{"users":[],"quizzes":[],"tokens":[],"trash":[]}

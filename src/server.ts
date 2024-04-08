@@ -12,7 +12,6 @@ import {
   createToken,
   removeToken,
   idFromToken,
-  validateToken,
   adminAuthRegister,
   adminAuthLogin,
   adminUserDetails,
@@ -97,11 +96,7 @@ app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
   // Request parameters from body
   const { email, password, nameFirst, nameLast } = req.body;
   // Call adminAuthRegister with parameters
-  const response = adminAuthRegister(email, password, nameFirst, nameLast);
-  if ('error' in response) {
-    // Invalid parameters
-    return res.status(400).json(response);
-  }
+  const response = adminAuthRegister(email, password, nameFirst, nameLast) as AuthUserId;
   // Generate a token for authUserId
   const token = createToken(response.authUserId);
   return res.status(200).json({ token });
@@ -119,10 +114,7 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
   // Request parameters from body
   const { email, password } = req.body;
   // Call adminAuthLogin with parameters
-  const authUserId = adminAuthLogin(email, password);
-  if ('error' in authUserId) {
-    return res.status(400).json(authUserId);
-  }
+  const authUserId = adminAuthLogin(email, password) as AuthUserId;
   // Generate a token for the user
   const token = createToken(authUserId.authUserId);
   // Return the token
@@ -142,8 +134,6 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
 app.get('/v2/admin/quiz/trash', (req: Request, res: Response) => {
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieves userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -161,8 +151,7 @@ app.get('/v2/admin/quiz/trash', (req: Request, res: Response) => {
 app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
+  idFromToken(token);
   // Token deleted (logged out)
   removeToken(token);
   return res.status(200).json({});
@@ -177,8 +166,6 @@ app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
 app.get('/v2/admin/user/details', (req: Request, res: Response) => {
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieves userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -198,8 +185,6 @@ app.put('/v2/admin/user/details', (req: Request, res: Response) => {
   const { email, nameFirst, nameLast } = req.body;
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieve userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -219,8 +204,6 @@ app.put('/v2/admin/user/password', (req: Request, res: Response) => {
   const { oldPassword, newPassword } = req.body;
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieve userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -237,8 +220,6 @@ app.put('/v2/admin/user/password', (req: Request, res: Response) => {
 app.post('/v2/admin/quiz', (req: Request, res: Response) => {
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieve userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -257,8 +238,6 @@ app.post('/v2/admin/quiz', (req: Request, res: Response) => {
 app.get('/v2/admin/quiz/list', (req: Request, res: Response) => {
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieve userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -278,8 +257,6 @@ app.delete('/v2/admin/quiz/:quizid', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   // Requests token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieves user for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -298,8 +275,6 @@ app.get('/v2/admin/quiz/:quizid', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   // Requests token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieves user for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -320,8 +295,6 @@ app.put('/v2/admin/quiz/:quizid/description', (req: Request, res: Response) => {
   const { description } = req.body;
   // Requests token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
   // Calls and returns an empty object from adminQuizDescriptionUpdate
@@ -341,8 +314,6 @@ app.put('/v2/admin/quiz/:quizid/name', (req: Request, res: Response) => {
   const { name } = req.body;
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieves userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -361,8 +332,6 @@ app.post('/v2/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieves userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -383,8 +352,6 @@ app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response) => {
   const quizIds = JSON.parse(quizIdString);
   // Requests token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieve userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -405,8 +372,6 @@ app.post('/v2/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
   const { userEmail } = req.body;
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieves userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -427,8 +392,6 @@ app.post('/v2/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const { questionBody } = req.body;
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -451,8 +414,6 @@ app.put('/v2/admin/quiz/:quizid/question/:questionid', (req: Request, res: Respo
   const { questionBody } = req.body;
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -473,8 +434,6 @@ app.delete('/v2/admin/quiz/:quizid/question/:questionid', (req: Request, res: Re
   const questionId = parseInt(req.params.questionid);
   // Request token as header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -497,8 +456,6 @@ app.put('/v2/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   const { newPosition } = req.body;
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -520,8 +477,6 @@ app.post('/v2/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
   const questionId = parseInt(req.params.questionid);
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -543,8 +498,6 @@ app.put('/v1/admin/quiz/:quizid/thumbnail', (req: Request, res: Response) => {
   const thumbnail = req.body.imgUrl as string;
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
