@@ -32,7 +32,11 @@ import {
   adminQuizQuestionMove,
   adminQuizTransfer,
   adminQuizQuestionDuplicate,
-  adminQuizThumbnailUpdate
+  adminQuizThumbnailUpdate,
+  adminQuizSessionCreate,
+  sessionsList,
+  sessionStatus,
+  sessionStateUpdate,
 } from './quiz';
 
 import {
@@ -503,6 +507,85 @@ app.put('/v1/admin/quiz/:quizid/thumbnail', (req: Request, res: Response) => {
   const authUserId = userId as AuthUserId;
   // Call and return adminQuizThumbnailUpdate
   const response = adminQuizThumbnailUpdate(authUserId.authUserId, quizId, thumbnail);
+  return res.status(200).json(response);
+});
+
+/**
+ * Request for /v1/admin/quiz/:quizid/session/start
+ *
+ * Start a session
+ */
+app.post('/v1/admin/quiz/:quizid/session/start', (req: Request, res: Response) => {
+  // Parse quizId as int
+  const quizId = parseInt(req.params.quizid);
+  // Get autoStartNum from body
+  const startNumString = req.body.autoStartNum as string;
+  const autoStartNum = parseInt(startNumString);
+  // Get token as a header
+  const token = req.headers.token as string;
+  // Retrieve userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+
+  const response = adminQuizSessionCreate(authUserId.authUserId, quizId, autoStartNum);
+  return res.status(200).json(response);
+});
+
+/**
+ * Request for /v1/admin/quiz/:quizid/sessions
+ *
+ * List sessions
+ */
+app.get('/v1/admin/quiz/:quizid/sessions', (req: Request, res: Response) => {
+  // Parse quizId as int
+  const quizId = parseInt(req.params.quizid);
+  // Get token as a header
+  const token = req.headers.token as string;
+  // Retrieve userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+
+  const response = sessionsList(authUserId.authUserId, quizId);
+  return res.status(200).json(response);
+});
+
+/**
+ * Request for /v1/admin/quiz/:quizId/session/:sessionid
+ *
+ * Change state of a session
+ */
+app.put('/v1/admin/quiz/:quizId/session/:sessionid', (req: Request, res: Response) => {
+  // Parse quizId as int
+  const quizId = parseInt(req.params.quizid);
+  const sessionId = parseInt(req.params.sessionid);
+
+  const action = parseInt(req.body.action);
+  // Get token as a header
+  const token = req.headers.token as string;
+  // Retrieve userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+
+  const response = sessionStateUpdate(authUserId.authUserId, quizId, sessionId, action);
+  return res.status(200).json(response);
+});
+
+/**
+ * Request for /v1/admin/quiz/:quizid/session/:sessionid
+ *
+ * Get status of a session and its info
+ */
+app.get('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Response) => {
+  // Parse quizId as int
+  const quizId = parseInt(req.params.quizid);
+  const sessionId = parseInt(req.params.sessionid);
+  // Get token as a header
+  const token = req.headers.token as string;
+  // Retrieve userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+
+  const response = sessionStatus(authUserId.authUserId, quizId, sessionId);
   return res.status(200).json(response);
 });
 

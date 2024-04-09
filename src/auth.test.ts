@@ -12,6 +12,10 @@ beforeEach(() => {
   requestClear();
 });
 
+afterAll(() => {
+  requestClear();
+});
+
 describe('requestAuthRegister', () => {
   test('successful registration', () => {
     const responseToken = requestAuthRegister('users@unsw.edu.au', '1234abcd'

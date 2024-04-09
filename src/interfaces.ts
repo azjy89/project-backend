@@ -69,28 +69,13 @@ export interface AdminQuizListReturn {
   quizzes: QuizListNameId[]
 }
 
-// adminQuizInfo return type
-export interface AdminQuizInfoReturn {
-  quizId: number,
-  name: string,
-  timeCreated: number,
-  timeLastEdited: number,
-  description: string
-}
-
-// Question type
-export interface Question {
-  questionBody: QuestionBody,
-  questionId: number
-}
-
 // questionBody input type
 export interface QuestionBody {
   question: string,
   duration: number,
+  thumbnailUrl: string,
   points: number,
   answers: AnswerInput[],
-  thumbnailUrl: string,
 }
 
 // AnswerInput type
@@ -109,13 +94,16 @@ export interface DupedQuestionId {
 }
 
 export interface TrashQuizListReturn {
-  trash: QuizListNameId[]
+  quizzes: QuizListNameId[]
 }
 
 export interface Player {
   playerId: number,
   name: string,
   score: number,
+  state: States,
+  numQuestions: number,
+  atQuestion: number,
 }
 
 export interface Message {
@@ -137,12 +125,11 @@ export interface QuizSession {
   quizId: number,
   atQuestion: number,
   autoStartNum: number,
-  state: string,
+  state: States,
   players: Player[],
   messages: Message[],
   quiz: Quiz,
   questionResults: QuestionResult[],
-  questionStartTime: number,
 }
 
 // DataStore interface
@@ -152,4 +139,77 @@ export interface Data {
   tokens: Token[],
   trash: Quiz[],
   quizSessions: QuizSession[],
+}
+
+export enum States {
+  LOBBY,
+  QUESTION_COUNTDOWN,
+  QUESTION_OPEN,
+  QUESTION_CLOSE,
+  ANSWER_SHOW,
+  FINAL_RESULTS,
+  END,
+}
+
+export enum Actions {
+  NEXT_QUESTION,
+  SKIP_COUNTDOWN,
+  GO_TO_ANSWER,
+  GO_TO_FINAL_RESULTS,
+  END,
+}
+
+export interface SessionId {
+  sessionId: number,
+}
+
+export interface SessionList {
+  activeSessions: number[],
+  inactiveSessions: number[],
+}
+
+export interface SessionStatus {
+  state: States,
+  atQuestion: number,
+  players: Player[],
+  metadata: AdminQuizInfoReturn,
+}
+
+export interface Answer {
+  answerId: number,
+  answer: string,
+  colour: string,
+  correct: boolean
+}
+
+export interface Question {
+  questionId: number,
+  question: string,
+  duration: number,
+  thumbnailUrl: string,
+  points: number,
+  answers: Answer[],
+}
+
+export interface QuizInfo {
+  quizId: number,
+  name: string,
+  timeCreated: number,
+  timeLastEdited: number,
+  description: string,
+  question: Question[],
+  duration: number,
+  thumbnailUrl: string,
+}
+
+export interface AdminQuizInfoReturn {
+  quizId: number,
+  name: string,
+  timeCreated: number,
+  timeLastEdited: number,
+  description: string,
+  numQuestions: number,
+  questions: Question[]
+  duration: number,
+  thumbnailUrl: string,
 }

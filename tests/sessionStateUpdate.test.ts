@@ -1,20 +1,15 @@
-import request from 'sync-request-curl';
-import { port, url } from '../src/config.json';
-const SERVER_URL = `${url}:${port}`;
-
 import {
   requestAuthRegister,
   requestQuizCreate,
   requestClear,
   requestQuizQuestionCreate,
   requestAuthLogout,
+  requestQuizSessionCreate,
+  requestSessionStatus,
+  requestSessionStateUpdate,
 } from '../src/httpRequests';
 
 import { States, Actions } from '../src/interfaces';
-
-import { requestQuizSessionCreate } from './quizSessionCreate.test';
-
-import { requestSessionStatus } from './sessionStatus.test';
 
 import { sleepSync } from '../src/helpers';
 
@@ -26,24 +21,7 @@ afterAll(() => {
   requestClear();
 });
 
-export const requestSessionStateUpdate = (token: string, quizId: number, sessionId: number, action: Actions) => {
-  const res = request(
-    'PUT',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/session/${sessionId}`,
-    {
-      body: JSON.stringify({
-        action: action,
-      }),
-      headers: {
-        'Content-type': 'application/json',
-        token: `${token}`,
-      },
-    }
-  );
-  return JSON.parse(res.body.toString());
-};
-
-it('successfully udpates a session from lobby to countdown', () => {
+it('successfully updates a session from lobby to countdown', () => {
   const registerRes = requestAuthRegister(
     'users@unsw.edu.au',
     '1234abcd',

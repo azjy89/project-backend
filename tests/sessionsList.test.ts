@@ -1,7 +1,3 @@
-import request from 'sync-request-curl';
-import { port, url } from '../src/config.json';
-const SERVER_URL = `${url}:${port}`;
-
 import {
   requestAuthRegister,
   requestQuizCreate,
@@ -10,25 +6,9 @@ import {
   requestAuthLogout,
 } from '../src/httpRequests';
 
-import { requestQuizSessionCreate } from './quizSessionCreate.test';
-
-import { requestSessionStateUpdate } from './sessionStateUpdate.test';
+import { requestQuizSessionCreate, requestSessionStateUpdate, requestSessionsList } from '../src/httpRequests';
 
 import { Actions } from '../src/interfaces';
-
-export const requestSessionsList = (token: string, quizId: number) => {
-  const res = request(
-    'PUT',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/sessions`,
-    {
-      headers: {
-        'Content-type': 'application/json',
-        token: `${token}`,
-      },
-    }
-  );
-  return JSON.parse(res.body.toString());
-};
 
 beforeEach(() => {
   requestClear();

@@ -2,7 +2,7 @@ import request from 'sync-request-curl';
 import { port, url } from './config.json';
 const SERVER_URL = `${url}:${port}`;
 
-import { QuestionBody } from './interfaces';
+import { QuestionBody, Actions } from './interfaces';
 
 // Iteration 1 functions
 
@@ -350,6 +350,68 @@ export const requestQuizQuestionDuplicate = (token: string, quizId: number, ques
         'Content-type': 'application/json',
         token: `${token}`,
       }
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestSessionsList = (token: string, quizId: number) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/sessions`,
+    {
+      headers: {
+        'Content-type': 'application/json',
+        token: `${token}`,
+      },
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestQuizSessionCreate = (token: string, quizId: number, autoStartNum: number) => {
+  const res = request(
+    'POST',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/session/start`,
+    {
+      body: JSON.stringify({
+        autoStartNum: autoStartNum,
+      }),
+      headers: {
+        'Content-type': 'application/json',
+        token: `${token}`,
+      },
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestSessionStatus = (token: string, quizId: number, sessionId: number) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/session/${sessionId}`,
+    {
+      headers: {
+        'Content-type': 'application/json',
+        token: `${token}`,
+      },
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestSessionStateUpdate = (token: string, quizId: number, sessionId: number, action: Actions) => {
+  const res = request(
+    'PUT',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/session/${sessionId}`,
+    {
+      body: JSON.stringify({
+        action: action,
+      }),
+      headers: {
+        'Content-type': 'application/json',
+        token: `${token}`,
+      },
     }
   );
   return JSON.parse(res.body.toString());

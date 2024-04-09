@@ -1,7 +1,3 @@
-import request from 'sync-request-curl';
-import { port, url } from '../src/config.json';
-const SERVER_URL = `${url}:${port}`;
-
 import {
   requestAuthRegister,
   requestQuizCreate,
@@ -9,11 +5,11 @@ import {
   requestQuizQuestionCreate,
   requestAuthLogout,
   requestQuizInfo,
+  requestQuizSessionCreate,
+  requestSessionStatus,
 } from '../src/httpRequests';
 
 import { States } from '../src/interfaces';
-
-import { requestQuizSessionCreate } from './quizSessionCreate.test';
 
 beforeEach(() => {
   requestClear();
@@ -22,20 +18,6 @@ beforeEach(() => {
 afterAll(() => {
   requestClear();
 });
-
-export const requestSessionStatus = (token: string, quizId: number, sessionId: number) => {
-  const res = request(
-    'GET',
-    SERVER_URL + `/v1/admin/quiz/${quizId}/session/${sessionId}`,
-    {
-      headers: {
-        'Content-type': 'application/json',
-        token: `${token}`,
-      },
-    }
-  );
-  return JSON.parse(res.body.toString());
-};
 
 it('successfuly shows session info', () => {
   const registerRes = requestAuthRegister(

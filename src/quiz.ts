@@ -8,7 +8,14 @@ import {
   QuestionBody,
   QuestionId,
   Question,
-  DupedQuestionId
+  DupedQuestionId,
+  SessionId,
+  Actions,
+  States,
+  QuizSession,
+  SessionList,
+  SessionStatus,
+  AdminQuizInfoReturn,
 } from './interfaces';
 
 import HTTPError from 'http-errors';
@@ -136,7 +143,7 @@ export const adminQuizRemove = (authUserId: number, quizId: number): object | Er
  * @returns {object}
  */
 
-export const adminQuizInfo = (authUserId: number, quizId: number): Quiz | ErrorObject => {
+export const adminQuizInfo = (authUserId: number, quizId: number): AdminQuizInfoReturn | ErrorObject => {
   const data: Data = getData();
   // Finds the quiz index
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
@@ -145,23 +152,24 @@ export const adminQuizInfo = (authUserId: number, quizId: number): Quiz | ErrorO
   if (authUserId !== quiz.ownerId) {
     throw HTTPError(403, 'Quiz ID does not refer to a quiz that this user owns.');
   }
-
   // Checks dataStore.quizzes to find if a quizId matches; else is invalid quiz.
   if (quizIndex === -1) {
     throw HTTPError(400, 'Quiz id does not refer to valid quiz.');
   }
 
-  return {
+  const info = {
     quizId: quizId,
     name: quiz.name,
-    ownerId: quiz.ownerId,
     timeCreated: quiz.timeCreated,
     timeLastEdited: quiz.timeLastEdited,
     description: quiz.description,
+    numQuestions: quiz.questions.length,
     questions: quiz.questions,
     duration: quiz.duration,
     thumbnailUrl: quiz.thumbnailUrl,
   };
+
+  return info;
 };
 
 /**
@@ -378,9 +386,24 @@ export function adminQuizQuestionCreate(quizId: number, authUserId: number, ques
 
   // Prepares object for saving data
   const newQuestion: Question = {
-    questionBody: questionBody,
-    questionId: newQuestionId
+    questionId: newQuestionId,
+    question: questionBody.question,
+    duration: questionBody.duration,
+    thumbnailUrl: questionBody.thumbnailUrl,
+    points: questionBody.points,
+    answers: [],
   };
+
+  const colours = ['red', 'blue', 'green', 'yellow'];
+  for (const answer of questionBody.answers) {
+    const randomIndex = Math.floor(Math.random() * colours.length);
+    newQuestion.answers.push({
+      answerId: newQuestion.answers.length,
+      answer: answer.answer,
+      colour: colours[randomIndex],
+      correct: answer.correct,
+    });
+  }
 
   // Saving data
   quizFind.questions.push(newQuestion);
@@ -458,7 +481,7 @@ export function adminQuizQuestionUpdate(quizId: number, questionId: number, auth
     throw HTTPError(400, 'At least one answer must be correct');
   }
   // Duration too long
-  if (questionBody.duration + quizFind.duration - questionFind.questionBody.duration > 180) {
+  if (questionBody.duration + quizFind.duration - questionFind.duration > 180) {
     throw HTTPError(400, 'Quiz duration exceeds 3 minutes');
   }
 
@@ -471,9 +494,24 @@ export function adminQuizQuestionUpdate(quizId: number, questionId: number, auth
   }
 
   // Updates details
-  questionFind.questionBody = questionBody;
-  quizFind.timeLastEdited = Date.now();
-  quizFind.duration += (questionBody.duration - questionFind.questionBody.duration);
+  const quizIndex = data.quizzes.findIndex(quiz => quizFind.quizId === quizId);
+  const questionIndex = quizFind.questions.findIndex(question => questionFind.questionId === questionId);
+  data.quizzes[quizIndex].questions[questionIndex].question = questionBody.question;
+  data.quizzes[quizIndex].questions[questionIndex].points = questionBody.points;
+  const colours = ['red', 'blue', 'green', 'yellow'];
+
+  for (const answer of questionBody.answers) {
+    const randomIndex = Math.floor(Math.random() * colours.length);
+    data.quizzes[quizIndex].questions[questionIndex].answers.push({
+      answerId: data.quizzes[quizIndex].questions[questionIndex].answers.length,
+      answer: answer.answer,
+      colour: colours[randomIndex],
+      correct: answer.correct,
+    });
+  }
+
+  data.quizzes[quizIndex].timeLastEdited = Date.now();
+  data.quizzes[quizIndex].duration += (questionBody.duration - data.quizzes[quizIndex].questions[questionIndex].duration);
 
   setData(data);
 
@@ -603,9 +641,24 @@ export function adminQuizQuestionDuplicate(quizId: number, questionId: number, a
   } while (data.quizzes.some(quiz => quiz.questions && quiz.questions.some(question => question.questionId === newQuestionId)));
 
   const newQuestion: Question = {
-    questionBody: question.questionBody,
-    questionId: newQuestionId
+    questionId: newQuestionId,
+    question: question.question,
+    duration: question.duration,
+    thumbnailUrl: question.thumbnailUrl,
+    points: question.points,
+    answers: [],
   };
+
+  const colours = ['red', 'blue', 'green', 'yellow'];
+  for (const answer of question.answers) {
+    const randomIndex = Math.floor(Math.random() * colours.length);
+    newQuestion.answers.push({
+      answerId: newQuestion.answers.length,
+      answer: answer.answer,
+      colour: colours[randomIndex],
+      correct: answer.correct,
+    });
+  }
 
   // splice to right after quiz location
   quiz.questions.splice(questionIndex + 1, 0, newQuestion);
@@ -646,6 +699,172 @@ export function adminQuizThumbnailUpdate(authUserId: number, quizId: number, img
   quiz.timeLastEdited = Date.now();
   quiz.thumbnailUrl = imgUrl;
   setData(data);
+
+  return {};
+}
+
+/**
+ * Start a new quiz session
+ *
+ * @param authUserId
+ * @param quizId
+ * @param autoStartNum
+ * @returns
+ */
+export function adminQuizSessionCreate(authUserId: number, quizId: number, autoStartNum: number): ErrorObject | SessionId {
+  const data = getData();
+  const quiz = data.quizzes.find(session => session.quizId === quizId);
+  if (quiz.ownerId !== authUserId) {
+    throw HTTPError(403, 'token is valid but user does not own quiz');
+  }
+
+  if (autoStartNum > 50) {
+    throw HTTPError(400, 'autoStartNum too high');
+  }
+
+  if (data.quizSessions.filter(session => session.state !== States.END && session.quizId === quizId).length >= 10) {
+    throw HTTPError(400, 'too many sessions');
+  }
+
+  if (quiz.questions.length === 0) {
+    throw HTTPError(400, 'quiz has no questions');
+  }
+
+  const newSessionId = Math.floor(Math.random() * (1000000 - 10000 + 1)) + 10000;
+  const newSession: QuizSession = {
+    sessionId: newSessionId,
+    quizId: quizId,
+    atQuestion: 0,
+    autoStartNum: autoStartNum,
+    state: States.LOBBY,
+    players: [],
+    messages: [],
+    quiz: quiz,
+    questionResults: [],
+  };
+
+  data.quizSessions.push(newSession);
+  return { sessionId: newSessionId };
+}
+
+/**
+ * list active and inactive sessions
+ *
+ * @param authUserId
+ * @param quizId
+ * @returns
+ */
+export function sessionsList(authUserId: number, quizId: number): SessionList {
+  const data = getData();
+  const quiz = data.quizzes.find(session => session.quizId === quizId);
+  if (quiz.ownerId !== authUserId) {
+    throw HTTPError(403, 'token is valid but user does not own quiz');
+  }
+
+  const activeSessions = data.quizSessions.filter(session => session.state !== States.END && session.quizId === quizId).map(session => session.sessionId);
+  const inactiveSessions = data.quizSessions.filter(session => session.state === States.END && session.quizId === quizId).map(session => session.sessionId);
+  return {
+    activeSessions: activeSessions,
+    inactiveSessions: inactiveSessions,
+  };
+}
+
+/**
+ * Returns all status info about a specified session
+ *
+ * @param authUserId
+ * @param quizId
+ * @param sessionId
+ * @returns
+ */
+export function sessionStatus(authUserId: number, quizId: number, sessionId: number): SessionStatus {
+  const data = getData();
+  const quiz = data.quizzes.find(session => session.quizId === quizId);
+  if (quiz.ownerId !== authUserId) {
+    throw HTTPError(403, 'token is valid but user does not own quiz');
+  }
+
+  if (!data.quizSessions.find(session => session.quizId === quizId)) {
+    throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
+  }
+
+  const metadata = adminQuizInfo(authUserId, quizId) as AdminQuizInfoReturn;
+  const session = data.quizSessions.find(session => session.sessionId === sessionId);
+  return {
+    state: session.state,
+    atQuestion: session.atQuestion,
+    players: session.players,
+    metadata: metadata,
+  };
+}
+
+export function sessionStateUpdate(authUserId: number, quizId: number, sessionId: number, action: Actions): object | ErrorObject {
+  const data = getData();
+  const quiz = data.quizzes.find(session => session.quizId === quizId);
+  if (quiz.ownerId !== authUserId) {
+    throw HTTPError(403, 'token is valid but user does not own quiz');
+  }
+
+  if (!data.quizSessions.find(session => session.quizId === quizId)) {
+    throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
+  }
+
+  if (action !== Actions.END &&
+      action !== Actions.GO_TO_ANSWER &&
+      action !== Actions.GO_TO_FINAL_RESULTS &&
+      action !== Actions.NEXT_QUESTION &&
+      action !== Actions.SKIP_COUNTDOWN) {
+    throw HTTPError(400, 'invalid action type');
+  }
+
+  const session = data.quizSessions.find(session => session.sessionId === sessionId);
+
+  if (session.state !== States.QUESTION_COUNTDOWN && action === Actions.SKIP_COUNTDOWN) {
+    throw HTTPError(400, 'Action enum cannot be applied in the current state');
+  }
+
+  if ((session.state === States.ANSWER_SHOW || session.state === States.END) && action === Actions.END) {
+    throw HTTPError(400, 'Action enum cannot be applied in the current state');
+  }
+
+  if ((session.state === States.ANSWER_SHOW ||
+      session.state === States.FINAL_RESULTS ||
+      session.state === States.LOBBY ||
+      session.state === States.END ||
+      session.state === States.QUESTION_COUNTDOWN) && action === Actions.GO_TO_ANSWER) {
+    throw HTTPError(400, 'Action enum cannot be applied in the current state');
+  }
+
+  if ((session.state === States.QUESTION_OPEN ||
+      session.state === States.END ||
+      session.state === States.LOBBY ||
+      session.state === States.QUESTION_COUNTDOWN) && action === Actions.GO_TO_FINAL_RESULTS) {
+    throw HTTPError(400, 'Action enum cannot be applied in the current state');
+  }
+
+  if ((session.state === States.QUESTION_OPEN ||
+    session.state === States.END ||
+    session.state === States.QUESTION_COUNTDOWN ||
+    session.state === States.FINAL_RESULTS) && action === Actions.NEXT_QUESTION) {
+    throw HTTPError(400, 'Action enum cannot be applied in the current state');
+  }
+
+  if ((session.state !== States.ANSWER_SHOW && session.state !== States.END) && action === Actions.END) {
+    session.state = States.END;
+  }
+
+  if (session.state === States.QUESTION_COUNTDOWN && action === Actions.SKIP_COUNTDOWN) {
+    session.state = States.QUESTION_OPEN;
+  }
+
+  if ((session.state !== States.ANSWER_SHOW &&
+    session.state !== States.FINAL_RESULTS &&
+    session.state !== States.LOBBY &&
+    session.state !== States.END &&
+    session.state !== States.QUESTION_COUNTDOWN) && action === Actions.GO_TO_ANSWER) {
+  session.state = 
+}
+
 
   return {};
 }
