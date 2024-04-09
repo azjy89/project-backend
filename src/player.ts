@@ -1,0 +1,65 @@
+import HTTPError from 'http-errors';
+
+// Global Variables
+const maxMessageLength = 100;
+const minMessageLength = 1;
+
+/**
+ * Return all messages that are in the same session as the player, in the order they were sent
+ *
+ * @param {path} playerId
+ *
+ * @returns {object}
+ */
+
+export const playerChatSession = () => {
+
+// find playerId
+const playerId = data.todo(todo);
+
+// Check playerId exists
+if (playerId === -1) {
+    throw HTTPError(400, 'Player ID does not exist');
+  }
+
+    return {
+        messageBody,
+        playerId,
+        playerName,
+        timeSent
+    }
+
+}
+
+/**
+ * Send a new chat message to everyone in the session
+ *
+ * @param {path} playerId
+ * @param {body} message
+ *
+ * @returns {}
+ */
+
+export const sendChat = (playerId: number, message: string) => {
+
+// find playerId
+const playerId = data.todo(todo);
+
+// Check playerId exists
+if (playerId === -1) {
+    throw HTTPError(400, 'Player ID does not exist');
+  }
+
+
+// Check Max Length
+if (message.length > maxMessageLength) {
+    throw HTTPError(400, 'Message must be 100 characters or less');
+  };
+
+// Check Min Length
+  if (message.length < minMessageLength) {
+    throw HTTPError(400, 'Message must be 1 character or more');
+  };
+
+  return {};
+};
