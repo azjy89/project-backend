@@ -10,7 +10,7 @@ import {
   requestAuthLogout,
 } from '../src/httpRequests';
 
-const requestQuizThumbnail = (token: string, quizId: number, url: string) => {
+export const requestQuizThumbnail = (token: string, quizId: number, url: string) => {
   const res = request(
     'PUT',
     SERVER_URL + `/v1/admin/quiz/${quizId}/thumbnail`,
