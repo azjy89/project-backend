@@ -49,7 +49,7 @@ export const adminQuizList = (authUserId: number): AdminQuizListReturn => {
  * @returns {int}
  */
 
-export const adminQuizCreate = (authUserId: number, name: string, description: string): QuizId | ErrorObject => {
+export const adminQuizCreate = (authUserId: number, name: string, description: string, thumbnailUrl: string): QuizId | ErrorObject => {
   const data: Data = getData();
   // Check if name contains valid characters
   if (!/^[a-zA-Z0-9 ]+$/.test(name)) {
@@ -82,7 +82,7 @@ export const adminQuizCreate = (authUserId: number, name: string, description: s
     description: description,
     questions: [],
     duration: 0,
-    thumbnailUrl: '',
+    thumbnailUrl: thumbnailUrl,
   };
   // Saves data
   data.quizzes.push(newQuiz);

@@ -42,7 +42,7 @@ it('returns error on wrong file type', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
   const thumbnailRes = requestQuizThumbnail(
     registerRes.token,
     quizCreateRes.quizId,
@@ -58,7 +58,7 @@ it('returns error if invalid http', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
   const thumbnailRes = requestQuizThumbnail(
     registerRes.token,
     quizCreateRes.quizId,
@@ -75,7 +75,7 @@ it('returns error if token is invalid', () => {
     'LastName'
   );
   requestAuthLogout(registerRes.token);
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
   const thumbnailRes = requestQuizThumbnail(
     registerRes.token,
     quizCreateRes.quizId,
@@ -97,7 +97,7 @@ it('returns error if token is valid but user does not own quiz', () => {
     'FirstNames',
     'LastNames'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
   const thumbnailRes = requestQuizThumbnail(
     registerRes2.token,
     quizCreateRes.quizId,
@@ -113,7 +113,7 @@ it('successfully updates the thumbnail', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
   const thumbnailRes = requestQuizThumbnail(
     registerRes.token,
     quizCreateRes.quizId,

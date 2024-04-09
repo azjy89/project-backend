@@ -8,6 +8,10 @@ import {
 
 const ERROR = { error: expect.any(String) };
 
+afterAll(() => {
+  requestClear();
+});
+
 describe('clear', () => {
   test('successful clear', () => {
     const result = requestClear();
@@ -18,7 +22,7 @@ describe('clear', () => {
     const email = 'quiz@unsw.edu.au';
     const password = 'abcd1234';
     expect(requestUserDetails(requestAuthRegister(email, password, 'Bobby', 'Dickens'))).toEqual(ERROR);
-    requestQuizCreate(requestAuthRegister(email, password, 'Bobby', 'Dickens'), 'Bobby', 'Ricky');
+    requestQuizCreate(requestAuthRegister(email, password, 'Bobby', 'Dickens'), 'Bobby', 'Ricky', 'http://something.jpeg');
     requestClear();
     expect(requestQuizList(requestAuthRegister(email, password, 'Bobby', 'Dickens'))).toStrictEqual(ERROR);
     expect(requestUserDetails(requestAuthRegister(email, password, 'Bobby', 'Dickens'))).toStrictEqual(ERROR);

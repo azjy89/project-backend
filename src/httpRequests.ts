@@ -104,7 +104,7 @@ export const requestQuizList = (token: string) => {
   return JSON.parse(res.body.toString());
 };
 
-export const requestQuizCreate = (token: string, name: string, description: string) => {
+export const requestQuizCreate = (token: string, name: string, description: string, thumbnailUrl: string) => {
   const res = request(
     'POST',
     SERVER_URL + '/v2/admin/quiz',
@@ -112,6 +112,7 @@ export const requestQuizCreate = (token: string, name: string, description: stri
       body: JSON.stringify({
         name: name,
         description: description,
+        thumbnailUrl: thumbnailUrl,
       }),
       headers: {
         'Content-type': 'application/json',
