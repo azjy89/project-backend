@@ -1,1 +1,31 @@
-{"users":[{"userId":1,"nameFirst":"Bobby","nameLast":"Dickens","email":"quiz@unsw.edu.au","password":"abcd1234","numSuccessfulLogins":1,"numFailedPasswordsSinceLastLogin":0,"oldPasswords":[]}],"quizzes":[],"tokens":[{"token":"278afb48-49cd-4ef5-8782-0d82c94f2f1d","userId":1}],"trash":[]}
+{
+    "users": [
+        {
+            "userId": 1,
+            "nameFirst": "Bobby",
+            "nameLast": "Dickens",
+            "email": "quiz@unsw.edu.au",
+            "password": "abcd1234",
+            "numSuccessfulLogins": 1,
+            "numFailedPasswordsSinceLastLogin": 0,
+            "oldPasswords": []
+        }
+    ],
+    "quizzes": [],
+    "tokens": [
+        {
+            "token": "278afb48-49cd-4ef5-8782-0d82c94f2f1d",
+            "userId": 1
+        }
+    ],
+    "trash": [],
+    "messages": [
+        {
+            "playerId": 1,
+            "Message body": "message",
+            "Timesent": "123456789",
+            "Name": "Bobby"
+        }
+    ]
+
+}

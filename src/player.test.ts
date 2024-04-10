@@ -10,16 +10,9 @@ beforeEach(() => {
 
 // have to download moment for unix?
 
-import moment from 'moment';
-
-// Function to format Unix timestamp to a readable date/time string
-function formatUnixTime(timestamp: number): string {
-  return moment.unix(timestamp).format("YYYY-MM-DD HH:mm:ss");
-
-  // or ?
 
   Date.now()
-}
+
 
 // playerChatSession
 // Goal: Display all chat messages in session

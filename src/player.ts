@@ -1,3 +1,4 @@
+import { getData, setData } from './dataStore';
 import HTTPError from 'http-errors';
 
 // Global Variables
@@ -13,6 +14,7 @@ const minMessageLength = 1;
  */
 
 export const playerChatSession = () => {
+    const data: Data = getData();
 
 // find playerId
 const playerId = data.todo(todo);
@@ -41,6 +43,7 @@ if (playerId === -1) {
  */
 
 export const sendChat = (playerId: number, message: string) => {
+    const data: Data = getData();
 
 // find playerId
 const playerId = data.todo(todo);
