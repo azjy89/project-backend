@@ -7,11 +7,13 @@ import { setData } from './dataStore';
  */
 
 export const clear = (): object => {
+  // Clears all arrays in data
   setData({
     users: [],
     quizzes: [],
     tokens: [],
     trash: [],
+    quizSessions: [],
   });
   return {};
 };
