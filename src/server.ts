@@ -554,7 +554,7 @@ app.get('/v1/admin/quiz/:quizid/sessions', (req: Request, res: Response) => {
  *
  * Change state of a session
  */
-app.put('/v1/admin/quiz/:quizId/session/:sessionid', (req: Request, res: Response) => {
+app.put('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Response) => {
   // Parse quizId as int
   const quizId = parseInt(req.params.quizid);
   const sessionId = parseInt(req.params.sessionid);
