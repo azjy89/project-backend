@@ -42,6 +42,11 @@ export interface AuthUserId {
 export interface QuizId {
   quizId: number
 }
+
+export interface PlayerId {
+  playerId: number
+}
+
 // UserDetails interface (return type)
 export interface UserDetails {
   user: {

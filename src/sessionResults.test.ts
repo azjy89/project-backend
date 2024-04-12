@@ -13,6 +13,14 @@ import {
   requestSessionResultsCSV
 } from './httpRequests';
 
+import {
+  Token,
+  ErrorObject,
+  QuizId,
+  SessionId,
+  PlayerId
+} from './interfaces';
+
 const ERROR = { error: expect.any(String) };
 const NUMBER = expect.any(Number);
 
