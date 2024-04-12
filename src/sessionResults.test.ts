@@ -4,7 +4,7 @@ import {
   requestAuthRegister,
   requestQuizCreate,
   requestQuizQuestionCreate,
-  requestSessionStart,
+  requestSessionCreate,
   requestPlayerJoin,
   requestAuthLogout,
   requestSessionResults,
@@ -18,7 +18,8 @@ import {
   ErrorObject,
   QuizId,
   SessionId,
-  PlayerId
+  PlayerId,
+  QuestionBody
 } from './interfaces';
 
 const ERROR = { error: expect.any(String) };
@@ -30,7 +31,7 @@ const email = 'users@unsw.edu.au';
 const password = '1234abcd';
 const quizName = 'Construction sites';
 const quizDescription = 'Test yourself against Bobbys knowledge of construction';
-const questionBody = {
+const questionBody: QuestionBody = {
   question: 'When are you sleeping?',
   duration: 5,
   points: 5,
@@ -109,7 +110,7 @@ describe('Error handling', () => {
     quizRes = requestQuizCreate(token.token, quizName, quizDescription);
     quizId = quizRes as QuizId;
     requestQuizQuestionCreate(token.token, quizId.quizId, questionBody);
-    sessionRes = requestSessionStart(token.token, quizId.quizId, 5);
+    sessionRes = requestSessionCreate(token.token, quizId.quizId, 5);
     sessionId = sessionRes as SessionId;
     requestPlayerJoin(sessionId.sessionId, player1);
   });
@@ -177,7 +178,7 @@ describe('Successful output for successful', () => {
     questionId1 = question1 as QuestionId;
     questionId2 = question2 as QuestionId;
     questionId3 = question3 as QuestionId;
-    sessionRes = requestSessionStart(token.token, quizId.quizId, 5);
+    sessionRes = requestSessionCreate(token.token, quizId.quizId, 5);
     sessionId = sessionRes as SessionId;
     playerRes = requestPlayerJoin(sessionId.sessionId, player1);
     playerId = playerRes as PlayerId;
