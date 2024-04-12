@@ -43,17 +43,8 @@ export const idFromToken = (token: string): ErrorObject | AuthUserId => {
     return { authUserId: dataToken.userId };
   } else {
     // if token not found
-    throw HTTPError(403, 'Token does not refer to a valid logged in session');
+    throw HTTPError(401, 'Token does not refer to a valid logged in session');
   }
-};
-
-// Checks the token has a valid structure and returns an error if not
-export const validateToken = (token: string): ErrorObject | object => {
-  const regex = /^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$/;
-  if (!regex.test(token)) {
-    throw HTTPError(401, 'Token is not valid');
-  }
-  return {};
 };
 
 /** Goes through data array and removes the token that needs to be deleted
@@ -100,10 +91,10 @@ export const adminAuthRegister = (email: string, password: string, nameFirst: st
     };
     setData(data);
     return successfulResult;
+  } else {
+    setData(data);
+    throw HTTPError(400, result.error);
   }
-
-  setData(data);
-  return result;
 };
 
 const adminAuthRegisterErrors = (email: string, password: string, nameFirst: string, nameLast: string, data: Data): ErrorObject => {
@@ -211,14 +202,6 @@ export const adminAuthLogin = (email: string, password: string): AuthUserId | Er
 
 export const adminUserDetails = (authUserId: number): UserDetails | ErrorObject => {
   const data: Data = getData();
-  // Finds user
-  const userIndex = data.users.findIndex(user => user.userId === authUserId);
-  // User not found
-  if (userIndex === -1) {
-    return {
-      error: 'AuthUserId is not a valid user'
-    };
-  }
   // Sets up return object
   const user = data.users.find(user => user.userId === authUserId);
   return {
@@ -248,10 +231,6 @@ export const adminUserDetailsUpdate = (authUserId: number, email: string, nameFi
   const data: Data = getData();
   // Finds user
   const userIndex = data.users.findIndex(user => user.userId === authUserId);
-  // User not found
-  if (userIndex === -1) {
-    throw HTTPError(400, 'AuthUserId is not a valid user');
-  }
   // Email is already occupied
   if (data.users.some(user => user.email === email && user.userId !== authUserId)) {
     throw HTTPError(400, 'Email is currently used by another user');
@@ -302,10 +281,6 @@ export const adminUserPasswordUpdate = (authUserId: number, oldPassword: string,
   const data: Data = getData();
   // Finds user
   const userIndex = data.users.findIndex(user => user.userId === authUserId);
-  // User not found
-  if (userIndex === -1) {
-    throw HTTPError(400, 'AuthUserId is not a valid user');
-  }
   // Old password is incorrect
   if (oldPassword !== data.users[userIndex].password) {
     throw HTTPError(400, 'Old password is not the correct old password');
