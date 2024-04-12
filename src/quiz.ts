@@ -964,3 +964,7 @@ export function sessionStateUpdate(authUserId: number, quizId: number, sessionId
 
   return {};
 }
+
+export function sessionResults(authUserId: number, quizId: number, sessionId: number): object | ErrorObject {
+  return {};
+}
