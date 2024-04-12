@@ -9,7 +9,8 @@ import {
   requestAuthLogout,
   requestSessionResults,
   requestSessionStateUpdate,
-  requestPlayerAnswerSubmit
+  requestPlayerAnswerSubmit,
+  requestSessionResultsCSV
 } from './httpRequests';
 
 const ERROR = { error: expect.any(String) };
@@ -106,6 +107,11 @@ describe('Error handling', () => {
   });
   test('Invalid token', () => {
     expect(requestSessionResults('1', quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
+    expect(requestSessionResultsCsv('1', quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
+  });
+  test('Invalid sessionId', () => {
+    expect(requestSessionResults(token.token, quizId.quizId, sessionId.sessionId + 1)).toStrictEqual(ERROR);
+    expect(requestSessionResultsCsv(token.token, quizId.quizId, sessionId.sessionId + 1)).toStrictEqual(ERROR);
   });
   test('Error conditions', () => {
     const newUser = requestAuthRegister('pewpew@gmail.com', 'abcd1234', 'ajlskdf', 'asldsdff');
@@ -113,19 +119,27 @@ describe('Error handling', () => {
     requestAuthLogout(newToken.token);
     // Invalid session token
     expect(requestSessionResults(newToken.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
+    expect(requestSessionResultsCsv(newToken.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
     // Invalid lobby state
     expect(requestSessionResults(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
+    expect(requestSessionResultsCsv(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
     // Transition state to final results
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'NEXT_QUESTION');
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'GO_TO_FINAL_RESULTS');
     // quizId does not refer to a valid quiz
     expect(requestSessionResults(token.token, 123, sessionId.sessionId)).toStrictEqual(ERROR);
+    expect(requestSessionResultsCsv(token.token, 123, sessionId.sessionId)).toStrictEqual(ERROR);
     // user doesnt own the quiz
     const randomUser = requestAuthRegister('mewmew@gmail.com', 'asdbf1235', 'Joanna', 'Zhong');
     const randomToken = randomUser as Token;
     const randomQuiz = requestQuizCreate(randomUser.token, 'New Quiz', 'What is my name?');
     const randomQuizId = randomQuiz as QuizId;
     expect(requestSessionResults(token.token, randomQuizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
+    expect(requestSessionResultsCsv(token.token, randomQuizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
+
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'END');
+    expect(requestSessionResults(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
+    expect(requestSessionResultsCsv(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
   });
 });
 
@@ -220,5 +234,6 @@ describe('Successful output for successful', () => {
         ],
       },
     )
+    expect(requestSessionResultsCsv(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual({ url: expect.any(String) });
   });
 });
