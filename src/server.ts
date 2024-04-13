@@ -228,9 +228,9 @@ app.post('/v2/admin/quiz', (req: Request, res: Response) => {
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
   // Request name and description as parameters
-  const { name, description, thumbnailUrl } = req.body;
+  const { name, description } = req.body;
   // Call and return quizId from adminQuizCreate
-  const response = adminQuizCreate(authUserId.authUserId, name, description, thumbnailUrl);
+  const response = adminQuizCreate(authUserId.authUserId, name, description);
   return res.status(200).json(response);
 });
 
