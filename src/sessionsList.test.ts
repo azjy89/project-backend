@@ -25,7 +25,7 @@ it('successfully lists active and inactive sessions', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
@@ -69,7 +69,7 @@ it('fails if token is invalid', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
@@ -106,7 +106,7 @@ it('fails if token is valid but user is not owner of quiz ', () => {
     'FirstNames',
     'LastNames'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
