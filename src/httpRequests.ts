@@ -429,3 +429,17 @@ export const requestSessionResults = (token: string, quizId: number, sessionId: 
   ); 
   return JSON.parse(res.body.toString());
 }
+
+export const requestPlayerJoin = (sessionId: number, name: string) => {
+  const res = request(
+    'POST',
+    SERVER_URL + `/v1/player/join`,
+    {
+      body: JSON.stringify({
+        sessionId: sessionId,
+        name: name,
+      })
+    }
+  )
+  return JSON.parse(res.body.toString());
+}
