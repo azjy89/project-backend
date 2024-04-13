@@ -429,3 +429,34 @@ export const requestSessionResults = (token: string, quizId: number, sessionId: 
   ); 
   return JSON.parse(res.body.toString());
 }
+
+export const requestSessionResultsCsv = (token: string, quizId: number, sessionId: number) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/session/${sessionId}/results/csv`,
+    {
+      headers: {
+        token: token,
+      }
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestPlayerQuestionResults = (playerId: number, questionPosition: number) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/player/${playerId}/question/${questionPosition}/results`,
+    {}
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestPlayerFinalResults = (playerId: number) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/player/${playerId}/results`,
+    {}
+  );
+  return JSON.parse(res.body.toString());
+};
