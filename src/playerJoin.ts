@@ -26,7 +26,7 @@ const createRandomName = (): string => {
 // Goal: Create a new player and add them to the player list (array).
 // Return: playerId
 // QUESTION: Do I still need type "ErrorObject" when I'm throwing the errors?
-export const playerJoin = (sessionId: number, name: string): PlayerId | ErrorObject => {
+export const playerJoin = (sessionId: number, name: string): PlayerId => {
     const data: Data = getData();
     if (name === '') {
         // create 5-letter,4-digit string

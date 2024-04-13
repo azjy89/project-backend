@@ -616,10 +616,12 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res:
 /**POST
  * Request for /v1/player/join
  * 
- * Allow a quest player
+ * Allow a guest player to join a session.
  */
 app.post('/v1/player/join', (req:Request, res: Response) => {
-  const {sessionId, name} = req.body;
+  const sessionId = parseInt(req.body.sessionId);
+  const name = req.body.name as string;
+
   const response = playerJoin(sessionId, name);
   return res.status(200).json(response);
 });
