@@ -1,4 +1,4 @@
-import { getData, setData } from './dataStore';
+import { getData, getTimerData, setData } from './dataStore';
 import {
   ErrorObject,
   AdminQuizListReturn,
@@ -112,8 +112,10 @@ export const adminQuizRemove = (authUserId: number, quizId: number): object | Er
   // Finds quiz with quizId
   const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
   // Quiz isn't owned by user
-  if (quizFind.ownerId !== authUserId) {
-    throw HTTPError(403, 'authUserId does not own this quiz');
+  if (quizFind) {
+    if (quizFind.ownerId !== authUserId) {
+      throw HTTPError(403, 'authUserId does not own this quiz');
+    }
   }
   // Quiz not found
   if (!quizFind) {
@@ -149,8 +151,10 @@ export const adminQuizInfo = (authUserId: number, quizId: number): AdminQuizInfo
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
   // Checks dataStore.quizzes for a quiz.ownerId that doesn't match authUserId.
   const quiz = data.quizzes[quizIndex];
-  if (authUserId !== quiz.ownerId) {
-    throw HTTPError(403, 'Quiz ID does not refer to a quiz that this user owns.');
+  if (quizIndex !== -1) {
+    if (authUserId !== quiz.ownerId) {
+      throw HTTPError(403, 'Quiz ID does not refer to a quiz that this user owns.');
+    }
   }
   // Checks dataStore.quizzes to find if a quizId matches; else is invalid quiz.
   if (quizIndex === -1) {
@@ -187,10 +191,11 @@ export const adminQuizNameUpdate = (authUserId: number, quizId: number, name: st
   // Finds quiz index
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
   // Quiz is not owned by the user
-  if (authUserId !== data.quizzes[quizIndex].ownerId) {
-    throw HTTPError(403, 'Quiz ID does not refer to a quiz that this user owns.');
+  if (quizIndex !== -1) {
+    if (authUserId !== data.quizzes[quizIndex].ownerId) {
+      throw HTTPError(403, 'Quiz ID does not refer to a quiz that this user owns.');
+    }
   }
-
   // Quiz not found
   if (quizIndex === -1) {
     throw HTTPError(400, 'Quiz ID does not refer to valid quiz.');
@@ -233,8 +238,10 @@ export const adminQuizDescriptionUpdate = (authUserId: number, quizId: number, d
   const quizIndex = data.quizzes.findIndex(quiz => quiz.quizId === quizId);
   // Quiz not owned by user
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
-  if (quiz.ownerId !== authUserId) {
-    throw HTTPError(403, 'Quiz ID does not refer to a quiz that this user own');
+  if (quiz) {
+    if (quiz.ownerId !== authUserId) {
+      throw HTTPError(403, 'Quiz ID does not refer to a quiz that this user own');
+    }
   }
   // Quiz not found
   if (quizIndex === -1) {
@@ -321,8 +328,10 @@ export function adminQuizQuestionCreate(quizId: number, authUserId: number, ques
   // Find quiz
   const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
   // Quiz is not owned by user
-  if (quizFind.ownerId !== authUserId) {
-    throw HTTPError(403, 'authUserId does not own this quiz');
+  if (quizFind !== -1) {
+    if (quizFind.ownerId !== authUserId) {
+      throw HTTPError(403, 'authUserId does not own this quiz');
+    }
   }
   // Quiz not found
   if (!quizFind) {
@@ -432,8 +441,10 @@ export function adminQuizQuestionUpdate(quizId: number, questionId: number, auth
   // Finds quiz
   const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
   // Quiz is not owned by user
-  if (quizFind.ownerId !== authUserId) {
-    throw HTTPError(403, 'Quiz does not belong to user');
+  if (quizFind) {
+    if (quizFind.ownerId !== authUserId) {
+      throw HTTPError(403, 'Quiz does not belong to user');
+    }
   }
   // Quiz not found
   if (!quizFind) {
@@ -533,8 +544,10 @@ export function adminQuizQuestionRemove(quizId: number, questionId: number, auth
   // Finds quiz
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   // Quiz is not owned by user
-  if (quiz.ownerId !== authUserId) {
-    throw HTTPError(403, 'authUserId does not own this quiz');
+  if (quiz) {
+    if (quiz.ownerId !== authUserId) {
+      throw HTTPError(403, 'authUserId does not own this quiz');
+    }
   }
   // Quiz not found
   if (!quiz) {
@@ -573,8 +586,10 @@ export function adminQuizQuestionMove(quizId: number, questionId: number, authUs
   // Finds quiz
   const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
   // Quiz not owned by user
-  if (quizFind.ownerId !== authUserId) {
-    throw HTTPError(403, 'Quiz does not belong to user');
+  if (quizFind) {
+    if (quizFind.ownerId !== authUserId) {
+      throw HTTPError(403, 'Quiz does not belong to user');
+    }
   }
   // Quiz not found
   if (!quizFind) {
@@ -621,8 +636,10 @@ export function adminQuizQuestionDuplicate(quizId: number, questionId: number, a
   const question: Question = quiz.questions.find(question => question.questionId === questionId);
   const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId);
   // Error: Valid authUserId, but not quiz owner.
-  if (quiz.ownerId !== authUserId) {
-    throw HTTPError(403, 'Quiz ID does not refer to a quiz that this user own');
+  if (quiz) {
+    if (quiz.ownerId !== authUserId) {
+      throw HTTPError(403, 'Quiz ID does not refer to a quiz that this user own');
+    }
   }
   // Question not found
   if (!question) {
@@ -684,8 +701,10 @@ export function adminQuizQuestionDuplicate(quizId: number, questionId: number, a
 export function adminQuizThumbnailUpdate(authUserId: number, quizId: number, imgUrl: string): ErrorObject | object {
   const data = getData();
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
-  if (quiz.ownerId !== authUserId) {
-    throw HTTPError(403, 'User does not own quiz');
+  if (quiz) {
+    if (quiz.ownerId !== authUserId) {
+      throw HTTPError(403, 'User does not own quiz');
+    }
   }
 
   if (!(imgUrl.endsWith('.jpeg')) && !(imgUrl.endsWith('.jpg')) && !(imgUrl.endsWith('.png'))) {
@@ -713,9 +732,15 @@ export function adminQuizThumbnailUpdate(authUserId: number, quizId: number, img
  */
 export function adminQuizSessionCreate(authUserId: number, quizId: number, autoStartNum: number): ErrorObject | SessionId {
   const data = getData();
-  const quiz = data.quizzes.find(session => session.quizId === quizId);
-  if (quiz.ownerId !== authUserId) {
-    throw HTTPError(403, 'token is valid but user does not own quiz');
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (quiz) {
+    if (quiz.ownerId !== authUserId) {
+      throw HTTPError(403, 'token is valid but user does not own quiz');
+    }
+  }
+
+  if (!quiz) {
+    throw HTTPError(400, 'invalid quizId');
   }
 
   if (autoStartNum > 50) {
@@ -739,11 +764,12 @@ export function adminQuizSessionCreate(authUserId: number, quizId: number, autoS
     state: States.LOBBY,
     players: [],
     messages: [],
-    quiz: quiz,
+    quiz: JSON.parse(JSON.stringify(quiz)),
     questionResults: [],
   };
 
   data.quizSessions.push(newSession);
+  setData(data);
   return { sessionId: newSessionId };
 }
 
@@ -756,13 +782,16 @@ export function adminQuizSessionCreate(authUserId: number, quizId: number, autoS
  */
 export function sessionsList(authUserId: number, quizId: number): SessionList {
   const data = getData();
-  const quiz = data.quizzes.find(session => session.quizId === quizId);
-  if (quiz.ownerId !== authUserId) {
-    throw HTTPError(403, 'token is valid but user does not own quiz');
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (quiz) {
+    if (quiz.ownerId !== authUserId) {
+      throw HTTPError(403, 'token is valid but user does not own quiz');
+    }
   }
 
   const activeSessions = data.quizSessions.filter(session => session.state !== States.END && session.quizId === quizId).map(session => session.sessionId);
   const inactiveSessions = data.quizSessions.filter(session => session.state === States.END && session.quizId === quizId).map(session => session.sessionId);
+  setData(data);
   return {
     activeSessions: activeSessions,
     inactiveSessions: inactiveSessions,
@@ -779,17 +808,20 @@ export function sessionsList(authUserId: number, quizId: number): SessionList {
  */
 export function sessionStatus(authUserId: number, quizId: number, sessionId: number): SessionStatus {
   const data = getData();
-  const quiz = data.quizzes.find(session => session.quizId === quizId);
-  if (quiz.ownerId !== authUserId) {
-    throw HTTPError(403, 'token is valid but user does not own quiz');
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (quiz) {
+    if (quiz.ownerId !== authUserId) {
+      throw HTTPError(403, 'token is valid but user does not own quiz');
+    }
   }
 
-  if (!data.quizSessions.find(session => session.quizId === quizId)) {
+  if (!data.quizSessions.find(session => session.sessionId === sessionId)) {
     throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
   }
 
   const metadata = adminQuizInfo(authUserId, quizId) as AdminQuizInfoReturn;
   const session = data.quizSessions.find(session => session.sessionId === sessionId);
+  setData(data);
   return {
     state: session.state,
     atQuestion: session.atQuestion,
@@ -800,12 +832,14 @@ export function sessionStatus(authUserId: number, quizId: number, sessionId: num
 
 export function sessionStateUpdate(authUserId: number, quizId: number, sessionId: number, action: Actions): object | ErrorObject {
   const data = getData();
-  const quiz = data.quizzes.find(session => session.quizId === quizId);
-  if (quiz.ownerId !== authUserId) {
-    throw HTTPError(403, 'token is valid but user does not own quiz');
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (quiz) {
+    if (quiz.ownerId !== authUserId) {
+      throw HTTPError(403, 'token is valid but user does not own quiz');
+    }
   }
 
-  if (!data.quizSessions.find(session => session.quizId === quizId)) {
+  if (!data.quizSessions.find(session => session.sessionId === sessionId && session.quizId === quizId)) {
     throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
   }
 
@@ -848,13 +882,36 @@ export function sessionStateUpdate(authUserId: number, quizId: number, sessionId
     session.state === States.FINAL_RESULTS) && action === Actions.NEXT_QUESTION) {
     throw HTTPError(400, 'Action enum cannot be applied in the current state');
   }
-
+  const timerData = getTimerData();
   if ((session.state !== States.ANSWER_SHOW && session.state !== States.END) && action === Actions.END) {
     session.state = States.END;
+    for (const timer of timerData.timers) {
+      if (timer.sessionId === sessionId) {
+        clearTimeout(timer.timerId);
+      }
+    }
+    setData(data);
+    return {};
   }
 
   if (session.state === States.QUESTION_COUNTDOWN && action === Actions.SKIP_COUNTDOWN) {
+    const session = data.quizSessions.find(session => session.sessionId === sessionId);
     session.state = States.QUESTION_OPEN;
+    for (const [timerIndex, timer] of timerData.timers.entries()) {
+      if (timer.sessionId === sessionId) {
+        clearTimeout(timer.timerId);
+        timerData.timers.splice(timerIndex, 1);
+      }
+    }
+    const timerId = setTimeout(() => {
+      session.state = States.QUESTION_CLOSE;
+      const timerIndex = timerData.timers.findIndex(timer => timer.timerId === timerId);
+      timerData.timers.splice(timerIndex, 1);
+      setData(data);
+    }, session.quiz.questions[session.atQuestion - 1].duration * 1000);
+    timerData.timers.push({ timerId: timerId, sessionId: sessionId });
+    setData(data);
+    return {};
   }
 
   if ((session.state !== States.ANSWER_SHOW &&
@@ -862,9 +919,52 @@ export function sessionStateUpdate(authUserId: number, quizId: number, sessionId
     session.state !== States.LOBBY &&
     session.state !== States.END &&
     session.state !== States.QUESTION_COUNTDOWN) && action === Actions.GO_TO_ANSWER) {
-  session.state = 
+    session.state = States.ANSWER_SHOW;
+    const timer = timerData.timers.find(timer => timer.sessionId === sessionId);
+    clearTimeout(timer.timerId);
+    setData(data);
+    return {};
+  }
+
+  if ((session.state !== States.QUESTION_OPEN &&
+    session.state !== States.END &&
+    session.state !== States.LOBBY &&
+    session.state !== States.QUESTION_COUNTDOWN) && action === Actions.GO_TO_FINAL_RESULTS) {
+    session.state = States.FINAL_RESULTS;
+    const timer = timerData.timers.find(timer => timer.sessionId === sessionId);
+    clearTimeout(timer.timerId);
+    setData(data);
+    return {};
+  }
+
+  if ((session.state === States.LOBBY ||
+    session.state === States.QUESTION_CLOSE ||
+    session.state === States.ANSWER_SHOW) && action === Actions.NEXT_QUESTION) {
+    session.state = States.QUESTION_COUNTDOWN;
+    session.atQuestion++;
+    const timerId = setTimeout(() => {
+      const session = data.quizSessions.find(session => session.sessionId === sessionId);
+      session.state = States.QUESTION_OPEN;
+      const timerIndex = timerData.timers.findIndex(timer => timer.timerId === timerId);
+      timerData.timers.splice(timerIndex, 1);
+
+      const questionTimerId = setTimeout(() => {
+        session.state = States.QUESTION_CLOSE;
+        const questionTimerIndex = timerData.timers.findIndex(timer => timer.timerId === questionTimerId);
+        timerData.timers.splice(questionTimerIndex, 1);
+        setData(data);
+      }, session.quiz.questions[session.atQuestion - 1].duration * 1000);
+      timerData.timers.push({ timerId: questionTimerId, sessionId: sessionId });
+      setData(data);
+    }, 3 * 1000);
+    timerData.timers.push({ timerId: timerId, sessionId: sessionId });
+  }
+
+  setData(data);
+
+  return {};
 }
 
-
+export function sessionResults(authUserId: number, quizId: number, sessionId: number): object | ErrorObject {
   return {};
 }

@@ -1,5 +1,6 @@
 import {
-  Data
+  Data,
+  Timers
 } from './interfaces';
 
 import fs from 'fs';
@@ -19,3 +20,9 @@ export function getData (): Data {
 export function setData (newData: Data): void {
   fs.writeFileSync(path.resolve(__dirname, './database.json'), JSON.stringify(newData));
 }
+
+const timerData: Timers = {
+  timers: [],
+};
+
+export const getTimerData = (): Timers => timerData;

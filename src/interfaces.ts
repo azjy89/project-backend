@@ -132,6 +132,15 @@ export interface QuizSession {
   questionResults: QuestionResult[],
 }
 
+export interface Timer {
+  timerId: ReturnType<typeof setTimeout>,
+  sessionId: number,
+}
+
+export interface Timers {
+  timers: Timer[];
+}
+
 // DataStore interface
 export interface Data {
   users: User[],
