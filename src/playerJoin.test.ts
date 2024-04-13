@@ -15,7 +15,7 @@ describe('Testing POST /v1/player/join',() => {
     beforeEach(() => {
         // create user and quiz
         user = requestAuthRegister('first@unsw.edu.au', 'FirstUser123', 'First', 'User');
-        quiz = requestQuizCreate(user.token, 'COMP1531', 'A description of my quiz', 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg');
+        quiz = requestQuizCreate(user.token, 'COMP1531', 'A description of my quiz');
         // start a new session; return sessionId.
         session = requestQuizSessionCreate(user.token, quiz.quizId, 5);
     })
