@@ -135,7 +135,7 @@ describe('Error handling', () => {
     // Questionposition doesnt exist
     expect(requestPlayerQuestionResults(playerId1.playerId, 10)).toStrictEqual(ERROR);
     // Playerid doesnt exist
-    expect(requestPlayerQuetsionResults(123, 2)).toStrictEqual(ERROR);
+    expect(requestPlayerQuestionResults(123, 2)).toStrictEqual(ERROR);
   });
 });
 
