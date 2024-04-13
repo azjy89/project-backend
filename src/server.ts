@@ -53,6 +53,9 @@ import {
   trashQuizRestore,
   trashEmpty
 } from './trash';
+import {
+  playerJoin
+} from './playerJoin'
 
 // Set up web app
 const app = express();
@@ -610,6 +613,16 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res:
   return res.status(200).json(response);
 });
 
+/**POST
+ * Request for /v1/player/join
+ * 
+ * Allow a quest player
+ */
+app.post('/v1/player/join', (req:Request, res: Response) => {
+  const {sessionId, name} = req.body;
+  const response = playerJoin(sessionId, name);
+  return res.status(200).json(response);
+});
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
