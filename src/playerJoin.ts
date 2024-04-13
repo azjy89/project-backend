@@ -1,11 +1,11 @@
-import { Session } from 'inspector';
-import { getData, getTimerData, setData } from './dataStore';
+import { getData, setData } from './dataStore';
 import {
     Data,
     Player,
     QuizSession,
     PlayerId,
     ErrorObject,
+    States,
 } from './interfaces';
 import HTTPError from 'http-errors';
 
@@ -34,16 +34,15 @@ export const playerJoin = (sessionId: number, name: string): PlayerId | ErrorObj
     }
 
     // ERROR CHECKS:
-    const currQuizSession:QuizSession = data.quizSessions.find(session => session.sessionId === sessionId);
+    const currQuizSession: QuizSession = data.quizSessions.find(session => session.sessionId === sessionId);
     if (!currQuizSession) {
         throw HTTPError(400, 'Session Id does not refer to a valid session');
     }
     const searchName = currQuizSession.players.find(player => player.name === name);
     if (searchName) {
-        throw HTTPError(400, 'Name of user entered is not unique (compared to other users who have already joined)');
+        throw HTTPError(400, 'Name of user entered is not unique');
     }
-    // FIX: IS THERE ANOTHER WAY TO WRITE LOBBY (ENUM INDEX: 0)?
-    if (currQuizSession.state !== 0) {
+    if (currQuizSession.state !== States.LOBBY) {
         throw HTTPError(400, 'Session is not in LOBBY state');
     }
 
@@ -53,7 +52,7 @@ export const playerJoin = (sessionId: number, name: string): PlayerId | ErrorObj
         playerId: newPlayerId,
         name: name,
         score: 0,
-        state: 0, 
+        state: States.LOBBY, 
         numQuestions: 0,
         atQuestion: 0,
     }
