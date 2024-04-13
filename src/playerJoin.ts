@@ -46,7 +46,7 @@ export const playerJoin = (sessionId: number, name: string): PlayerId | ErrorObj
         throw HTTPError(400, 'Session is not in LOBBY state');
     }
 
-    // CREATE NEW PLAYER: (Note: "state: 0" is enum LOBBY.)
+
     const newPlayerId = currQuizSession.players.length;
     const newPlayer: Player = {
         playerId: newPlayerId,
