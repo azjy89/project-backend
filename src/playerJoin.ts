@@ -46,14 +46,18 @@ export const playerJoin = (sessionId: number, name: string): PlayerId => {
         throw HTTPError(400, 'Session is not in LOBBY state');
     }
 
+    // Find numQuestions: (assuming there is a quiz and corresponding quizId)
+    const quizIndex = data.quizzes.findIndex(quiz =>quiz.quizId === currQuizSession.quizId);
+    const quiz = data.quizzes[quizIndex];
 
+    // Create new player.
     const newPlayerId = currQuizSession.players.length;
     const newPlayer: Player = {
         playerId: newPlayerId,
         name: name,
         score: 0,
         state: States.LOBBY, 
-        numQuestions: 0,
+        numQuestions: quiz.questions.length,
         atQuestion: 0,
     }
     currQuizSession.players.push(newPlayer);
