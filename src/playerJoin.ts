@@ -13,7 +13,7 @@ import HTTPError from 'http-errors';
 
 // Goal: generate string of 5-letter,3-digit
 const createRandomName = (): string => {
-  let randomString = '';
+  let randomString: string = '';
   const letters = 'abcdefghijklmnopqrstuvwxyz'; const numbers = '0123456789';
   const lettersLength = 5; const numbersLength = 3;
   for (let i = 0; i < lettersLength; i++) {
@@ -48,7 +48,6 @@ export const playerJoin = (sessionId: number, name: string): PlayerId => {
   if (searchName) {
     throw HTTPError(400, 'Name of user entered is not unique');
   }
-  console.log(currQuizSession.state);
   if (currQuizSession.state !== States.LOBBY) {
     throw HTTPError(400, 'Session is not in LOBBY state');
   }
@@ -69,7 +68,7 @@ export const playerJoin = (sessionId: number, name: string): PlayerId => {
   currQuizSession.players.push(newPlayer);
   setData(data);
 
-  // Check if player count reached autoStartNum
+  // Check if player count reached autoStartNum: --> update state.
   const autoStartNum: number = currQuizSession.autoStartNum;
   const playerCount: number = currQuizSession.players.length;
   const authUserId = quiz.ownerId;

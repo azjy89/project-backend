@@ -95,7 +95,6 @@ describe('Testing POST /v1/player/join', () => {
     requestPlayerJoin(session.sessionId, 'HAYDEN SMITH');
     // check session status
     const sessionStatus = requestSessionStatus(user.token, quiz.quizId, session.sessionId);
-    console.log(sessionStatus);
     expect(sessionStatus.state).toStrictEqual(States.QUESTION_COUNTDOWN);
   });
 
