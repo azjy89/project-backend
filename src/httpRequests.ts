@@ -425,21 +425,20 @@ export const requestSessionResults = (token: string, quizId: number, sessionId: 
         token: `${token}`,
       }
     }
-  ); 
+  );
   return JSON.parse(res.body.toString());
-}
+};
 
 export const requestPlayerJoin = (sessionId: number, name: string) => {
-  console.log(sessionId);
   const res = request(
     'POST',
-    SERVER_URL + `/v1/player/join`,
+    SERVER_URL + '/v1/player/join',
     {
-      body: JSON.stringify({
+      json: {
         sessionId: sessionId,
         name: name,
-      })
+      }
     }
-  )
+  );
   return JSON.parse(res.body.toString());
-}
+};
