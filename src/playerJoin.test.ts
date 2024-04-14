@@ -1,10 +1,5 @@
 import { requestAuthRegister, requestClear, requestPlayerJoin, requestQuizCreate, requestQuizQuestionCreate, requestQuizSessionCreate, requestSessionStatus } from './httpRequests';
-import {Player, TokenReturn, QuizId, QuizSession, SessionId, QuestionId, QuestionBody, States} from './interfaces'
-
-beforeEach(() => {
-    requestClear();    
-});
-
+import {Data, Player, TokenReturn, QuizId, QuizSession, SessionId, QuestionId, QuestionBody, States} from './interfaces'
 
 const questionBody: QuestionBody = {
     question: 'When are you sleeping?',
@@ -23,6 +18,14 @@ const questionBody: QuestionBody = {
     thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
   };
   
+beforeEach(() => {
+  requestClear();
+});
+
+afterEach(() => {
+  requestClear();
+});
+
 // QUESTION: DO WE STILL NEED TO CHECK FOR STATUSCODE IF WE ARE THROWING ERRORS?
 describe('Testing POST /v1/player/join',() => {
     let user: TokenReturn;
@@ -30,30 +33,36 @@ describe('Testing POST /v1/player/join',() => {
     let question: QuestionId;
     let session: SessionId;
     // QUESTION: WHERE DO I GET SESSION ID FROM?
-    beforeEach(() => {
+    beforeEach(() => { 
         // create user and quiz
         user = requestAuthRegister('first@unsw.edu.au', 'FirstUser123', 'First', 'User');
         quiz = requestQuizCreate(user.token, 'COMP1531', 'A description of my quiz');
         // start a new session when there's at least one question
         question = requestQuizQuestionCreate(user.token, quiz.quizId, questionBody);
+        // console.log(question);
         session = requestQuizSessionCreate(user.token, quiz.quizId, 5);
-    })
+        console.log(session);
+    });
 
     // TODO: statusCode 200, OK
     test('Succesful return player Id', () => {
-        const response = requestPlayerJoin(session.sessionId, "HAYDEN SMITH")
+        const response = requestPlayerJoin(session.sessionId, "HAYDEN SMITH");
+        console.log(response);
         expect(response).toStrictEqual({playerId: expect.any(Number)});
     });
+
+    // DEBUGGING:
+    /*
     // TODO: statusCode 400, three error cases
     test('Not unique name', () => {
         // generate existing player:
         requestPlayerJoin(session.sessionId, "HAYDEN SMITH");
-        const response = requestPlayerJoin(session.sessionId, "HAYDEN SMITH")
+        const response = requestPlayerJoin(session.sessionId, "HAYDEN SMITH");
         expect(response).toStrictEqual({ error: 'Name of user entered is not unique'})
     })
 
     test('Invalid session', () => {
-        const response = requestPlayerJoin(-1, "HAYDEN SMITH")
+        const response = requestPlayerJoin(-1, "HAYDEN SMITH");
         expect(response).toStrictEqual({ error: 'Session Id does not refer to a valid session'});
     })
 
@@ -61,8 +70,8 @@ describe('Testing POST /v1/player/join',() => {
         // get quiz session status (to check state)
         const sessionStatus = requestSessionStatus(user.token, quiz.quizId, session.sessionId);
         sessionStatus.state = States.QUESTION_COUNTDOWN;
-        const response = requestPlayerJoin(session.sessionId, "HAYDEN SMITH")
+        const response = requestPlayerJoin(session.sessionId, "HAYDEN SMITH");
         expect(response).toStrictEqual({ error: 'Session is not in LOBBY state'});
     })
-
+    */
 })

@@ -27,6 +27,9 @@ const createRandomName = (): string => {
 // Return: playerId
 // QUESTION: Do I still need type "ErrorObject" when I'm throwing the errors?
 export const playerJoin = (sessionId: number, name: string): PlayerId => {
+    // DEBUGGING:
+    console.log(sessionId);
+    
     const data: Data = getData();
     if (name === '') {
         // create 5-letter,4-digit string
@@ -34,8 +37,12 @@ export const playerJoin = (sessionId: number, name: string): PlayerId => {
     }
 
     // ERROR CHECKS:
-    const currQuizSession: QuizSession = data.quizSessions.find(session => session.sessionId === sessionId);
-    if (!currQuizSession) {
+    //const currQuizSession: QuizSession = data.quizSessions.find(session => session.sessionId === sessionId);
+    
+    const quizSessionIndex = data.quizSessions.findIndex(session => session.sessionId === sessionId);
+    const currQuizSession = data.quizSessions[quizSessionIndex];
+    
+    if (quizSessionIndex === -1) {
         throw HTTPError(400, 'Session Id does not refer to a valid session');
     }
     const searchName = currQuizSession.players.find(player => player.name === name);

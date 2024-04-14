@@ -430,6 +430,7 @@ export const requestSessionResults = (token: string, quizId: number, sessionId: 
 }
 
 export const requestPlayerJoin = (sessionId: number, name: string) => {
+  console.log(sessionId);
   const res = request(
     'POST',
     SERVER_URL + `/v1/player/join`,

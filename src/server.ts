@@ -620,6 +620,8 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res:
  */
 app.post('/v1/player/join', (req:Request, res: Response) => {
   const sessionId = parseInt(req.body.sessionId);
+  // DEBUGGING:
+  console.log(sessionId);
   const name = req.body.name as string;
 
   const response = playerJoin(sessionId, name);
