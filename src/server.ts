@@ -55,7 +55,7 @@ import {
 } from './trash';
 import {
   playerJoin
-} from './playerJoin'
+} from './playerJoin';
 
 // Set up web app
 const app = express();
@@ -593,9 +593,9 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Respons
   return res.status(200).json(response);
 });
 
-/**GET
+/** GET
  * Request for /v1/admin/quiz/:quizid/session/:sessionid/results
- * 
+ *
  * Get the final results for all players for a completed quiz session
  */
 app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res: Response) => {
@@ -613,17 +613,14 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res:
   return res.status(200).json(response);
 });
 
-/**POST
+/** POST
  * Request for /v1/player/join
- * 
+ *
  * Allow a guest player to join a session.
  */
 app.post('/v1/player/join', (req:Request, res: Response) => {
   const sessionId = parseInt(req.body.sessionId);
-  // DEBUGGING:
-  console.log(sessionId);
   const name = req.body.name as string;
-
   const response = playerJoin(sessionId, name);
   return res.status(200).json(response);
 });
