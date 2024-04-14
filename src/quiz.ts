@@ -56,7 +56,7 @@ export const adminQuizList = (authUserId: number): AdminQuizListReturn => {
  * @returns {int}
  */
 
-export const adminQuizCreate = (authUserId: number, name: string, description: string, thumbnailUrl: string): QuizId | ErrorObject => {
+export const adminQuizCreate = (authUserId: number, name: string, description: string): QuizId | ErrorObject => {
   const data: Data = getData();
   // Check if name contains valid characters
   if (!/^[a-zA-Z0-9 ]+$/.test(name)) {
@@ -89,7 +89,7 @@ export const adminQuizCreate = (authUserId: number, name: string, description: s
     description: description,
     questions: [],
     duration: 0,
-    thumbnailUrl: thumbnailUrl,
+    thumbnailUrl: undefined,
   };
   // Saves data
   data.quizzes.push(newQuiz);
@@ -328,7 +328,7 @@ export function adminQuizQuestionCreate(quizId: number, authUserId: number, ques
   // Find quiz
   const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
   // Quiz is not owned by user
-  if (quizFind !== -1) {
+  if (quizFind) {
     if (quizFind.ownerId !== authUserId) {
       throw HTTPError(403, 'authUserId does not own this quiz');
     }
@@ -962,5 +962,9 @@ export function sessionStateUpdate(authUserId: number, quizId: number, sessionId
 
   setData(data);
 
+  return {};
+}
+
+export function sessionResults(authUserId: number, quizId: number, sessionId: number): object | ErrorObject {
   return {};
 }

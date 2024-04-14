@@ -33,7 +33,7 @@ it('successfully starts a quiz session', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
@@ -74,7 +74,7 @@ it('fails when autoStartNum is greater than 50', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
@@ -103,7 +103,7 @@ it('fails if token is invalid', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
@@ -139,7 +139,7 @@ it('fails if user does not own quiz', () => {
     'FirstNames',
     'LastNames'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
@@ -168,7 +168,7 @@ it('fails if quiz has no questions in it', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const sessionRes = requestQuizSessionCreate(registerRes.token, quizCreateRes.quizId, 4);
   expect(sessionRes).toStrictEqual({ error: expect.any(String) });
 });
@@ -180,7 +180,7 @@ it('fails if quiz is in trash', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
@@ -210,7 +210,7 @@ it('fails if at least 10 sessions not in end state already exist for this quiz',
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
@@ -249,7 +249,7 @@ it('succeeds if more than 10 sessions exist but less than ten are not in end sta
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,

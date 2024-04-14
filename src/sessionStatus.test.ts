@@ -26,7 +26,7 @@ it('successfuly shows session info', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
@@ -61,7 +61,7 @@ it('fails if token is empty or invalid', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
@@ -97,7 +97,7 @@ it('fails if token is empty or invalid', () => {
     'FirstName2',
     'LastName2'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
