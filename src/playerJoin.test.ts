@@ -6,6 +6,7 @@ import {
   requestQuizQuestionCreate,
   requestQuizSessionCreate,
   requestSessionStateUpdate,
+  requestSessionStatus,
 } from './httpRequests';
 import {
   TokenReturn,
@@ -13,6 +14,7 @@ import {
   SessionId,
   QuestionBody,
   Actions,
+  States,
 } from './interfaces';
 
 const questionBody: QuestionBody = {
@@ -52,20 +54,49 @@ describe('Testing POST /v1/player/join', () => {
     quiz = requestQuizCreate(user.token, 'COMP1531', 'A description of my quiz');
     // start a new session when there's at least one question
     requestQuizQuestionCreate(user.token, quiz.quizId, questionBody);
-    session = requestQuizSessionCreate(user.token, quiz.quizId, 5);
+    session = requestQuizSessionCreate(user.token, quiz.quizId, 3);
   });
 
   // TODO: statusCode 200, OK
   test('Succesful return player Id, with empty name', () => {
     const response = requestPlayerJoin(session.sessionId, '');
-    console.log(response);
     expect(response).toStrictEqual({ playerId: expect.any(Number) });
   });
 
   test('Succesful return player Id', () => {
     const response = requestPlayerJoin(session.sessionId, 'HAYDEN SMITH');
-    console.log(response);
     expect(response).toStrictEqual({ playerId: expect.any(Number) });
+  });
+
+  test('Multiply players successfully joined the same session', () => {
+    // Player 1 joined the session.
+    requestPlayerJoin(session.sessionId, 'HAYDEN SMITH');
+    // Test: layer 2 successfully joined the session.
+    const response = requestPlayerJoin(session.sessionId, 'DENHAY SMITH');
+    expect(response).toStrictEqual({ playerId: expect.any(Number) });
+  });
+
+  test('Two different players joining separate sessions', () => {
+    // Create a second session
+    const user2: TokenReturn = requestAuthRegister('second@unsw.edu.au', 'SecondUser123', 'Second', 'User');
+    const quiz2: QuizId = requestQuizCreate(user2.token, 'COMP1511', 'A description of my quiz');
+    requestQuizQuestionCreate(user2.token, quiz2.quizId, questionBody);
+    const session2: SessionId = requestQuizSessionCreate(user2.token, quiz2.quizId, 3);
+
+    // Test: Player 1 joins the first session; Player 2 joins the second session.
+    requestPlayerJoin(session.sessionId, 'HAYDEN SMITH');
+    const response = requestPlayerJoin(session2.sessionId, 'DENHAY SMITH');
+    expect(response).toStrictEqual({ playerId: expect.any(Number) });
+  });
+
+  test('autoStartNum reached: quiz start automatically.', () => {
+    requestPlayerJoin(session.sessionId, 'DENHAY SMITH');
+    requestPlayerJoin(session.sessionId, 'HAY SMITH');
+    requestPlayerJoin(session.sessionId, 'HAYDEN SMITH');
+    // check session status
+    const sessionStatus = requestSessionStatus(user.token, quiz.quizId, session.sessionId);
+    console.log(sessionStatus);
+    expect(sessionStatus.state).toStrictEqual(States.QUESTION_COUNTDOWN);
   });
 
   // TODO: statusCode 400, three error cases

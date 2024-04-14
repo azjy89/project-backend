@@ -4,7 +4,11 @@ import {
   Player,
   PlayerId,
   States,
+  Actions,
 } from './interfaces';
+import {
+  sessionStateUpdate,
+} from './quiz';
 import HTTPError from 'http-errors';
 
 // Goal: generate string of 5-letter,3-digit
@@ -63,8 +67,15 @@ export const playerJoin = (sessionId: number, name: string): PlayerId => {
     atQuestion: 0,
   };
   currQuizSession.players.push(newPlayer);
-
   setData(data);
+
+  // Check if player count reached autoStartNum
+  const autoStartNum: number = currQuizSession.autoStartNum;
+  const playerCount: number = currQuizSession.players.length;
+  const authUserId = quiz.ownerId;
+  if (playerCount === autoStartNum) {
+    sessionStateUpdate(authUserId, currQuizSession.quizId, sessionId, Actions.NEXT_QUESTION);
+  }
   return {
     playerId: newPlayerId
   };
