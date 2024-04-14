@@ -415,3 +415,30 @@ export const requestSessionStateUpdate = (token: string, quizId: number, session
   );
   return JSON.parse(res.body.toString());
 };
+
+export const requestSessionResults = (token: string, quizId: number, sessionId: number) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/session/${sessionId}/results`,
+    {
+      headers: {
+        token: `${token}`,
+      }
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestPlayerJoin = (sessionId: number, name: string) => {
+  const res = request(
+    'POST',
+    SERVER_URL + '/v1/player/join',
+    {
+      json: {
+        sessionId: sessionId,
+        name: name,
+      }
+    }
+  );
+  return JSON.parse(res.body.toString());
+};

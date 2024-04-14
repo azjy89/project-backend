@@ -37,6 +37,7 @@ import {
   sessionsList,
   sessionStatus,
   sessionStateUpdate,
+  sessionResults
 } from './quiz';
 
 import {
@@ -52,6 +53,9 @@ import {
   trashQuizRestore,
   trashEmpty
 } from './trash';
+import {
+  playerJoin
+} from './playerJoin';
 
 // Set up web app
 const app = express();
@@ -589,6 +593,37 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Respons
   return res.status(200).json(response);
 });
 
+/** GET
+ * Request for /v1/admin/quiz/:quizid/session/:sessionid/results
+ *
+ * Get the final results for all players for a completed quiz session
+ */
+app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res: Response) => {
+  // Parse quizId to int
+  const quizId = parseInt(req.params.quizid);
+  // Parse sessionId to int
+  const sessionId = parseInt(req.params.sessionid);
+  // Request token from header
+  const token = req.headers.token as string;
+  // Retrieve userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+  // Call and return sessionResults
+  const response = sessionResults(userId.authUserId, quizId, sessionId);
+  return res.status(200).json(response);
+});
+
+/** POST
+ * Request for /v1/player/join
+ *
+ * Allow a guest player to join a session.
+ */
+app.post('/v1/player/join', (req:Request, res: Response) => {
+  const sessionId = parseInt(req.body.sessionId);
+  const name = req.body.name as string;
+  const response = playerJoin(sessionId, name);
+  return res.status(200).json(response);
+});
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
