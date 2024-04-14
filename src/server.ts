@@ -37,7 +37,10 @@ import {
   sessionsList,
   sessionStatus,
   sessionStateUpdate,
-  sessionResults
+  sessionResults,
+  sessionResultsCsv,
+  playerFinalResults,
+  playerQuestionResults
 } from './quiz';
 
 import {
@@ -626,7 +629,7 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid/results/csv', (req: Request, 
    const userId = idFromToken(token);
    const authUserId = userId as AuthUserId;
    // Call and return sessionResultsCsv
-   const response = sessionResults(userId.authUserId, quizId, sessionId);
+   const response = sessionResultsCsv(userId.authUserId, quizId, sessionId);
    return res.status(200).json(response);
 });
 

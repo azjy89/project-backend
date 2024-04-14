@@ -1,4 +1,6 @@
 import { getData, getTimerData, setData } from './dataStore';
+import fs from 'fs';
+import path from 'path';
 import {
   ErrorObject,
   AdminQuizListReturn,
@@ -19,6 +21,11 @@ import {
 } from './interfaces';
 
 import HTTPError from 'http-errors';
+
+type QuizScores = {
+  playerId: number;
+  scores: number[]; // of each question in order
+}[];
 
 // Global Variables
 const maxNameLength = 30;
@@ -966,5 +973,214 @@ export function sessionStateUpdate(authUserId: number, quizId: number, sessionId
 }
 
 export function sessionResults(authUserId: number, quizId: number, sessionId: number): object | ErrorObject {
-  return {};
+  const data = getData();
+  const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
+  if (!quizFind) {
+    throw HTTPError(400, 'quizId does not refer to an existing quiz');
+  }
+  if (quizFind.owner !== authUserId) {
+    throw HTTPError(400, 'Quiz does not belong to the user');
+  }
+  const sessionFind = data.quizSessions.find(sessionFind => sessionFind.sessionId === sessionId);
+  if (!sessionFind) {
+    throw HTTPError(400, 'sessionId does not refer to a valid session');
+  }
+  if (sessionFind.quizId !== quizId) {
+    throw HTTPError(400, 'Session and quiz do not match');
+  }
+  if (sessionFind.state !== 'FINAL_RESULTS') {
+    throw HTTPError(400, 'Invalid state for showing final results');
+  }
+  
+  const finalResults = {
+    usersRankedByScore: [],
+    questionResults: []
+  };
+
+  sessionFind.players.forEach(player => {
+    let playerResult = playerFinalResults(player.playerId);
+    finalResults.usersRankedByScore.push(playerResult.usersRankedByScore.find(p => p.name === player.name));
+  });
+
+  // Since we only want the unique question results, we'll take the first player's as representative for all
+  if (sessionFind.players.length > 0) {
+    let firstPlayerResult = playerFinalResults(sessionFind.players[0].playerId);
+    finalResults.questionResults = firstPlayerResult.questionResults;
+  }
+
+  // Sorting the users by score in descending order
+  finalResults.usersRankedByScore.sort((a, b) => b.score - a.score);
+  
+  return finalResults;
+
 }
+
+export function sessionResultsCsv(authUserId: number, quizId: number, sessionId: number) {
+  const data = getData();
+  const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
+  if (!quizFind) {
+    throw HTTPError(400, 'quizId does not refer to an existing quiz');
+  }
+  if (quizFind.owner !== authUserId) {
+    throw HTTPError(400, 'Quiz does not belong to the user');
+  }
+  const sessionFind = data.quizSessions.find(sessionFind => sessionFind.sessionId === sessionId);
+  if (!sessionFind) {
+    throw HTTPError(400, 'sessionId does not refer to a valid session');
+  }
+
+  if (sessionFind.state !== 'FINAL_RESULTS') {
+    throw HTTPError(400, 'Session is not in FINAL_RESULTS state');
+  }
+
+  const csvContent = generateCsvString(sessionFind);
+
+  // Save CSV content to a file and get the local file path
+  const localFilePath = saveCsvToFile(csvContent, sessionId.toString());
+
+  // Get a publicly accessible URL pointing to the CSV file
+  const url = convertLocalPathToUrl(localFilePath);
+
+  return { url };
+}
+
+function generateCsvString(session: QuizSession): string {
+  // Sort players by name
+  const sortedPlayers = [...session.players].sort((a, b) => a.name.localeCompare(b.name));
+  
+  // Create header row for CSV
+  const headerRow = ['Player'];
+  for (let i = 1; i <= session.quiz.questions.length; i++) {
+    headerRow.push(`question${i}score`, `question${i}rank`);
+  }
+  
+  // Initialize rows for player data
+  const playerRows = sortedPlayers.map(player => {
+    const playerRow = [player.name];
+    session.quiz.questions.forEach((question, qIndex) => {
+      const questionResult = session.questionResults.find(result => result.questionId === question.questionId);
+      const playerScore = questionResult.playersCorrectList.includes(player.name) ? player.score : 0;
+
+      // Insert player score for the question
+      playerRow.push(playerScore.toString());
+      
+      // Calculate rank for the question
+      const sortedScores = session.questionResults[qIndex].playersCorrectList
+        .map(name => session.players.find(p => p.name === name)?.score || 0)
+        .sort((a, b) => b - a);
+      const playerRank = playerScore > 0 ? sortedScores.indexOf(playerScore) + 1 : 0;
+
+      // Insert player rank for the question
+      playerRow.push(playerRank.toString());
+    });
+    return playerRow;
+  });
+  
+  // Assemble CSV content
+  const csvContent = [headerRow, ...playerRows].map(row => row.join(',')).join('\r\n');
+  
+  return csvContent;
+}
+
+function saveCsvToFile(csvContent: string, sessionId: string): string {
+  const directoryPath = path.join(__dirname, 'results');
+  if (!fs.existsSync(directoryPath)) {
+    fs.mkdirSync(directoryPath, { recursive: true });
+  }
+
+  const filePath = path.join(directoryPath, `${sessionId}.csv`);
+  fs.writeFileSync(filePath, csvContent);
+  return filePath;
+}
+
+function convertLocalPathToUrl(localPath: string): string {
+  // Convert the local file path to a publicly accessible URL
+}
+
+
+
+export function playerQuestionResults(playerId: number, questionPosition: number) {
+  let data = getData();
+  let sessionFind: QuizSession;
+  let playerFind: Player;
+  let checkFlag = false;
+
+  for (const session of data.quizSessions) {
+    playerFind = session.players.find(player => player.playerId === playerId);
+    if (playerFind) {
+      sessionFind = sesion;
+      break;
+    }
+  }
+
+  if(!playerFind) {
+    throw HTTPError(400, 'Player with playerId does not exist');
+  }
+
+  if (questionPosition < 1 || questionPosition > sessionFind.quiz.questions.length) {
+    throw HTTPError(400, 'Invalid questionPosition');
+  }
+
+  if (sessionFind.state !== States.ANSWER_SHOW) {
+    throw HTTPError(400, 'Session is not in ANSWER_SHOW state');
+  }
+
+  if (sessionFind.atQuestion < questionPosition) {
+    throw HTTPError(400, 'Session is not yet up to this question');
+  }
+
+  const questionId = sessionFind.quiz.questions[questionPosition - 1].questionId;
+
+  const questionResult = sessionFind.questionResults.find(qr => qr.quetsionId === questionId);
+
+  if (!questionResult) {
+    throw HTTPError(400, 'Question result not found for the given questionId');
+  }
+  return questionResult;
+}
+
+export function playerFinalResults(playerId: number) {
+  let sessionFind: QuizSession | undefined;
+  let data = getData();
+
+  // Locate the session with the given playerId
+  sessionFind = data.quizSessions.find(session => 
+    session.players.some(player => player.playerId === playerId)
+  );
+
+  if (!sessionFind) {
+    throw HTTPError(400, 'Player ID is invalid');
+  }
+
+  if (sessionFind.state !== States.FINAL_RESULTS) {
+    throw HTTPError(400, 'Must be in FINAL_RESULTS state');
+  }
+
+  // Initial result object structure
+  const results = {
+    usersRankedByScore: [],
+    questionResults: []
+  };
+
+  // Get the question results for the player
+  for (let i = 1; i <= sessionFind.quiz.questions.length; i++) {
+    const questionResult = playerQuestionResults(playerId, i);
+    if(questionResult && !('error' in questionResult)) {
+      results.questionResults.push(questionResult);
+    }
+  }
+
+  // Calculate total score for each player
+  sessionFind.players.forEach(player => {
+    results.usersRankedByScore.push({
+      name: player.name,
+      score: player.score
+    });
+  });
+
+  // Sort users by score in descending order
+  results.usersRankedByScore.sort((a, b) => b.score - a.score);
+
+  return results;
+}
+
