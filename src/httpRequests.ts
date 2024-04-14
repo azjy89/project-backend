@@ -442,3 +442,15 @@ export const requestPlayerJoin = (sessionId: number, name: string) => {
   );
   return JSON.parse(res.body.toString());
 };
+
+export const requestPlayerStatus = (sessionId: number, playerId: number) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/player/${playerId}`, {
+      json: {
+        sessionId: sessionId,
+      }
+    }
+  );
+  return JSON.parse(res.body.toString());
+}

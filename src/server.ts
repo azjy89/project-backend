@@ -56,6 +56,9 @@ import {
 import {
   playerJoin
 } from './playerJoin';
+import {
+  playerStatus
+} from './playerStatus'
 
 // Set up web app
 const app = express();
@@ -618,12 +621,36 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res:
  *
  * Allow a guest player to join a session.
  */
-app.post('/v1/player/join', (req:Request, res: Response) => {
+app.post('/v1/player/join', (req: Request, res: Response) => {
+  // Parse sessionId to int
   const sessionId = parseInt(req.body.sessionId);
+  // Request name from body
   const name = req.body.name as string;
+  // Call and return playerJoin
   const response = playerJoin(sessionId, name);
   return res.status(200).json(response);
 });
+
+/** POST
+ * Request for /v1/player/{playerid}
+ *
+ * Get the status of a guest player that has already joined a session.
+ */
+app.get('/v1/player/:playerid', (res: Response, req: Request) => {
+  // Parse playerId to int
+  console.log("PROBLEM!!!:")
+  console.log(req.params.playerid)
+  const playerId = parseInt(req.params.playerId);
+  console.log("Here:")
+  console.log(playerId)
+  // Parse sessionId into int
+  const sessionId = parseInt(req.body.sessionId);
+  console.log(sessionId)
+  // Call and return playerStatus
+  const response = playerStatus(playerId, sessionId);
+  return res.status(200).json(response);
+});
+
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================

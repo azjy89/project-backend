@@ -226,3 +226,9 @@ export interface AdminQuizInfoReturn {
 export interface PlayerId {
   playerId: number,
 }
+
+export interface ReturnPlayerStatus {
+  state: States,
+  numQuestions: number,
+  atQuestion: number,
+}
