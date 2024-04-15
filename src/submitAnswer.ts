@@ -32,7 +32,7 @@ export const playerSubmitAnswer = (playerId: number, questionPosition: number, a
   }
   const currentQuestion = quiz.questions[questionPosition - 1];
   
-  if (player.state !== QUESTION_OPEN) {
+  if (player.state !== States.QUESTION_OPEN) {
     throw HTTPError(400, 'Session is not in QUESTION_OPEN state');
   }
 
