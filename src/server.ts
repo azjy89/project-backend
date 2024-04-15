@@ -631,7 +631,7 @@ app.post('/v1/player/join', (req: Request, res: Response) => {
   return res.status(200).json(response);
 });
 
-/** POST
+/** GET
  * Request for /v1/player/{playerid}
  *
  * Get the status of a guest player that has already joined a session.
@@ -644,7 +644,7 @@ app.get('/v1/player/:playerid', (res: Response, req: Request) => {
   console.log("Here:")
   console.log(playerId)
   // Parse sessionId into int
-  const sessionId = parseInt(req.body.sessionId);
+  const sessionId = parseInt(req.headers.sessionId as string);
   console.log(sessionId)
   // Call and return playerStatus
   const response = playerStatus(playerId, sessionId);

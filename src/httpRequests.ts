@@ -446,9 +446,11 @@ export const requestPlayerJoin = (sessionId: number, name: string) => {
 export const requestPlayerStatus = (sessionId: number, playerId: number) => {
   const res = request(
     'GET',
-    SERVER_URL + `/v1/player/${playerId}`, {
-      json: {
-        sessionId: sessionId,
+    SERVER_URL + `/v1/player/${playerId}`,
+    {
+      headers: {
+        'Content-type': 'application/json',
+        sessionId: `${sessionId}`,
       }
     }
   );
