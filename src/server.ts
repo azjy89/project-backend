@@ -56,10 +56,11 @@ import {
 import {
   playerJoin
 } from './playerJoin';
+
 import {
   getQuestionInfo
 } from './getQuestionInfo';
-getQuestionInfo
+
 // Set up web app
 const app = express();
 // Use middleware that allows us to access the JSON body of requests

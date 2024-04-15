@@ -1,16 +1,27 @@
-import { getData } from './dataStore';
+import { getData, getTimerData, setData } from './dataStore';
 import {
-  Data, 
-  States, 
-  Actions, 
-  Player, 
-  QuizSession, 
-  Quiz
+  ErrorObject,
+  AdminQuizListReturn,
+  QuizId,
+  Data,
+  Quiz,
+  QuestionBody,
+  QuestionId,
+  Question,
+  DupedQuestionId,
+  SessionId,
+  Actions,
+  States,
+  QuizSession,
+  SessionList,
+  SessionStatus,
+  AdminQuizInfoReturn,
 } from './interfaces';
 
 import HTTPError from 'http-errors';
 
-export function questionInfo(playerId: number, questionPosition: number): object | ErrorObject {
+
+export function getQuestionInfo(playerId: number, questionPosition: number): object | ErrorObject {
   const data: Data = getData();
   const player: Player | undefined = data.quizSessions
     .flatMap(quizSession => quizSession.players)
