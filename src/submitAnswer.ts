@@ -11,7 +11,7 @@ import {
 } from './quiz';
 import HTTPError from 'http-errors';
 
-export function playerSubmitAnswer(playerId: number, questionPosition: number, answerIds: number[]): object | ErrorObject {
+export const playerSubmitAnswer = (playerId: number, questionPosition: number, answerIds: number[]): object | ErrorObject => {
   const data: Data = getData();
   const player: Player | undefined = data.quizSessions
     .flatMap(quizSession => quizSession.players)

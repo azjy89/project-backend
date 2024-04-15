@@ -59,6 +59,10 @@ import {
   playerJoin
 } from './playerJoin';
 
+import {
+  playerSubmitAnswer
+} from './submitAnswer';
+
 import { getData } from './dataStore';
 
 import { messagesList } from './messagesList';
@@ -681,6 +685,23 @@ app.post('/v1/player/join', (req:Request, res: Response) => {
   const response = playerJoin(sessionId, name);
   return res.status(200).json(response);
 });
+
+app.get('/v1/player/:playerid/question/:questionposition', (req:Request, res: Response) => {
+  const playerid = parseInt(req.params.playerid);
+  const questionposition = parseInt(req.params.questionposition);
+  const response = getQuestionInfo(playerid, questionposition);
+  return res.status(200).json(response);
+});
+
+app.put('/v1/player/:playerid/question/:questionposition/answer', (req:Request, res: Response) => {
+  const playerid = parseInt(req.params.playerid);
+  const questionposition = parseInt(req.params.questionposition);
+  const answers = req.body.answers;
+  const response = playerSubmitAnswer(playerid, questionposition, answers);
+  return res.status(200).json(response);
+});
+
+
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
