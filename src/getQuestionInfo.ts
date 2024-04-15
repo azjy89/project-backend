@@ -32,7 +32,7 @@ export function questionInfo(playerId: number, questionPosition: number): object
   }
   const question = quiz.questions[questionPosition - 1];
 
-  if () { //session is not currently on this question
+  if (currentQuizSession.atQuestion !== questionPosition) { //session is not currently on this question
     throw HTTPError(400, 'session is not currently on this question');
   }
   if (player.state == LOBBY || player.state == QUESTION_COUNTDOWN || player.state == END) {

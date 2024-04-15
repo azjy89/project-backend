@@ -56,7 +56,10 @@ import {
 import {
   playerJoin
 } from './playerJoin';
-
+import {
+  getQuestionInfo
+} from './getQuestionInfo';
+getQuestionInfo
 // Set up web app
 const app = express();
 // Use middleware that allows us to access the JSON body of requests
@@ -622,6 +625,13 @@ app.post('/v1/player/join', (req:Request, res: Response) => {
   const sessionId = parseInt(req.body.sessionId);
   const name = req.body.name as string;
   const response = playerJoin(sessionId, name);
+  return res.status(200).json(response);
+});
+
+app.get('/v1/player/:playerid/question/:questionposition', (req:Request, res: Response) => {
+  const playerid = parseInt(req.params.playerid);
+  const questionposition = parseInt(req.params.questionposition);
+  const response = getQuestionInfo(playerid, questionposition);
   return res.status(200).json(response);
 });
 // ====================================================================
