@@ -232,3 +232,8 @@ export interface SessionResults {
   usersRankedByScore: [],
   questionResults: []
 }
+
+export interface PlayerId {
+  playerId: number,
+}
+

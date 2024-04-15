@@ -190,7 +190,7 @@ describe('Successful output for successful', () => {
     const playerId2 = playerRes2 as PlayerId;
     const playerRes3 = requestPlayerJoin(sessionId.sessionId, player3);
     const playerId3 = playerRes3 as PlayerId;
-    
+
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
     requestPlayerAnswerSubmit(playerId.playerId, 1, [0]);
     requestPlayerAnswerSubmit(playerId2.playerId, 1, [1]);
@@ -244,6 +244,6 @@ describe('Successful output for successful', () => {
         ],
       },
     )
-    expect(requestSessionResultsCsv(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual({ url: expect.any(String) });
+  expect(requestSessionResultsCsv(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual({ url: expect.any(String) });
   });
 });
