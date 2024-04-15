@@ -30,7 +30,7 @@ it('successfully updates a session from lobby to countdown', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
@@ -68,7 +68,7 @@ it('successfully udpates a session to end', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
@@ -100,7 +100,7 @@ it('successfully skips countdown', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
@@ -139,7 +139,7 @@ it('successfully moves from question open toquestion close to countdown then to 
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 1,
@@ -198,8 +198,8 @@ it('fails if sessionId is invalid', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
-  const quizCreateRes2 = requestQuizCreate(registerRes.token, 'quiz2', 'quiz2', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
+  const quizCreateRes2 = requestQuizCreate(registerRes.token, 'quiz2', 'quiz2');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
@@ -231,7 +231,7 @@ it('fails if invalid action enum', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
@@ -261,7 +261,7 @@ it('fails if invalid token', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
@@ -298,7 +298,7 @@ it('fails if token is valid but user does not own quiz', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
@@ -328,7 +328,7 @@ it('fails if cannot go to answer', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
@@ -358,7 +358,7 @@ it('fails if cannot go to finals results', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
@@ -388,7 +388,7 @@ it('fails if cannot go to end', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
@@ -421,7 +421,7 @@ it('fails if cannot go to next question', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,
@@ -455,7 +455,7 @@ it('fails if cannot skip countdown', () => {
     'FirstName',
     'LastName'
   );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz', 'http://something.jpeg/');
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
   const questionBody = {
     question: 'When are you sleeping?',
     duration: 5,

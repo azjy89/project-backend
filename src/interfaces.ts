@@ -222,3 +222,7 @@ export interface AdminQuizInfoReturn {
   duration: number,
   thumbnailUrl: string,
 }
+
+export interface PlayerId {
+  playerId: number,
+}

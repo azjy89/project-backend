@@ -104,7 +104,7 @@ export const requestQuizList = (token: string) => {
   return JSON.parse(res.body.toString());
 };
 
-export const requestQuizCreate = (token: string, name: string, description: string, thumbnailUrl: string) => {
+export const requestQuizCreate = (token: string, name: string, description: string) => {
   const res = request(
     'POST',
     SERVER_URL + '/v2/admin/quiz',
@@ -112,7 +112,6 @@ export const requestQuizCreate = (token: string, name: string, description: stri
       body: JSON.stringify({
         name: name,
         description: description,
-        thumbnailUrl: thumbnailUrl,
       }),
       headers: {
         'Content-type': 'application/json',
@@ -426,9 +425,23 @@ export const requestSessionResults = (token: string, quizId: number, sessionId: 
         token: `${token}`,
       }
     }
-  ); 
+  );
   return JSON.parse(res.body.toString());
 }
+
+export const requestPlayerJoin = (sessionId: number, name: string) => {
+  const res = request(
+    'POST',
+    SERVER_URL + '/v1/player/join',
+    {
+      json: {
+        sessionId: sessionId,
+        name: name,
+      }
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
 
 export const requestPlayerStatus = (playerid: number) => {
   const res = request(
@@ -455,8 +468,7 @@ export const requestQuestionSubmit = (playerid: number, questionposition: number
         answerIds: answerIds,
       })
     }
-  );
+  )
   return JSON.parse(res.body.toString());
 };
-
 
