@@ -968,22 +968,3 @@ export function sessionStateUpdate(authUserId: number, quizId: number, sessionId
 export function sessionResults(authUserId: number, quizId: number, sessionId: number): object | ErrorObject {
   return {};
 }
-
-export function questionInfo(playerId: number, questionPosition: number): object | ErrorObject {
-  const data = getData();
-  const player = data.quizSessions.players.find(player => player.playerId === playerId);
-  if (!player) {
-    throw HTTPError(400, 'player ID does not exist');
-  }
-  if (questionPosition > data.quizSessions.atQuestion) {
-    throw HTTPError(400, 'question position is not valid for the session this player is in');
-  }
-  if () { //session is not currently on this question
-    throw HTTPError(400, 'question position is not valid for the session this player is in');
-  }
-  if (player.state == LOBBY || player.state == QUESTION_COUNTDOWN || player.state == END) {
-    throw HTTPError(400, 'session not working');
-  }
-  const quiz = data.quizSessions.players()
-  return {};
-}
