@@ -612,7 +612,7 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res:
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
   // Call and return sessionResults
-  const response = sessionResults(userId.authUserId, quizId, sessionId);
+  const response = sessionResults(authUserId.authUserId, quizId, sessionId);
   return res.status(200).json(response);
 });
 
@@ -632,7 +632,7 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid/results/csv', (req: Request, 
    const userId = idFromToken(token);
    const authUserId = userId as AuthUserId;
    // Call and return sessionResultsCsv
-   const response = sessionResultsCsv(userId.authUserId, quizId, sessionId);
+   const response = sessionResultsCsv(authUserId.authUserId, quizId, sessionId);
    return res.status(200).json(response);
 });
 

@@ -930,7 +930,7 @@ export function sessionResults(authUserId: number, quizId: number, sessionId: nu
   if (!quizFind) {
     throw HTTPError(400, 'quizId does not refer to an existing quiz');
   }
-  if (quizFind.owner !== authUserId) {
+  if (quizFind.ownerId !== authUserId) {
     throw HTTPError(400, 'Quiz does not belong to the user');
   }
   const sessionFind = data.quizSessions.find(sessionFind => sessionFind.sessionId === sessionId);
@@ -973,7 +973,7 @@ export function sessionResultsCsv(authUserId: number, quizId: number, sessionId:
   if (!quizFind) {
     throw HTTPError(400, 'quizId does not refer to an existing quiz');
   }
-  if (quizFind.owner !== authUserId) {
+  if (quizFind.ownerId !== authUserId) {
     throw HTTPError(400, 'Quiz does not belong to the user');
   }
   const sessionFind = data.quizSessions.find(sessionFind => sessionFind.sessionId === sessionId);
@@ -994,7 +994,7 @@ export function sessionResultsCsv(authUserId: number, quizId: number, sessionId:
   if (!fs.existsSync(folderPath)) {
     fs.mkdirSync(folderPath, { recursive: true });
   }
-  fs.writeFileSync(localFilePath, csvContent);
+  fs.writeFileSync(localPath, csvContent);
   return { url: localPath };
 }
 
@@ -1045,7 +1045,7 @@ export function playerQuestionResults(playerId: number, questionPosition: number
   for (const session of data.quizSessions) {
     playerFind = session.players.find(player => player.playerId === playerId);
     if (playerFind) {
-      sessionFind = sesion;
+      sessionFind = session;
       break;
     }
   }
