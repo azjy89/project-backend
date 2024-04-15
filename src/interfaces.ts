@@ -228,6 +228,12 @@ export interface PlayerId {
   playerId: number,
 }
 
+export interface ReturnPlayerStatus {
+  state: string,
+  numQuestions: number,
+  atQuestion: number,
+}
+
 export interface MessagesListReturn {
   messages: Message[],
 }

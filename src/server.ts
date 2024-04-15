@@ -58,6 +58,9 @@ import {
 import {
   playerJoin
 } from './playerJoin';
+import {
+  playerStatus
+} from './playerStatus'
 
 import {
   playerSubmitAnswer
@@ -68,6 +71,10 @@ import { getData } from './dataStore';
 import { messagesList } from './messagesList';
 import { messageSend } from './messageSend';
 import HTTPError from 'http-errors';
+
+import {
+  getQuestionInfo
+} from './getQuestionInfo';
 
 // Set up web app
 const app = express();
@@ -679,9 +686,12 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res:
  *
  * Allow a guest player to join a session.
  */
-app.post('/v1/player/join', (req:Request, res: Response) => {
+app.post('/v1/player/join', (req: Request, res: Response) => {
+  // Parse sessionId to int
   const sessionId = parseInt(req.body.sessionId);
+  // Request name from body
   const name = req.body.name as string;
+  // Call and return playerJoin
   const response = playerJoin(sessionId, name);
   return res.status(200).json(response);
 });
@@ -701,6 +711,18 @@ app.put('/v1/player/:playerid/question/:questionposition/answer', (req:Request, 
   return res.status(200).json(response);
 });
 
+/** GET
+ * Request for /v1/player/{playerid}
+ *
+ * Get the status of a guest player that has already joined a session.
+ */
+app.get('/v1/player/:playerid', (req: Request, res: Response) => {
+  // Parse playerId to int
+  const playerId = parseInt(req.params.playerid);
+  // Call and return playerStatus
+  const response = playerStatus(playerId);
+  return res.status(200).json(response);
+});
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
