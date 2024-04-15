@@ -74,13 +74,13 @@ export const playerSubmitAnswer = (playerId: number, questionPosition: number, a
   return {};
 }
 
-function checkPlayerAnswer(playerId: number, question: Question, answerIds: number[]): boolean {
+const checkPlayerAnswer = (playerId: number, question: Question, answerIds: number[]): boolean => {
   const submittedIds = answerIds.sort();
   const correctIds = question.answers.filter(answer => answer.correct).map(answer => answer.answerId).sort();
   return JSON.stringify(submittedIds) === JSON.stringify(correctIds);
 }
 
-function calculateAverageAnswerTime(quizSession: QuizSession, question: Question): number {
+const calculateAverageAnswerTime = (quizSession: QuizSession, question: Question): number => {
   const questionPosition = quizSession.atQuestion;
   const questionStartTime = quizSession.questionStartTimes[questionPosition - 1];
   const answerTime = Date.now() - questionStartTime;
