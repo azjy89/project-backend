@@ -118,7 +118,7 @@ describe('Testing PUT /v1/player/{playerid}/question/{questionposition}/answer',
     expect(submitAnswerRes).toStrictEqual({ error: expect.any(String) });
   });
 
-  test('fails if session is not yet up to this question', () => { //unsure
+  test('fails if session is not yet up to this question', () => {
     const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.SKIP_COUNTDOWN);

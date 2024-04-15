@@ -987,32 +987,3 @@ export function questionInfo(playerId: number, questionPosition: number): object
   const quiz = data.quizSessions.players()
   return {};
 }
-
-export function playerSubmitAnswer(playerId: number, questionPosition: number, answerIds: number[]): object | ErrorObject {
-  const data = getData();
-  const player = data.quizSessions.players.find(player => player.playerId === playerId);
-  if (!player) {
-    throw HTTPError(400, 'player ID does not exist');
-  }
-  const currentQuestion = data.quizSessions.quiz.questions[questionPosition];
-  if (!currentQuestion) {
-    throw HTTPError(400, 'question position is not valid for the session this player is in');
-  }
-  if (player.state !== QUESTION_OPEN) {
-    throw HTTPError(400, 'session not working');
-  }
-  if () { //session is not yet up to this question
-    throw HTTPError(400, 'session is not yet up to this question');
-  }
-
-  const validAnswerIds = currentQuestion.answers.map(answer => answer.answerId);
-  const invalidAnswerIds = answerIds.filter(id => !validAnswerIds.includes(id));
-  if (invalidAnswerIds.length > 0) {
-    return HTTPError(400, 'Answer IDs are not valid for this particular question.');
-  }
-
-  if (new Set(answerIds).size !== answerIds.length || answerIds.length < 1) {
-    return HTTPError(400, 'Duplicate answer IDs provided or less than 1 answer ID submitted.');
-  }
-  return {};
-}
