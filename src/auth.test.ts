@@ -289,6 +289,14 @@ describe('requestUserPasswordUpdate', () => {
     expect(requestUserPasswordUpdate(responseToken.token, 'wrong1234', 'abcd1234')).toEqual({ error: expect.any(String) });
   });
 
+  test('New Password matches old password exactly', () => {
+    const responseToken = requestAuthRegister('users@unsw.edu.au', '1234abcd'
+      , 'FirstName', 'LastName');
+    requestUserPasswordUpdate(responseToken.token, '1234abcd', 'new12345');
+    requestUserPasswordUpdate(responseToken.token, 'new12345', 'new123456');
+    expect(requestUserPasswordUpdate(responseToken.token, 'new123456', 'new123456')).toEqual({ error: expect.any(String) });
+  });
+
   test('New Password has already been used before by this user', () => {
     const responseToken = requestAuthRegister('users@unsw.edu.au', '1234abcd'
       , 'FirstName', 'LastName');
@@ -327,10 +335,13 @@ describe('requestUserPasswordUpdate', () => {
   test('unsatisfactory password', () => {
     const responseToken = requestAuthRegister('users@unsw.edu.au', '1234abcd'
       , 'FirstName', 'LastName');
-    expect(requestUserPasswordUpdate(responseToken.token, 'abcd1234', '12345678')).toEqual({ error: expect.any(String) });
-    const responseToken2 = requestAuthRegister('users@unsw.edu.au', '1234abcd'
+    expect(requestUserPasswordUpdate(responseToken.token, '1234abcd', '12345678')).toEqual({ error: expect.any(String) });
+    const responseToken2 = requestAuthRegister('users2@unsw.edu.au', '1234abcd'
       , 'FirstName', 'LastName');
-    expect(requestUserPasswordUpdate(responseToken2.token, 'abcd1234', 'abcdefgh')).toEqual({ error: expect.any(String) });
+    expect(requestUserPasswordUpdate(responseToken2.token, '1234abcd', 'abcdefgh')).toEqual({ error: expect.any(String) });
+    const responseToken3 = requestAuthRegister('users3@unsw.edu.au', '1234abcd'
+      , 'FirstName', 'LastName');
+    expect(requestUserPasswordUpdate(responseToken3.token, '1234abcd', 'a')).toEqual({ error: expect.any(String) });
   });
 
   test('successful update password', () => {
