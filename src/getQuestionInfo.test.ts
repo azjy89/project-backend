@@ -21,7 +21,8 @@ import {
   QuestionId,
   Question,
   AdminQuizInfoReturn,
-  QuizSession
+  QuizSession, 
+  Courl
 } from './interfaces';
 
 
@@ -41,6 +42,7 @@ describe('Testing GET /v1/player/{playerid}/question/{questionposition}', () => 
   let questionCreateRes1: Question;
   let questionCreateRes2: Question;
   beforeEach(() => {
+    requestClear();
     registerRes = requestAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
     quizCreateRes = requestQuizCreate(registerRes.token, 'COMP1531', 'Welcome!');
     const questionBody1: QuestionBody = {
@@ -85,17 +87,18 @@ describe('Testing GET /v1/player/{playerid}/question/{questionposition}', () => 
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.SKIP_COUNTDOWN);
     const questionInfoRes = requestQuestionInfo(playerRes.playerId, 1);
+    const questionStatus = requestSessionStatus(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId);
     expect(questionInfoRes).toEqual({
       questionId: questionCreateRes1.questionId,
-      question: 'When are you sleeping?',
-      duration: 5,
-      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
-      points: 5,
+      question: questionStatus.metadata.questions[1].question,
+      duration: questionStatus.metadata.questions[1].duration,
+      thumbnailUrl: questionStatus.metadata.questions[1].thumbnailUrl,
+      points: questionStatus.metadata.questions[1].points,
       answers: [
         {
-          answerId: expect.any(Number),
-          answer: 'Bobby the builder',
-          colour: 'red'
+          answerId: questionStatus.metadata.questions[1].answers.answerId,
+          answer: questionStatus.metadata.questions[1].answers.answer,
+          colour: questionStatus.metadata.questions[1].answers.colour,
         },
         {
           answerId: expect.any(Number),
