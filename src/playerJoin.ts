@@ -74,6 +74,7 @@ export const playerJoin = (sessionId: number, name: string): PlayerId => {
   const authUserId = quiz.ownerId;
   if (playerCount === autoStartNum) {
     sessionStateUpdate(authUserId, currQuizSession.quizId, sessionId, Actions.NEXT_QUESTION);
+    // Note: sessionStateUpdate function will setData locally.
   }
   return {
     playerId: newPlayerId

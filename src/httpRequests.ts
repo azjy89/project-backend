@@ -462,6 +462,15 @@ export const requestPlayerJoin = (sessionId: number, name: string) => {
   return JSON.parse(res.body.toString());
 };
 
+export const requestPlayerStatus = (playerId: number) => {
+  // console.log('TYPE: ' + typeof { playerId } + 'Value: ' + playerId);
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/player/${playerId}`
+  );
+  return JSON.parse(res.body.toString());
+};
+
 export const requestMessagesList = (playerId: number) => {
   const res = request(
     'GET',
