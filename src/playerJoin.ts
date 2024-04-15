@@ -13,7 +13,7 @@ import HTTPError from 'http-errors';
 
 // Goal: generate string of 5-letter,3-digit
 const createRandomName = (): string => {
-  let randomString: string = '';
+  let randomString = '';
   const letters = 'abcdefghijklmnopqrstuvwxyz'; const numbers = '0123456789';
   const lettersLength = 5; const numbersLength = 3;
   for (let i = 0; i < lettersLength; i++) {
@@ -74,6 +74,7 @@ export const playerJoin = (sessionId: number, name: string): PlayerId => {
   const authUserId = quiz.ownerId;
   if (playerCount === autoStartNum) {
     sessionStateUpdate(authUserId, currQuizSession.quizId, sessionId, Actions.NEXT_QUESTION);
+    // Note: sessionStateUpdate function will setData locally.
   }
   return {
     playerId: newPlayerId
