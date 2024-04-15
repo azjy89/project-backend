@@ -1,14 +1,13 @@
-import { getData, setData } from './dataStore';
+import { getData } from './dataStore';
 import {
-  Data,
-  Player,
-  PlayerId,
-  States,
-  Actions,
+  Data, 
+  States, 
+  Actions, 
+  Player, 
+  QuizSession, 
+  Quiz
 } from './interfaces';
-import {
-  sessionStateUpdate,
-} from './quiz';
+
 import HTTPError from 'http-errors';
 
 export function questionInfo(playerId: number, questionPosition: number): object | ErrorObject {
