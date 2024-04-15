@@ -45,6 +45,7 @@ import {
 } from './other';
 
 import {
+  Actions,
   AuthUserId
 } from './interfaces';
 
@@ -58,8 +59,11 @@ import {
   playerJoin
 } from './playerJoin';
 
+import { getData } from './dataStore';
+
 import { messagesList } from './messagesList';
 import { messageSend } from './messageSend';
+import HTTPError from 'http-errors';
 
 // Set up web app
 const app = express();
@@ -566,13 +570,37 @@ app.put('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Respons
   // Parse quizId as int
   const quizId = parseInt(req.params.quizid);
   const sessionId = parseInt(req.params.sessionid);
-
-  const action = parseInt(req.body.action);
   // Get token as a header
   const token = req.headers.token as string;
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
+  const data = getData();
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (quiz.ownerId !== authUserId.authUserId) {
+    throw HTTPError(403, 'token is valid but user does not own quiz');
+  }
+  const actionString = req.body.action as string;
+  let action: Actions;
+  switch (actionString) {
+    case 'END':
+      action = Actions.END;
+      break;
+    case 'NEXT_QUESTION':
+      action = Actions.NEXT_QUESTION;
+      break;
+    case 'GO_TO_ANSWER':
+      action = Actions.GO_TO_ANSWER;
+      break;
+    case 'GO_TO_FINAL_RESULTS':
+      action = Actions.GO_TO_FINAL_RESULTS;
+      break;
+    case 'SKIP_COUNTDOWN':
+      action = Actions.SKIP_COUNTDOWN;
+      break;
+    default:
+      throw HTTPError(400, 'Invalid ');
+  }
 
   const response = sessionStateUpdate(authUserId.authUserId, quizId, sessionId, action);
   return res.status(200).json(response);

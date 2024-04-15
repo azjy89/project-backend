@@ -399,13 +399,32 @@ export const requestSessionStatus = (token: string, quizId: number, sessionId: n
   return JSON.parse(res.body.toString());
 };
 
-export const requestSessionStateUpdate = (token: string, quizId: number, sessionId: number, action: Actions) => {
+export const requestSessionStateUpdate = (token: string, quizId: number, sessionId: number, action: Actions | string) => {
+  let actionString: string;
+  switch (action) {
+    case Actions.END:
+      actionString = 'END';
+      break;
+    case Actions.NEXT_QUESTION:
+      actionString = 'NEXT_QUESTION';
+      break;
+    case Actions.GO_TO_ANSWER:
+      actionString = 'GO_TO_ANSWER';
+      break;
+    case Actions.GO_TO_FINAL_RESULTS:
+      actionString = 'GO_TO_FINAL_RESULTS';
+      break;
+    case Actions.SKIP_COUNTDOWN:
+      actionString = 'SKIP_COUNTDOWN';
+      break;
+  }
+
   const res = request(
     'PUT',
     SERVER_URL + `/v1/admin/quiz/${quizId}/session/${sessionId}`,
     {
       body: JSON.stringify({
-        action: action,
+        action: actionString,
       }),
       headers: {
         'Content-type': 'application/json',
