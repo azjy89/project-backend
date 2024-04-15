@@ -53,9 +53,13 @@ import {
   trashQuizRestore,
   trashEmpty
 } from './trash';
+
 import {
   playerJoin
 } from './playerJoin';
+
+import { messagesList } from './messagesList';
+import { messageSend } from './messageSend';
 
 // Set up web app
 const app = express();
@@ -590,6 +594,31 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Respons
   const authUserId = userId as AuthUserId;
 
   const response = sessionStatus(authUserId.authUserId, quizId, sessionId);
+  return res.status(200).json(response);
+});
+
+/**
+ * Request for /v1/player/:playerid/chat
+ *
+ * Get list of messages for a session a player is in
+ */
+app.get('/v1/player/:playerid/chat', (req: Request, res: Response) => {
+  const playerId = parseInt(req.params.playerid);
+  const response = messagesList(playerId);
+
+  return res.status(200).json(response);
+});
+
+/**
+ * Request for /v1/player/{playerid}/chat
+ *
+ * Send a message for a specified player
+ */
+app.post('/v1/player/:playerid/chat', (req: Request, res: Response) => {
+  const playerId = parseInt(req.params.playerid);
+  const messageBody = req.body.message.messageBody as string;
+  const response = messageSend(playerId, messageBody);
+
   return res.status(200).json(response);
 });
 

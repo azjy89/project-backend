@@ -226,3 +226,7 @@ export interface AdminQuizInfoReturn {
 export interface PlayerId {
   playerId: number,
 }
+
+export interface MessagesListReturn {
+  messages: Message[],
+}

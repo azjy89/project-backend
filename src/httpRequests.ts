@@ -442,3 +442,26 @@ export const requestPlayerJoin = (sessionId: number, name: string) => {
   );
   return JSON.parse(res.body.toString());
 };
+
+export const requestMessagesList = (playerId: number) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/player/${playerId}/chat`
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestMessageSend = (playerId: number, messageBody: string) => {
+  const res = request(
+    'POST',
+    SERVER_URL + `/v1/player/${playerId}/chat`,
+    {
+      json: {
+        message: {
+          messageBody: messageBody,
+        },
+      }
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
