@@ -8,7 +8,8 @@ import {
   requestPlayerJoin,
   requestPlayerStatus,
   requestQuestionInfo,
-  requestQuizInfo
+  requestQuizInfo, 
+  requestSessionStatus
 } from '../src/httpRequests';
 
 import {
@@ -22,7 +23,6 @@ import {
   Question,
   AdminQuizInfoReturn,
   QuizSession, 
-  Courl
 } from './interfaces';
 
 
@@ -90,20 +90,20 @@ describe('Testing GET /v1/player/{playerid}/question/{questionposition}', () => 
     const questionStatus = requestSessionStatus(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId);
     expect(questionInfoRes).toEqual({
       questionId: questionCreateRes1.questionId,
-      question: questionStatus.metadata.questions[1].question,
-      duration: questionStatus.metadata.questions[1].duration,
-      thumbnailUrl: questionStatus.metadata.questions[1].thumbnailUrl,
-      points: questionStatus.metadata.questions[1].points,
+      question: questionStatus.metadata.questions[0].question,
+      duration: questionStatus.metadata.questions[0].duration,
+      thumbnailUrl: questionStatus.metadata.questions[0].thumbnailUrl,
+      points: questionStatus.metadata.questions[0].points,
       answers: [
         {
-          answerId: questionStatus.metadata.questions[1].answers.answerId,
-          answer: questionStatus.metadata.questions[1].answers.answer,
-          colour: questionStatus.metadata.questions[1].answers.colour,
+          answerId: questionStatus.metadata.questions[0].answers[0].answerId,
+          answer: questionStatus.metadata.questions[0].answers[0].answer,
+          colour: questionStatus.metadata.questions[0].answers[0].colour,
         },
         {
-          answerId: expect.any(Number),
-          answer: 'Bobby the breaker',
-          colour: 'blue'
+          answerId: questionStatus.metadata.questions[0].answers[1].answerId,
+          answer: questionStatus.metadata.questions[0].answers[1].answer,
+          colour: questionStatus.metadata.questions[0].answers[1].colour,
         }
       ]
     })
