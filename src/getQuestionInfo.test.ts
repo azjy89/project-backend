@@ -84,7 +84,7 @@ describe('Testing GET /v1/player/{playerid}/question/{questionposition}', () => 
     const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.SKIP_COUNTDOWN);
-    const questionInfoRes = requestQuestionInfo(playerRes.playerid, 1);
+    const questionInfoRes = requestQuestionInfo(playerRes.playerId, 1);
     expect(questionInfoRes).toEqual({
       questionId: questionCreateRes1.questionId,
       question: 'When are you sleeping?',
@@ -110,7 +110,7 @@ describe('Testing GET /v1/player/{playerid}/question/{questionposition}', () => 
     const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.SKIP_COUNTDOWN);
-    const questionInfoRes = requestQuestionInfo(playerRes.playerid + 1, 1);
+    const questionInfoRes = requestQuestionInfo(playerRes.playerId + 1, 1);
     expect(questionInfoRes).toStrictEqual({ error: expect.any(String) });
   });
 
@@ -118,7 +118,7 @@ describe('Testing GET /v1/player/{playerid}/question/{questionposition}', () => 
     const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.SKIP_COUNTDOWN);
-    const questionInfoRes = requestQuestionInfo(playerRes.playerid, 3);
+    const questionInfoRes = requestQuestionInfo(playerRes.playerId, 3);
     expect(questionInfoRes).toStrictEqual({ error: expect.any(String) });
   });
 
@@ -126,27 +126,27 @@ describe('Testing GET /v1/player/{playerid}/question/{questionposition}', () => 
     const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.SKIP_COUNTDOWN);
-    const questionInfoRes = requestQuestionInfo(playerRes.playerid, 2);
+    const questionInfoRes = requestQuestionInfo(playerRes.playerId, 2);
     expect(questionInfoRes).toStrictEqual({ error: expect.any(String) });
   });
 
   test('fails if session is in LOBBY state', () => {
     const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
-    const questionInfoRes = requestQuestionInfo(playerRes.playerid, 1);
+    const questionInfoRes = requestQuestionInfo(playerRes.playerId, 1);
     expect(questionInfoRes).toStrictEqual({ error: expect.any(String) });
   });
 
   test('fails if session is in QUESTION_COUNTDOWN state', () => {
     const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
-    const questionInfoRes = requestQuestionInfo(playerRes.playerid, 1);
+    const questionInfoRes = requestQuestionInfo(playerRes.playerId, 1);
     expect(questionInfoRes).toStrictEqual({ error: expect.any(String) });
   });
 
   test('fails if session is in END state', () => {
     const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.END);
-    const questionInfoRes = requestQuestionInfo(playerRes.playerid, 1);
+    const questionInfoRes = requestQuestionInfo(playerRes.playerId, 1);
     expect(questionInfoRes).toStrictEqual({ error: expect.any(String) });
   });
 });

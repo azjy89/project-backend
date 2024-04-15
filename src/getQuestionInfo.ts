@@ -12,6 +12,7 @@ import {
   SessionId,
   Actions,
   States,
+  Player,
   QuizSession,
   SessionList,
   SessionStatus,
@@ -21,7 +22,7 @@ import {
 import HTTPError from 'http-errors';
 
 
-export function getQuestionInfo(playerId: number, questionPosition: number): object | ErrorObject {
+export const getQuestionInfo = (playerId: number, questionPosition: number): object | ErrorObject => {
   const data: Data = getData();
   const player: Player | undefined = data.quizSessions
     .flatMap(quizSession => quizSession.players)
@@ -46,7 +47,8 @@ export function getQuestionInfo(playerId: number, questionPosition: number): obj
   if (currentQuizSession.atQuestion !== questionPosition) { //session is not currently on this question
     throw HTTPError(400, 'session is not currently on this question');
   }
-  if (player.state == LOBBY || player.state == QUESTION_COUNTDOWN || player.state == END) {
+  
+  if (currentQuizSession.state === States.LOBBY || currentQuizSession.state === States.QUESTION_COUNTDOWN || currentQuizSession.state === States.END) {
     throw HTTPError(400, 'session not working');
   }
 
