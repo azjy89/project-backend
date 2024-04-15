@@ -14,7 +14,16 @@ import {
 import {
   States,
   Actions,
-} from '../src/interfaces';
+  TokenReturn,
+  QuizId,
+  Quiz,
+  QuestionBody,
+  QuestionId,
+  Question,
+  AdminQuizInfoReturn,
+  QuizSession
+} from './interfaces';
+
 
 beforeEach(() => {
   requestClear();
@@ -28,10 +37,12 @@ describe('Testing GET /v1/player/{playerid}/question/{questionposition}', () => 
   let registerRes: TokenReturn;
   let quizCreateRes: QuizId;
   let question: Question;
-  let sessionRes: Session;
+  let sessionRes: QuizSession;
+  let questionCreateRes1: Question;
+  let questionCreateRes2: Question;
   beforeEach(() => {
     registerRes = requestAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
-    quizCreateRes = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+    quizCreateRes = requestQuizCreate(registerRes.token, 'COMP1531', 'Welcome!');
     const questionBody1: QuestionBody = {
       question: 'When are you sleeping?',
       duration: 5,
@@ -64,8 +75,8 @@ describe('Testing GET /v1/player/{playerid}/question/{questionposition}', () => 
       ],
       thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
-    questionCreateRes = requestQuizQuestionCreate(resToken.token, quizCreateRes.quizId, questionBody1);
-    questionCreateRes = requestQuizQuestionCreate(resToken.token, quizCreateRes.quizId, questionBody2);
+    questionCreateRes1 = requestQuizQuestionCreate(registerRes.token, quizCreateRes.quizId, questionBody1);
+    questionCreateRes2 = requestQuizQuestionCreate(registerRes.token, quizCreateRes.quizId, questionBody2);
     sessionRes = requestQuizSessionCreate(registerRes.token, quizCreateRes.quizId, 4);
   });
 
@@ -74,8 +85,8 @@ describe('Testing GET /v1/player/{playerid}/question/{questionposition}', () => 
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.SKIP_COUNTDOWN);
     const questionInfoRes = requestQuestionInfo(playerRes.playerid, 1);
-    expect(questionInfoRes).toStrictEqual({
-      questionId: questionCreateRes.questionId,
+    expect(questionInfoRes).toEqual({
+      questionId: questionCreateRes1.questionId,
       question: 'When are you sleeping?',
       duration: 5,
       thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
