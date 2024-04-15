@@ -22,7 +22,7 @@ describe('clear', () => {
     const email = 'quiz@unsw.edu.au';
     const password = 'abcd1234';
     expect(requestUserDetails(requestAuthRegister(email, password, 'Bobby', 'Dickens'))).toEqual(ERROR);
-    requestQuizCreate(requestAuthRegister(email, password, 'Bobby', 'Dickens'), 'Bobby', 'Ricky', 'http://something.jpeg');
+    requestQuizCreate(requestAuthRegister(email, password, 'Bobby', 'Dickens'), 'Bobby', 'Ricky');
     requestClear();
     expect(requestQuizList(requestAuthRegister(email, password, 'Bobby', 'Dickens'))).toStrictEqual(ERROR);
     expect(requestUserDetails(requestAuthRegister(email, password, 'Bobby', 'Dickens'))).toStrictEqual(ERROR);

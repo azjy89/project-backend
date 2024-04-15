@@ -53,6 +53,9 @@ import {
   trashQuizRestore,
   trashEmpty
 } from './trash';
+import {
+  playerJoin
+} from './playerJoin';
 
 // Set up web app
 const app = express();
@@ -229,9 +232,9 @@ app.post('/v2/admin/quiz', (req: Request, res: Response) => {
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
   // Request name and description as parameters
-  const { name, description, thumbnailUrl } = req.body;
+  const { name, description } = req.body;
   // Call and return quizId from adminQuizCreate
-  const response = adminQuizCreate(authUserId.authUserId, name, description, thumbnailUrl);
+  const response = adminQuizCreate(authUserId.authUserId, name, description);
   return res.status(200).json(response);
 });
 
@@ -590,9 +593,9 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Respons
   return res.status(200).json(response);
 });
 
-/**GET
+/** GET
  * Request for /v1/admin/quiz/:quizid/session/:sessionid/results
- * 
+ *
  * Get the final results for all players for a completed quiz session
  */
 app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res: Response) => {
@@ -610,6 +613,17 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res:
   return res.status(200).json(response);
 });
 
+/** POST
+ * Request for /v1/player/join
+ *
+ * Allow a guest player to join a session.
+ */
+app.post('/v1/player/join', (req:Request, res: Response) => {
+  const sessionId = parseInt(req.body.sessionId);
+  const name = req.body.name as string;
+  const response = playerJoin(sessionId, name);
+  return res.status(200).json(response);
+});
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
