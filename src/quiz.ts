@@ -1036,13 +1036,15 @@ export function sessionResultsCsv(authUserId: number, quizId: number, sessionId:
 
   const csvContent = generateCsvString(sessionFind);
 
-  // Save CSV content to a file and get the local file path
-  const localFilePath = saveCsvToFile(csvContent, sessionId.toString());
+  const fileName = sessionFind.sessionId.toString() + '.csv';
+  const localPath = path.join(__dirname, '..', 'results', fileName);
+  const folderPath = path.dirname(localPath);
 
-  // Get a publicly accessible URL pointing to the CSV file
-  const url = convertLocalPathToUrl(localFilePath);
-
-  return { url };
+  if (!fs.existsSync(folderPath)) {
+    fs.mkdirSync(folderPath, { recursive: true });
+  }
+  fs.writeFileSync(localFilePath, csvContent);
+  return { url: localPath };
 }
 
 function generateCsvString(session: QuizSession): string {
@@ -1082,23 +1084,6 @@ function generateCsvString(session: QuizSession): string {
   
   return csvContent;
 }
-
-function saveCsvToFile(csvContent: string, sessionId: string): string {
-  const directoryPath = path.join(__dirname, 'results');
-  if (!fs.existsSync(directoryPath)) {
-    fs.mkdirSync(directoryPath, { recursive: true });
-  }
-
-  const filePath = path.join(directoryPath, `${sessionId}.csv`);
-  fs.writeFileSync(filePath, csvContent);
-  return filePath;
-}
-
-function convertLocalPathToUrl(localPath: string): string {
-  // Convert the local file path to a publicly accessible URL
-}
-
-
 
 export function playerQuestionResults(playerId: number, questionPosition: number) {
   let data = getData();
