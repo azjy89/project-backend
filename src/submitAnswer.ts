@@ -81,8 +81,8 @@ function checkPlayerAnswer(playerId: number, question: Question, answerIds: numb
 }
 
 function calculateAverageAnswerTime(quizSession: QuizSession, question: Question): number {
-  
-  //get duration
-
-  return averageAnswerTime;
+  const questionPosition = quizSession.atQuestion;
+  const questionStartTime = quizSession.questionStartTimes[questionPosition - 1];
+  const answerTime = Date.now() - questionStartTime;
+  return answerTime / 1000;
 }
