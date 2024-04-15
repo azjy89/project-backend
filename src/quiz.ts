@@ -492,6 +492,7 @@ export function adminQuizQuestionUpdate(quizId: number, questionId: number, auth
   data.quizzes[quizIndex].questions[questionIndex].question = questionBody.question;
   data.quizzes[quizIndex].questions[questionIndex].points = questionBody.points;
   const colours = ['red', 'blue', 'green', 'yellow'];
+  data.quizzes[quizIndex].questions[questionIndex].answers = [];
 
   for (const answer of questionBody.answers) {
     const randomIndex = Math.floor(Math.random() * colours.length);
@@ -727,6 +728,7 @@ export function adminQuizSessionCreate(authUserId: number, quizId: number, autoS
     messages: [],
     quiz: JSON.parse(JSON.stringify(quiz)),
     questionResults: [],
+    questionStartTimes: [],
   };
 
   data.quizSessions.push(newSession);
@@ -789,21 +791,8 @@ export function sessionStatus(authUserId: number, quizId: number, sessionId: num
 
 export function sessionStateUpdate(authUserId: number, quizId: number, sessionId: number, action: Actions): object | ErrorObject {
   const data = getData();
-  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
-  if (quiz.ownerId !== authUserId) {
-    throw HTTPError(403, 'token is valid but user does not own quiz');
-  }
-
   if (!data.quizSessions.find(session => session.sessionId === sessionId && session.quizId === quizId)) {
     throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
-  }
-
-  if (action !== Actions.END &&
-      action !== Actions.GO_TO_ANSWER &&
-      action !== Actions.GO_TO_FINAL_RESULTS &&
-      action !== Actions.NEXT_QUESTION &&
-      action !== Actions.SKIP_COUNTDOWN) {
-    throw HTTPError(400, 'invalid action type');
   }
 
   const session = data.quizSessions.find(session => session.sessionId === sessionId);
@@ -837,6 +826,7 @@ export function sessionStateUpdate(authUserId: number, quizId: number, sessionId
     session.state === States.FINAL_RESULTS) && action === Actions.NEXT_QUESTION) {
     throw HTTPError(400, 'Action enum cannot be applied in the current state');
   }
+
   const timerData = getTimerData();
   if ((session.state !== States.ANSWER_SHOW && session.state !== States.END) && action === Actions.END) {
     session.state = States.END;
@@ -852,6 +842,7 @@ export function sessionStateUpdate(authUserId: number, quizId: number, sessionId
   if (session.state === States.QUESTION_COUNTDOWN && action === Actions.SKIP_COUNTDOWN) {
     const session = data.quizSessions.find(session => session.sessionId === sessionId);
     session.state = States.QUESTION_OPEN;
+    session.questionStartTimes[session.atQuestion - 1] = Date.now();
     for (const [timerIndex, timer] of timerData.timers.entries()) {
       if (timer.sessionId === sessionId) {
         clearTimeout(timer.timerId);
@@ -891,12 +882,16 @@ export function sessionStateUpdate(authUserId: number, quizId: number, sessionId
     setData(data);
     return {};
   }
+  if (action === Actions.NEXT_QUESTION && session.atQuestion === session.quiz.questions.length) {
+    throw HTTPError(400, 'Action enum cannot be applied in the current state');
+  }
 
   session.state = States.QUESTION_COUNTDOWN;
   session.atQuestion++;
   const timerId = setTimeout(() => {
     const session = data.quizSessions.find(session => session.sessionId === sessionId);
     session.state = States.QUESTION_OPEN;
+    session.questionStartTimes[session.atQuestion - 1] = Date.now();
     const timerIndex = timerData.timers.findIndex(timer => timer.timerId === timerId);
     timerData.timers.splice(timerIndex, 1);
 

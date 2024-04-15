@@ -302,6 +302,39 @@ it('successfully moves from question open to question close to countdown then to
   expect(statusRes3.state).toStrictEqual(States.FINAL_RESULTS);
 });
 
+it('fails if theres no questions after', () => {
+  const registerRes = requestAuthRegister(
+    'users@unsw.edu.au',
+    '1234abcd',
+    'FirstName',
+    'LastName'
+  );
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
+  const questionBody = {
+    question: 'When are you sleeping?',
+    duration: 5,
+    points: 5,
+    answers: [
+      {
+        answer: 'Bobby the builder',
+        correct: true
+      },
+      {
+        answer: 'Bobby the breaker',
+        correct: false
+      }
+    ],
+    thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
+  };
+  requestQuizQuestionCreate(registerRes.token, quizCreateRes.quizId, questionBody);
+  const sessionRes = requestQuizSessionCreate(registerRes.token, quizCreateRes.quizId, 2);
+  requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
+  requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.SKIP_COUNTDOWN);
+  sleepSync(questionBody.duration * 1000);
+  const stateUpdateRes = requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
+  expect(stateUpdateRes).toStrictEqual({ error: expect.any(String) });
+});
+
 it('fails if sessionId is invalid', () => {
   const registerRes = requestAuthRegister(
     'users@unsw.edu.au',
@@ -361,7 +394,7 @@ it('fails if invalid action enum', () => {
   };
   requestQuizQuestionCreate(registerRes.token, quizCreateRes.quizId, questionBody);
   const sessionRes = requestQuizSessionCreate(registerRes.token, quizCreateRes.quizId, 2);
-  const stateUpdateRes = requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.END - 1000);
+  const stateUpdateRes = requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, 'INVALID');
   expect(stateUpdateRes).toStrictEqual({ error: expect.any(String) });
 });
 
