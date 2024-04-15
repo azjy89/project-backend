@@ -130,6 +130,7 @@ export interface QuizSession {
   messages: Message[],
   quiz: Quiz,
   questionResults: QuestionResult[],
+  questionStartTimes: number[],
 }
 
 export interface Timer {

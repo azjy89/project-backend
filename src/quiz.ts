@@ -728,6 +728,7 @@ export function adminQuizSessionCreate(authUserId: number, quizId: number, autoS
     messages: [],
     quiz: JSON.parse(JSON.stringify(quiz)),
     questionResults: [],
+    questionStartTimes: [],
   };
 
   data.quizSessions.push(newSession);
@@ -841,6 +842,7 @@ export function sessionStateUpdate(authUserId: number, quizId: number, sessionId
   if (session.state === States.QUESTION_COUNTDOWN && action === Actions.SKIP_COUNTDOWN) {
     const session = data.quizSessions.find(session => session.sessionId === sessionId);
     session.state = States.QUESTION_OPEN;
+    session.questionStartTimes[session.atQuestion - 1] = Date.now();
     for (const [timerIndex, timer] of timerData.timers.entries()) {
       if (timer.sessionId === sessionId) {
         clearTimeout(timer.timerId);
@@ -889,6 +891,7 @@ export function sessionStateUpdate(authUserId: number, quizId: number, sessionId
   const timerId = setTimeout(() => {
     const session = data.quizSessions.find(session => session.sessionId === sessionId);
     session.state = States.QUESTION_OPEN;
+    session.questionStartTimes[session.atQuestion - 1] = Date.now();
     const timerIndex = timerData.timers.findIndex(timer => timer.timerId === timerId);
     timerData.timers.splice(timerIndex, 1);
 
