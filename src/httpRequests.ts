@@ -443,16 +443,11 @@ export const requestPlayerJoin = (sessionId: number, name: string) => {
   return JSON.parse(res.body.toString());
 };
 
-export const requestPlayerStatus = (sessionId: number, playerId: number) => {
+export const requestPlayerStatus = (playerId: number) => {
+  // console.log('TYPE: ' + typeof { playerId } + 'Value: ' + playerId);
   const res = request(
     'GET',
-    SERVER_URL + `/v1/player/${playerId}`,
-    {
-      headers: {
-        'Content-type': 'application/json',
-        sessionId: `${sessionId}`,
-      }
-    }
+    SERVER_URL + `/v1/player/${playerId}`
   );
   return JSON.parse(res.body.toString());
-}
+};

@@ -228,7 +228,7 @@ export interface PlayerId {
 }
 
 export interface ReturnPlayerStatus {
-  state: States,
+  state: string,
   numQuestions: number,
   atQuestion: number,
 }

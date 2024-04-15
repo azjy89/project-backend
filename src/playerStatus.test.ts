@@ -5,8 +5,6 @@ import {
   requestQuizCreate,
   requestQuizQuestionCreate,
   requestQuizSessionCreate,
-  requestSessionStateUpdate,
-  requestSessionStatus,
   requestPlayerStatus,
 } from './httpRequests';
 import {
@@ -14,8 +12,6 @@ import {
   QuizId,
   SessionId,
   QuestionBody,
-  Actions,
-  States,
   PlayerId,
 } from './interfaces';
 
@@ -35,7 +31,6 @@ const questionBody: QuestionBody = {
   ],
   thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
 };
-
 
 beforeEach(() => {
   requestClear();
@@ -57,23 +52,23 @@ describe('Testing GET /v1/player/{playerId}', () => {
     // start a new session when there's at least one question
     requestQuizQuestionCreate(user.token, quiz.quizId, questionBody);
     session = requestQuizSessionCreate(user.token, quiz.quizId, 3);
-    player = requestPlayerJoin(session.sessionId, "HAYDEN SMITH");
+    player = requestPlayerJoin(session.sessionId, 'HAYDEN SMITH');
   });
 
   // TODO: statusCode 200, OK
-  test('Succesfully returned the playerStatus', ()  => {
-    const response = requestPlayerStatus(session.sessionId, player.playerId)
+  test('Succesfully returned the playerStatus', () => {
+    const response = requestPlayerStatus(player.playerId);
     // FIX: ERROR ABOVE HERE.
     expect(response).toStrictEqual({
-      state: expect.any(States),
+      state: expect.any(String),
       numQuestions: expect.any(Number),
       atQuestion: expect.any(Number),
-    })
+    });
   });
-  
+
   // TODO: statusCode400, one error case
   test('Player Id does not exist', () => {
-    const response = requestPlayerStatus(session.sessionId, player.playerId)
+    const response = requestPlayerStatus(-1);
     expect(response).toStrictEqual({ error: 'Player Id does not exist' });
   });
 });

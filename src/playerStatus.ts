@@ -1,29 +1,42 @@
-import { getData, setData } from './dataStore';
+import { getData } from './dataStore';
 import {
   Data,
   Player,
-  PlayerId,
-  States,
-  Actions,
   ReturnPlayerStatus,
+  QuizSession,
+  States
 } from './interfaces';
-import {
-  sessionStateUpdate,
-} from './quiz';
+
 import HTTPError from 'http-errors';
 
-export const playerStatus = (playerId: number, sessionId: number): ReturnPlayerStatus => {
-    const data: Data = getData();
-    // Error Check: if player ID doesn't exist.
-    const quizSession = data.quizSessions.find(session => session.sessionId === sessionId);
-    const player = quizSession.players.find(player => player.playerId === playerId);
-    if (!player) {
-        throw HTTPError(400, 'Player Id does not exist');
+// ========================================================================== //
+//  ========================= HELPER FUNCTIONS =============================  //
+// ========================================================================== //
+export function findQuizSessionFromPlayerId(playerId: number): QuizSession {
+  // TODO: iterate over your quiz sessions until you find one that has this player ID
+  const data: Data = getData();
+  for (const session of data.quizSessions) {
+    if (session.players.find(player => player.playerId === playerId)) {
+      return session;
     }
-    //  Return Output
-    return {
-        state: player.state,
-        numQuestions: player.numQuestions,
-        atQuestion: player.atQuestion,
-    };
+  }
+  // ErrorCheck: playerId not found; invalid playerId.
+  throw HTTPError(400, 'Player Id does not exist');
+}
+
+// ========================================================================== //
+
+export const playerStatus = (playerId: number): ReturnPlayerStatus => {
+  // Find quizSession (ErrorCheck included):
+  const quizSession = findQuizSessionFromPlayerId(playerId);
+
+  // Find player in quizSession:
+  const player: Player = quizSession.players.find(player => player.playerId === playerId);
+
+  //  Return Output
+  return {
+    state: States[player.state],
+    numQuestions: player.numQuestions,
+    atQuestion: player.atQuestion,
+  };
 };

@@ -636,18 +636,11 @@ app.post('/v1/player/join', (req: Request, res: Response) => {
  *
  * Get the status of a guest player that has already joined a session.
  */
-app.get('/v1/player/:playerid', (res: Response, req: Request) => {
+app.get('/v1/player/:playerid', (req: Request, res: Response) => {
   // Parse playerId to int
-  console.log("PROBLEM!!!:")
-  console.log(req.params.playerid)
-  const playerId = parseInt(req.params.playerId);
-  console.log("Here:")
-  console.log(playerId)
-  // Parse sessionId into int
-  const sessionId = parseInt(req.headers.sessionId as string);
-  console.log(sessionId)
+  const playerId = parseInt(req.params.playerid);
   // Call and return playerStatus
-  const response = playerStatus(playerId, sessionId);
+  const response = playerStatus(playerId);
   return res.status(200).json(response);
 });
 
