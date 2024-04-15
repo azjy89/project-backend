@@ -2,9 +2,8 @@ import {
   requestClear,
   requestQuizCreate,
   requestAuthRegister,
-  requestQuizCreate,
   requestQuizQuestionCreate,
-  requestSessionCreate,
+  requestQuizSessionCreate,
   requestPlayerJoin,
   requestAuthLogout,
   requestSessionResults,
@@ -20,7 +19,8 @@ import {
   SessionId,
   PlayerId,
   QuestionBody,
-  Actions
+  Actions,
+  QuestionId
 } from './interfaces';
 
 const ERROR = { error: expect.any(String) };
@@ -111,7 +111,7 @@ describe('Error handling', () => {
     quizRes = requestQuizCreate(token.token, quizName, quizDescription);
     quizId = quizRes as QuizId;
     requestQuizQuestionCreate(token.token, quizId.quizId, questionBody);
-    sessionRes = requestSessionCreate(token.token, quizId.quizId, 5);
+    sessionRes = requestQuizSessionCreate(token.token, quizId.quizId, 5);
     sessionId = sessionRes as SessionId;
     requestPlayerJoin(sessionId.sessionId, player1);
   });
@@ -134,8 +134,8 @@ describe('Error handling', () => {
     expect(requestSessionResults(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
     expect(requestSessionResultsCsv(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
     // Transition state to final results
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'NEXT_QUESTION');
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'GO_TO_FINAL_RESULTS');
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_FINAL_RESULTS);
     // quizId does not refer to a valid quiz
     expect(requestSessionResults(token.token, 123, sessionId.sessionId)).toStrictEqual(ERROR);
     expect(requestSessionResultsCsv(token.token, 123, sessionId.sessionId)).toStrictEqual(ERROR);
@@ -147,7 +147,7 @@ describe('Error handling', () => {
     expect(requestSessionResults(token.token, randomQuizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
     expect(requestSessionResultsCsv(token.token, randomQuizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
 
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'END');
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.END);
     expect(requestSessionResults(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
     expect(requestSessionResultsCsv(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
   });
@@ -179,7 +179,7 @@ describe('Successful output for successful', () => {
     questionId1 = question1 as QuestionId;
     questionId2 = question2 as QuestionId;
     questionId3 = question3 as QuestionId;
-    sessionRes = requestSessionCreate(token.token, quizId.quizId, 5);
+    sessionRes = requestQuizSessionCreate(token.token, quizId.quizId, 5);
     sessionId = sessionRes as SessionId;
     playerRes = requestPlayerJoin(sessionId.sessionId, player1);
     playerId = playerRes as PlayerId;
@@ -191,15 +191,15 @@ describe('Successful output for successful', () => {
     const playerRes3 = requestPlayerJoin(sessionId.sessionId, player3);
     const playerId3 = playerRes3 as PlayerId;
     
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'NEXT_QUESTION');
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
     requestPlayerAnswerSubmit(playerId.playerId, 1, [0]);
     requestPlayerAnswerSubmit(playerId2.playerId, 1, [1]);
     requestPlayerAnswerSubmit(playerId3.playerId, 1, [1]);
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'NEXT_QUESTION');
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
     requestPlayerAnswerSubmit(playerId.playerId, 2, [0, 2]);
     requestPlayerAnswerSubmit(playerId2.playerId, 2, [0, 2]);
     requestPlayerAnswerSubmit(playerId3.playerId, 2, [1]);
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'GO_TO_FINAL_RESULTS');
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_FINAL_RESULTS);
     expect(requestSessionResults(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(
       {
         usersRankedByScore: [

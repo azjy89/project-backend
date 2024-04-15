@@ -1,9 +1,9 @@
 import {
   requestClear,
-  requestQuizCreaste,
+  requestQuizCreate,
   requestAuthRegister,
   requestQuizQuestionCreate,
-  requestSessionCreate,
+  requestQuizSessionCreate,
   requestPlayerJoin,
   requestPlayerAnswerSubmit,
   requestSessionStateUpdate,
@@ -20,7 +20,8 @@ import {
   SessionId,
   PlayerId,
   QuestionBody,
-  Actions
+  Actions,
+  QuestionId
 } from './interfaces';
 
 const firstName = 'Bobby';
@@ -109,7 +110,7 @@ describe('Error handling', () => {
     quizRes = requestQuizCreate(token.token, quizName, quizDescription);
     quizId = quizRes as QuizId;
     requestQuizQuestionCreate(token.token, quizId.quizId, questionBody);
-    sessionRes = requestSessionCreate(token.token, quizId.quizId, 5);
+    sessionRes = requestQuizSessionCreate(token.token, quizId.quizId, 5);
     sessionId = sessionRes as SessionId;
     playerRes1 = requestPlayerJoin(sessionId.sessionId, player1);
     playerId1 = playerRes1 as PlayerId;
@@ -118,8 +119,8 @@ describe('Error handling', () => {
   test('Invalid state or ID of some form', () => {
     // Lobby state
     expect(requestPlayerFinalResults(playerId1.playerId)).toStrictEqual(ERROR);
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'NEXT_QUESTION');
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'GO_TO_FINAL_RESULTS');
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_FINAL_RESULTS);
     // Playerid doesnt exist
     expect(requestPlayerFinalResults(123)).toStrictEqual(ERROR);
   });
@@ -132,6 +133,12 @@ describe('Successful playerfinalresults', () => {
   let quizId: QuizId;
   let sessionId: SessionId;
   let playerId1: PlayerId;
+  let questionId1: QuestionId;
+  let questionId2: QuestionId;
+  let question1: QuestionId | ErrorObject;
+  let question2: QuestionId | ErrorObject;
+  let quizRes: QuizId | ErrorObject;
+  let registerRes: Token | ErrorObject;
   beforeEach(() => {
     registerRes = requestAuthRegister(email, password, firstName, lastName);
     token = registerRes as Token;
@@ -141,7 +148,7 @@ describe('Successful playerfinalresults', () => {
     question2 = requestQuizQuestionCreate(token.token, quizId.quizId, questionBody1);
     questionId1 = question1 as QuestionId;
     questionId2 = question2 as QuestionId;
-    sessionRes = requestSessionCreate(token.token, quizId.quizId, 3);
+    sessionRes = requestQuizSessionCreate(token.token, quizId.quizId, 3);
     sessionId = sessionRes as SessionId;
     playerRes1 = requestPlayerJoin(sessionId.sessionId, player1);
     playerId1 = playerRes1 as PlayerId;
@@ -153,16 +160,16 @@ describe('Successful playerfinalresults', () => {
     const playerId2 = playerRes2 as PlayerId;
     const playerId3 = playerRes3 as PlayerId;
 
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'NEXT_QUESTION');
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
     requestPlayerAnswerSubmit(playerId1.playerId, 1, [0]);
     requestPlayerAnswerSubmit(playerId2.playerId, 1, [1]);
     requestPlayerAnswerSubmit(playerId3.playerId, 1, [1]);
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'NEXT_QUESTION');
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
     requestPlayerAnswerSubmit(playerId1.playerId, 2, [0, 2]);
     requestPlayerAnswerSubmit(playerId2.playerId, 2, [0, 2]);
     requestPlayerAnswerSubmit(playerId3.playerId, 2, [1]);
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'GO_TO_FINAL_RESULTS');
-    expect(requestPlayerFinalResults(playerId.playerId)).toStrictEqual(
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_FINAL_RESULTS);
+    expect(requestPlayerFinalResults(playerId1.playerId)).toStrictEqual(
       {
         usersRankedByScore: [
           {

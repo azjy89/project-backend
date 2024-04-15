@@ -989,7 +989,7 @@ export function sessionResults(authUserId: number, quizId: number, sessionId: nu
   if (sessionFind.quizId !== quizId) {
     throw HTTPError(400, 'Session and quiz do not match');
   }
-  if (sessionFind.state !== 'FINAL_RESULTS') {
+  if (sessionFind.state !== States.FINAL_RESULTS) {
     throw HTTPError(400, 'Invalid state for showing final results');
   }
   
@@ -1030,7 +1030,7 @@ export function sessionResultsCsv(authUserId: number, quizId: number, sessionId:
     throw HTTPError(400, 'sessionId does not refer to a valid session');
   }
 
-  if (sessionFind.state !== 'FINAL_RESULTS') {
+  if (sessionFind.state !== States.FINAL_RESULTS) {
     throw HTTPError(400, 'Session is not in FINAL_RESULTS state');
   }
 
@@ -1117,7 +1117,7 @@ export function playerQuestionResults(playerId: number, questionPosition: number
 
   const questionId = sessionFind.quiz.questions[questionPosition - 1].questionId;
 
-  const questionResult = sessionFind.questionResults.find(qr => qr.quetsionId === questionId);
+  const questionResult = sessionFind.questionResults.find(qr => qr.questionId === questionId);
 
   if (!questionResult) {
     throw HTTPError(400, 'Question result not found for the given questionId');

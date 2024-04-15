@@ -3,7 +3,7 @@ import {
   requestQuizCreate,
   requestAuthRegister,
   requestQuizQuestionCreate,
-  requestSessionCreate,
+  requestQuizSessionCreate,
   requestPlayerJoin,
   requestPlayerAnswerSubmit,
   requestPlayerQuestionResults,
@@ -114,7 +114,7 @@ describe('Error handling', () => {
     quizId = quizRes as QuizId;
     requestQuizQuestionCreate(token.token, quizId.quizId, questionBody);
     requestQuizQuestionCreate(token.token, quizId.quizId, questionBody1);
-    sessionRes = requestSessionCreate(token.token, quizId.quizId, 3);
+    sessionRes = requestQuizSessionCreate(token.token, quizId.quizId, 3);
     sessionId = sessionRes as SessionId;
     playerRes1 = requestPlayerJoin(sessionId.sessionId, player1);
     playerRes2 = requestPlayerJoin(sessionId.sessionId, player2);
@@ -130,7 +130,7 @@ describe('Error handling', () => {
   test('Invalid state or ID of some form', () => {
     // Lobby state
     expect(requestPlayerQuestionResults(playerId1.playerId, 1)).toStrictEqual(ERROR);
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'GO_TO_ANSWER');
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_ANSWER);
     // Question position not reached yet
     expect(requestPlayerQuestionResults(playerId1.playerId, 2)).toStrictEqual(ERROR);
     // Questionposition doesnt exist
@@ -141,6 +141,8 @@ describe('Error handling', () => {
 });
 
 describe('Successful playerquestionresults', () => {
+  let registerRes: Token | ErrorObject;
+  let quizRes: QuizId | ErrorObject;
   let sessionRes: SessionId | ErrorObject;
   let playerRes1: PlayerId | ErrorObject;
   let playerRes2: PlayerId | ErrorObject;
@@ -158,7 +160,7 @@ describe('Successful playerquestionresults', () => {
     quizId = quizRes as QuizId;
     requestQuizQuestionCreate(token.token, quizId.quizId, questionBody);
     requestQuizQuestionCreate(token.token, quizId.quizId, questionBody1);
-    sessionRes = requestSessionCreate(token.token, quizId.quizId, 3);
+    sessionRes = requestQuizSessionCreate(token.token, quizId.quizId, 3);
     sessionId = sessionRes as SessionId;
     playerRes1 = requestPlayerJoin(sessionId.sessionId, player1);
     playerRes2 = requestPlayerJoin(sessionId.sessionId, player2);
@@ -169,7 +171,7 @@ describe('Successful playerquestionresults', () => {
     requestPlayerAnswerSubmit(playerId1.playerId, 1, [0]);
     requestPlayerAnswerSubmit(playerId2.playerId, 1, [0]);
     requestPlayerAnswerSubmit(playerId3.playerId, 1, [1]);
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'GO_TO_ANSWER');
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_ANSWER);
   });
   test('Successful', () => {
     expect(requestPlayerQuestionResults(playerId1.playerId, 1)).toStrictEqual({
@@ -199,50 +201,54 @@ describe('Successful playerquestionresults', () => {
       averageAnswerTime: NUMBER,
       percentCorrect: 50
     });
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'NEXT_QUESTION');
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
     requestPlayerAnswerSubmit(playerId1.playerId, 2, [0, 1]);
     requestPlayerAnswerSubmit(playerId2.playerId, 2, [1, 0]);
     requestPlayerAnswerSubmit(playerId3.playerId, 2, [0, 2]);
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'GO_TO_ANSWER');
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_ANSWER);
     expect(requestPlayerQuestionResults(playerId1.playerId, 2)).toStrictEqual(
-      {
-        questionId: NUMBER,
-        playersCorrectList: [
-          'Rorry',
-          'Coccy',
-          'Nonny',
-        ],
-        averageAnswerTime: NUMBER,
-        percentCorrect: 25
-      },
-      {
-        questionId: NUMBER,
-        playersCorrectList: [
-          'Coccy',
-        ],
-        averageAnswerTime: NUMBER,
-        percentCorrect: 25
-      }
+      [
+        {
+          questionId: NUMBER,
+          playersCorrectList: [
+            'Rorry',
+            'Coccy',
+            'Nonny',
+          ],
+          averageAnswerTime: NUMBER,
+          percentCorrect: 25
+        },
+        {
+          questionId: NUMBER,
+          playersCorrectList: [
+            'Coccy',
+          ],
+          averageAnswerTime: NUMBER,
+          percentCorrect: 25
+        }
+      ]
     );
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'NEXT_QUESTION');
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'GO_TO_ANSWER');
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_ANSWER);
     expect(requestPlayerQuestionResults(playerId1.playerId, 3)).toStrictEqual(
-      {
-        questionId: NUMBER,
-        playersCorrectList: [
-          
-        ],
-        averageAnswerTime: 0,
-        averageAnswerTime: 0
-      },
-      {
-        questionId: NUMBER,
-        playersCorrectList: [
-          
-        ],
-        averageAnswerTime: 0,
-        averageAnswerTime: 0
-      }
+      [
+        {
+          questionId: NUMBER,
+          playersCorrectList: [
+            
+          ],
+          averageAnswerTime: 0,
+          percentCorrect: 0
+        },
+        {
+          questionId: NUMBER,
+          playersCorrectList: [
+            
+          ],
+          averageAnswerTime: 0,
+          percentCorrect: 0
+        }
+      ]
     );
   });
 });
