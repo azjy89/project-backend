@@ -3,13 +3,11 @@ import {
   requestQuizCreate,
   requestClear,
   requestQuizQuestionCreate,
-  requestAuthLogout,
-  requestQuizInfo,
+  requestPlayerJoin,
   requestQuizSessionCreate,
-  requestSessionStatus,
+  requestMessagesList,
+  requestMessageSend,
 } from './httpRequests';
-
-import { States } from './interfaces';
 
 beforeEach(() => {
   requestClear();
@@ -19,7 +17,9 @@ afterAll(() => {
   requestClear();
 });
 
-it('successfuly shows session info', () => {
+const validMessage = 'Hello everyone! Nice to chat.';
+
+it('successfully lists a messsage', () => {
   const registerRes = requestAuthRegister(
     'users@unsw.edu.au',
     '1234abcd',
@@ -44,17 +44,63 @@ it('successfuly shows session info', () => {
     thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
   };
   requestQuizQuestionCreate(registerRes.token, quizCreateRes.quizId, questionBody);
-  const sessionRes = requestQuizSessionCreate(registerRes.token, quizCreateRes.quizId, 2);
-  const quizInfoRes = requestQuizInfo(registerRes.token, quizCreateRes.quizId);
-  expect(requestSessionStatus(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId)).toStrictEqual({
-    state: States.LOBBY,
-    atQuestion: 0,
-    players: [],
-    metadata: quizInfoRes,
+  const sessionRes = requestQuizSessionCreate(registerRes.token, quizCreateRes.quizId, 4);
+  const joinRes = requestPlayerJoin(sessionRes.sessionId, 'name');
+  const messageRes = requestMessageSend(joinRes.playerId, validMessage);
+  expect(messageRes).toStrictEqual({});
+  const listRes = requestMessagesList(joinRes.playerId);
+  expect(listRes.messages).toStrictEqual([
+    {
+      messageBody: `${validMessage}`,
+      playerId: joinRes.playerId,
+      playerName: 'name',
+      timeSent: expect.any(Number),
+    }
+  ]);
+});
+
+it('successfully lists a messsage', () => {
+  const registerRes = requestAuthRegister(
+    'users@unsw.edu.au',
+    '1234abcd',
+    'FirstName',
+    'LastName'
+  );
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
+  const questionBody = {
+    question: 'When are you sleeping?',
+    duration: 5,
+    points: 5,
+    answers: [
+      {
+        answer: 'Bobby the builder',
+        correct: true
+      },
+      {
+        answer: 'Bobby the breaker',
+        correct: false
+      }
+    ],
+    thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
+  };
+  requestQuizQuestionCreate(registerRes.token, quizCreateRes.quizId, questionBody);
+  const sessionRes = requestQuizSessionCreate(registerRes.token, quizCreateRes.quizId, 4);
+  const joinRes = requestPlayerJoin(sessionRes.sessionId, 'name');
+  requestMessageSend(joinRes.playerId, validMessage);
+  const listRes = requestMessagesList(joinRes.playerId);
+  expect(listRes).toStrictEqual({
+    messages: [
+      {
+        messageBody: `${validMessage}`,
+        playerId: joinRes.playerId,
+        playerName: 'name',
+        timeSent: expect.any(Number),
+      }
+    ]
   });
 });
 
-it('fails if token is empty or invalid', () => {
+it('two players successfully lists two messsages from two different players', () => {
   const registerRes = requestAuthRegister(
     'users@unsw.edu.au',
     '1234abcd',
@@ -79,12 +125,33 @@ it('fails if token is empty or invalid', () => {
     thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
   };
   requestQuizQuestionCreate(registerRes.token, quizCreateRes.quizId, questionBody);
-  const sessionRes = requestQuizSessionCreate(registerRes.token, quizCreateRes.quizId, 2);
-  requestAuthLogout(registerRes.token);
-  expect(requestSessionStatus(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId)).toStrictEqual({ error: expect.any(String) });
+  const sessionRes = requestQuizSessionCreate(registerRes.token, quizCreateRes.quizId, 4);
+  const joinRes = requestPlayerJoin(sessionRes.sessionId, 'name');
+  const joinRes2 = requestPlayerJoin(sessionRes.sessionId, 'name2');
+  const messageRes = requestMessageSend(joinRes.playerId, validMessage);
+  const messageRes2 = requestMessageSend(joinRes2.playerId, validMessage);
+  expect(messageRes).toStrictEqual({});
+  expect(messageRes2).toStrictEqual({});
+  const listRes = requestMessagesList(joinRes.playerId);
+  expect(listRes).toStrictEqual({
+    messages: [
+      {
+        messageBody: `${validMessage}`,
+        playerId: joinRes.playerId,
+        playerName: 'name',
+        timeSent: expect.any(Number),
+      },
+      {
+        messageBody: `${validMessage}`,
+        playerId: joinRes2.playerId,
+        playerName: 'name2',
+        timeSent: expect.any(Number),
+      }
+    ]
+  });
 });
 
-it('fails if sessionid is invalid', () => {
+it('fails if playerId does not exist', () => {
   const registerRes = requestAuthRegister(
     'users@unsw.edu.au',
     '1234abcd',
@@ -109,43 +176,9 @@ it('fails if sessionid is invalid', () => {
     thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
   };
   requestQuizQuestionCreate(registerRes.token, quizCreateRes.quizId, questionBody);
-  const quizCreateRes2 = requestQuizCreate(registerRes.token, 'quiz2', 'quiz2');
-  requestQuizQuestionCreate(registerRes.token, quizCreateRes2.quizId, questionBody);
-  const sessionRes = requestQuizSessionCreate(registerRes.token, quizCreateRes.quizId, 2);
-  expect(requestSessionStatus(registerRes.token, quizCreateRes2.quizId, sessionRes.sessionId)).toStrictEqual({ error: expect.any(String) });
-});
-
-it('fails if token is valid but user does not own quiz', () => {
-  const registerRes = requestAuthRegister(
-    'users@unsw.edu.au',
-    '1234abcd',
-    'FirstName',
-    'LastName'
-  );
-  const registerRes2 = requestAuthRegister(
-    'users2@unsw.edu.au',
-    '1234abcd',
-    'FirstName',
-    'LastName'
-  );
-  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
-  const questionBody = {
-    question: 'When are you sleeping?',
-    duration: 5,
-    points: 5,
-    answers: [
-      {
-        answer: 'Bobby the builder',
-        correct: true
-      },
-      {
-        answer: 'Bobby the breaker',
-        correct: false
-      }
-    ],
-    thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
-  };
-  requestQuizQuestionCreate(registerRes.token, quizCreateRes.quizId, questionBody);
-  const sessionRes = requestQuizSessionCreate(registerRes.token, quizCreateRes.quizId, 2);
-  expect(requestSessionStatus(registerRes2.token, quizCreateRes.quizId, sessionRes.sessionId)).toStrictEqual({ error: expect.any(String) });
+  const sessionRes = requestQuizSessionCreate(registerRes.token, quizCreateRes.quizId, 4);
+  const joinRes = requestPlayerJoin(sessionRes.sessionId, 'name');
+  requestMessageSend(joinRes.playerId, validMessage);
+  const listRes = requestMessagesList(joinRes.playerId + 1);
+  expect(listRes).toStrictEqual({ error: expect.any(String) });
 });

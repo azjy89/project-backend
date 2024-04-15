@@ -82,7 +82,7 @@ describe('Testing POST /v1/admin/quiz/{quizid}/restore', () => {
   test('user is not an owner of this quiz', () => {
     const resToken1 = requestAuthRegister('quiz@unsw.edu.au',
       'abcd1234', 'Bobby', 'Dickens');
-    const resToken2 = requestAuthRegister('quiz@unsw.edu.au',
+    const resToken2 = requestAuthRegister('quiz2@unsw.edu.au',
       'abcd1234', 'Bobby', 'Dickens');
     const resQuizId1 = requestQuizCreate(resToken1.token, 'COMP1531', 'Welcome!');
     requestQuizRemove(resToken1.token, resQuizId1.quizId);
@@ -143,7 +143,7 @@ describe('Testing DELETE /v1/admin/quiz/trash/empty', () => {
   test('user is not an owner of this quiz', () => {
     const resToken1 = requestAuthRegister('quiz@unsw.edu.au',
       'abcd1234', 'Bobby', 'Dickens');
-    const resToken2 = requestAuthRegister('quiz@unsw.edu.au',
+    const resToken2 = requestAuthRegister('quiz2@unsw.edu.au',
       'abcd1234', 'Bobby', 'Dickens');
     const resQuizId1 = requestQuizCreate(resToken1.token, 'COMP1531', 'Welcome!');
     const resQuizId2 = requestQuizCreate(resToken1.token, 'COMP1532', 'Welcome!');
