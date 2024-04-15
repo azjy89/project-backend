@@ -11,8 +11,6 @@ import {
 
 import { States, Actions } from './interfaces';
 
-import { getData, getTimerData } from './dataStore';
-
 import { sleepSync } from './helpers';
 
 beforeEach(() => {
@@ -59,6 +57,43 @@ it('successfully updates a session from lobby to countdown', () => {
   sleepSync(5 * 1000);
   const statusRes3 = requestSessionStatus(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId);
   expect(statusRes3.state).toStrictEqual(States.QUESTION_CLOSE);
+});
+
+it('successfully udpates a session to end when theres another session also with a timer', () => {
+  const registerRes = requestAuthRegister(
+    'users@unsw.edu.au',
+    '1234abcd',
+    'FirstName',
+    'LastName'
+  );
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
+  const questionBody = {
+    question: 'When are you sleeping?',
+    duration: 5,
+    points: 5,
+    answers: [
+      {
+        answer: 'Bobby the builder',
+        correct: true
+      },
+      {
+        answer: 'Bobby the breaker',
+        correct: false
+      }
+    ],
+    thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
+  };
+  requestQuizQuestionCreate(registerRes.token, quizCreateRes.quizId, questionBody);
+  const sessionRes1 = requestQuizSessionCreate(registerRes.token, quizCreateRes.quizId, 2);
+  const sessionRes2 = requestQuizSessionCreate(registerRes.token, quizCreateRes.quizId, 3);
+  requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes1.sessionId, Actions.NEXT_QUESTION);
+  requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes2.sessionId, Actions.NEXT_QUESTION);
+  const stateUpdateRes = requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes1.sessionId, Actions.END);
+  expect(stateUpdateRes).toStrictEqual({});
+  const statusRes = requestSessionStatus(registerRes.token, quizCreateRes.quizId, sessionRes1.sessionId);
+  expect(statusRes.state).toStrictEqual(States.END);
+  const statusRes2 = requestSessionStatus(registerRes.token, quizCreateRes.quizId, sessionRes2.sessionId);
+  expect(statusRes2.state).toStrictEqual(States.QUESTION_COUNTDOWN);
 });
 
 it('successfully udpates a session to end', () => {
@@ -132,7 +167,83 @@ it('successfully skips countdown', () => {
   expect(statusRes3.state).toStrictEqual(States.QUESTION_CLOSE);
 });
 
-it('successfully moves from question open toquestion close to countdown then to open then to close then to answer show then to final results', () => {
+it('successfully skips countdown with another active session with a timer', () => {
+  const registerRes = requestAuthRegister(
+    'users@unsw.edu.au',
+    '1234abcd',
+    'FirstName',
+    'LastName'
+  );
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
+  const questionBody = {
+    question: 'When are you sleeping?',
+    duration: 5,
+    points: 5,
+    answers: [
+      {
+        answer: 'Bobby the builder',
+        correct: true
+      },
+      {
+        answer: 'Bobby the breaker',
+        correct: false
+      }
+    ],
+    thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
+  };
+  requestQuizQuestionCreate(registerRes.token, quizCreateRes.quizId, questionBody);
+  const sessionRes = requestQuizSessionCreate(registerRes.token, quizCreateRes.quizId, 2);
+  const sessionRes2 = requestQuizSessionCreate(registerRes.token, quizCreateRes.quizId, 3);
+  requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes2.sessionId, Actions.NEXT_QUESTION);
+  const stateUpdateRes1 = requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
+  expect(stateUpdateRes1).toStrictEqual({});
+  const statusRes1 = requestSessionStatus(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId);
+  expect(statusRes1.state).toStrictEqual(States.QUESTION_COUNTDOWN);
+  const stateUpdateRes2 = requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.SKIP_COUNTDOWN);
+  expect(stateUpdateRes2).toStrictEqual({});
+  const statusRes4 = requestSessionStatus(registerRes.token, quizCreateRes.quizId, sessionRes2.sessionId);
+  expect(statusRes4.state).toStrictEqual(States.QUESTION_COUNTDOWN);
+  const statusRes2 = requestSessionStatus(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId);
+  expect(statusRes2.state).toStrictEqual(States.QUESTION_OPEN);
+  sleepSync(questionBody.duration * 1000);
+  const statusRes3 = requestSessionStatus(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId);
+  expect(statusRes3.state).toStrictEqual(States.QUESTION_CLOSE);
+});
+
+it('successfully goes from question open to end', () => {
+  const registerRes = requestAuthRegister(
+    'users@unsw.edu.au',
+    '1234abcd',
+    'FirstName',
+    'LastName'
+  );
+  const quizCreateRes = requestQuizCreate(registerRes.token, 'quiz', 'quiz');
+  const questionBody = {
+    question: 'When are you sleeping?',
+    duration: 5,
+    points: 5,
+    answers: [
+      {
+        answer: 'Bobby the builder',
+        correct: true
+      },
+      {
+        answer: 'Bobby the breaker',
+        correct: false
+      }
+    ],
+    thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
+  };
+  requestQuizQuestionCreate(registerRes.token, quizCreateRes.quizId, questionBody);
+  const sessionRes = requestQuizSessionCreate(registerRes.token, quizCreateRes.quizId, 2);
+  requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
+  requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.SKIP_COUNTDOWN);
+  requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.END);
+  const statusRes = requestSessionStatus(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId);
+  expect(statusRes.state).toStrictEqual(States.END);
+});
+
+it('successfully moves from question open to question close to countdown then to open then to close then to answer show then to final results', () => {
   const registerRes = requestAuthRegister(
     'users@unsw.edu.au',
     '1234abcd',
@@ -293,7 +404,7 @@ it('fails if token is valid but user does not own quiz', () => {
     'LastName'
   );
   const registerRes2 = requestAuthRegister(
-    'users@unsw.edu.au',
+    'users2@unsw.edu.au',
     '1234abcd',
     'FirstName',
     'LastName'
