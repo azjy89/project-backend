@@ -18,6 +18,7 @@ import {
   SessionList,
   SessionStatus,
   AdminQuizInfoReturn,
+  SessionResults
 } from './interfaces';
 
 import HTTPError from 'http-errors';
@@ -972,7 +973,7 @@ export function sessionStateUpdate(authUserId: number, quizId: number, sessionId
   return {};
 }
 
-export function sessionResults(authUserId: number, quizId: number, sessionId: number): object | ErrorObject {
+export function sessionResults(authUserId: number, quizId: number, sessionId: number): SessionResults | ErrorObject {
   const data = getData();
   const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
   if (!quizFind) {
@@ -1015,7 +1016,7 @@ export function sessionResults(authUserId: number, quizId: number, sessionId: nu
 
 }
 
-export function sessionResultsCsv(authUserId: number, quizId: number, sessionId: number) {
+export function sessionResultsCsv(authUserId: number, quizId: number, sessionId: number): object | ErrorObject {
   const data = getData();
   const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
   if (!quizFind) {

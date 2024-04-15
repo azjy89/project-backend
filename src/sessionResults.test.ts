@@ -10,7 +10,7 @@ import {
   requestSessionResults,
   requestSessionStateUpdate,
   requestPlayerAnswerSubmit,
-  requestSessionResultsCSV
+  requestSessionResultsCsv
 } from './httpRequests';
 
 import {
@@ -19,7 +19,8 @@ import {
   QuizId,
   SessionId,
   PlayerId,
-  QuestionBody
+  QuestionBody,
+  Actions
 } from './interfaces';
 
 const ERROR = { error: expect.any(String) };

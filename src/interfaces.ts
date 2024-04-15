@@ -227,8 +227,8 @@ export interface AdminQuizInfoReturn {
   duration: number,
   thumbnailUrl: string,
 }
-/*
+
 export interface SessionResults {
   usersRankedByScore: [],
   questionResults: []
-}*/
+}

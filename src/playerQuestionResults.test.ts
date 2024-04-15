@@ -7,7 +7,7 @@ import {
   requestPlayerJoin,
   requestPlayerAnswerSubmit,
   requestPlayerQuestionResults,
-  requestSessionStateUpdate
+  requestSessionStateUpdate,
 } from './httpRequests';
 
 const ERROR = { error: expect.any(String) };
@@ -19,7 +19,8 @@ import {
   QuizId,
   SessionId,
   PlayerId,
-  QuestionBody
+  QuestionBody,
+  Actions
 } from './interfaces';
 
 const firstName = 'Bobby';

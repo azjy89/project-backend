@@ -19,7 +19,8 @@ import {
   QuizId,
   SessionId,
   PlayerId,
-  QuestionBody
+  QuestionBody,
+  Actions
 } from './interfaces';
 
 const firstName = 'Bobby';
