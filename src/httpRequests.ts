@@ -502,10 +502,31 @@ export const requestPlayerFinalResults = (playerId: number) => {
   return JSON.parse(res.body.toString());
 };
 
+export const requestQuestionInfo = (playerid: number, questionposition: number) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/player/${playerid}/question/${questionposition}`
+  );
+  return JSON.parse(res.body.toString());
+};
+
 export const requestMessagesList = (playerId: number) => {
   const res = request(
     'GET',
     SERVER_URL + `/v1/player/${playerId}/chat`
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestQuestionSubmit = (playerid: number, questionposition: number, answerIds: number[]) => {
+  const res = request(
+    'PUT',
+    SERVER_URL + `/v1/player/${playerid}/question/${questionposition}/answer`,
+    {
+      json: {
+        answerIds: answerIds,
+      }
+    }
   );
   return JSON.parse(res.body.toString());
 };
