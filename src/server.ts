@@ -62,6 +62,10 @@ import {
   playerStatus
 } from './playerStatus'
 
+import {
+  playerSubmitAnswer
+} from './submitAnswer';
+
 import { getData } from './dataStore';
 
 import { messagesList } from './messagesList';
@@ -696,6 +700,14 @@ app.get('/v1/player/:playerid/question/:questionposition', (req:Request, res: Re
   const playerid = parseInt(req.params.playerid);
   const questionposition = parseInt(req.params.questionposition);
   const response = getQuestionInfo(playerid, questionposition);
+  return res.status(200).json(response);
+});
+
+app.put('/v1/player/:playerid/question/:questionposition/answer', (req:Request, res: Response) => {
+  const playerid = parseInt(req.params.playerid);
+  const questionposition = parseInt(req.params.questionposition);
+  const answerIds = req.body.answerIds;
+  const response = playerSubmitAnswer(playerid, questionposition, answerIds);
   return res.status(200).json(response);
 });
 
