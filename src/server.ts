@@ -48,6 +48,7 @@ import {
 } from './other';
 
 import {
+  Actions,
   AuthUserId
 } from './interfaces';
 
@@ -56,9 +57,19 @@ import {
   trashQuizRestore,
   trashEmpty
 } from './trash';
+
 import {
   playerJoin
 } from './playerJoin';
+import {
+  playerStatus
+} from './playerStatus'
+
+import { getData } from './dataStore';
+
+import { messagesList } from './messagesList';
+import { messageSend } from './messageSend';
+import HTTPError from 'http-errors';
 
 // Set up web app
 const app = express();
@@ -565,13 +576,37 @@ app.put('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Respons
   // Parse quizId as int
   const quizId = parseInt(req.params.quizid);
   const sessionId = parseInt(req.params.sessionid);
-
-  const action = parseInt(req.body.action);
   // Get token as a header
   const token = req.headers.token as string;
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
+  const data = getData();
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (quiz.ownerId !== authUserId.authUserId) {
+    throw HTTPError(403, 'token is valid but user does not own quiz');
+  }
+  const actionString = req.body.action as string;
+  let action: Actions;
+  switch (actionString) {
+    case 'END':
+      action = Actions.END;
+      break;
+    case 'NEXT_QUESTION':
+      action = Actions.NEXT_QUESTION;
+      break;
+    case 'GO_TO_ANSWER':
+      action = Actions.GO_TO_ANSWER;
+      break;
+    case 'GO_TO_FINAL_RESULTS':
+      action = Actions.GO_TO_FINAL_RESULTS;
+      break;
+    case 'SKIP_COUNTDOWN':
+      action = Actions.SKIP_COUNTDOWN;
+      break;
+    default:
+      throw HTTPError(400, 'Invalid ');
+  }
 
   const response = sessionStateUpdate(authUserId.authUserId, quizId, sessionId, action);
   return res.status(200).json(response);
@@ -593,6 +628,31 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Respons
   const authUserId = userId as AuthUserId;
 
   const response = sessionStatus(authUserId.authUserId, quizId, sessionId);
+  return res.status(200).json(response);
+});
+
+/**
+ * Request for /v1/player/:playerid/chat
+ *
+ * Get list of messages for a session a player is in
+ */
+app.get('/v1/player/:playerid/chat', (req: Request, res: Response) => {
+  const playerId = parseInt(req.params.playerid);
+  const response = messagesList(playerId);
+
+  return res.status(200).json(response);
+});
+
+/**
+ * Request for /v1/player/{playerid}/chat
+ *
+ * Send a message for a specified player
+ */
+app.post('/v1/player/:playerid/chat', (req: Request, res: Response) => {
+  const playerId = parseInt(req.params.playerid);
+  const messageBody = req.body.message.messageBody as string;
+  const response = messageSend(playerId, messageBody);
+
   return res.status(200).json(response);
 });
 
@@ -668,10 +728,26 @@ app.get('/v1/player/:playerid/results', (req: Request, res: Response) => {
  *
  * Allow a guest player to join a session.
  */
-app.post('/v1/player/join', (req:Request, res: Response) => {
+app.post('/v1/player/join', (req: Request, res: Response) => {
+  // Parse sessionId to int
   const sessionId = parseInt(req.body.sessionId);
+  // Request name from body
   const name = req.body.name as string;
+  // Call and return playerJoin
   const response = playerJoin(sessionId, name);
+  return res.status(200).json(response);
+});
+
+/** GET
+ * Request for /v1/player/{playerid}
+ *
+ * Get the status of a guest player that has already joined a session.
+ */
+app.get('/v1/player/:playerid', (req: Request, res: Response) => {
+  // Parse playerId to int
+  const playerId = parseInt(req.params.playerid);
+  // Call and return playerStatus
+  const response = playerStatus(playerId);
   return res.status(200).json(response);
 });
 

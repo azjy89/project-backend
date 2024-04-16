@@ -135,6 +135,7 @@ export interface QuizSession {
   messages: Message[],
   quiz: Quiz,
   questionResults: QuestionResult[],
+  questionStartTimes: number[],
 }
 
 export interface Timer {
@@ -156,21 +157,21 @@ export interface Data {
 }
 
 export enum States {
-  LOBBY,
-  QUESTION_COUNTDOWN,
-  QUESTION_OPEN,
-  QUESTION_CLOSE,
-  ANSWER_SHOW,
-  FINAL_RESULTS,
-  END,
+  LOBBY = 'LOBBY',
+  QUESTION_COUNTDOWN = 'QUESTION_COUNTDOWN',
+  QUESTION_OPEN = 'QUESTION_OPEN',
+  QUESTION_CLOSE = 'QUESTION_CLOSE',
+  ANSWER_SHOW = 'ANSWER_SHOW',
+  FINAL_RESULTS = 'FINAL_RESULTS',
+  END = 'END',
 }
 
 export enum Actions {
-  NEXT_QUESTION,
-  SKIP_COUNTDOWN,
-  GO_TO_ANSWER,
-  GO_TO_FINAL_RESULTS,
-  END,
+  NEXT_QUESTION = 'NEXT_QUESTION',
+  SKIP_COUNTDOWN = 'SKIP_COUNTDOWN',
+  GO_TO_ANSWER = 'GO_TO_ANSWER',
+  GO_TO_FINAL_RESULTS = 'GO_TO_FINAL_RESULTS',
+  END = 'END',
 }
 
 export interface SessionId {
@@ -235,5 +236,15 @@ export interface SessionResults {
 
 export interface PlayerId {
   playerId: number,
+}
+
+export interface ReturnPlayerStatus {
+  state: string,
+  numQuestions: number,
+  atQuestion: number,
+}
+
+export interface MessagesListReturn {
+  messages: Message[],
 }
 
