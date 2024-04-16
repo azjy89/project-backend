@@ -10,12 +10,20 @@ import {
   requestPlayerStatus,
   requestQuestionInfo,
   requestQuizInfo,
-  requestSubmitAnswer
+  requestQuestionSubmit
 } from '../src/httpRequests';
 
 import {
   States,
   Actions,
+  TokenReturn,
+  QuizId,
+  Quiz,
+  QuestionBody,
+  QuestionId,
+  Question,
+  AdminQuizInfoReturn,
+  QuizSession, 
 } from '../src/interfaces';
 
 beforeEach(() => {
@@ -29,11 +37,12 @@ afterAll(() => {
 describe('Testing PUT /v1/player/{playerid}/question/{questionposition}/answer', () => {
   let registerRes: TokenReturn;
   let quizCreateRes: QuizId;
-  let question: Question;
-  let sessionRes: Session;
+  let questionCreateRes1: Question;
+  let questionCreateRes2: Question;
+  let sessionRes: QuizSession;
   beforeEach(() => {
     registerRes = requestAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
-    quizCreateRes = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+    quizCreateRes = requestQuizCreate(registerRes.token, 'COMP1531', 'Welcome!');
     const questionBody1: QuestionBody = {
       question: 'When are you sleeping?',
       duration: 5,
@@ -66,8 +75,8 @@ describe('Testing PUT /v1/player/{playerid}/question/{questionposition}/answer',
       ],
       thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
-    questionCreateRes = requestQuizQuestionCreate(resToken.token, quizCreateRes.quizId, questionBody1);
-    questionCreateRes = requestQuizQuestionCreate(resToken.token, quizCreateRes.quizId, questionBody2);
+    questionCreateRes1 = requestQuizQuestionCreate(registerRes.token, quizCreateRes.quizId, questionBody1);
+    questionCreateRes2 = requestQuizQuestionCreate(registerRes.token, quizCreateRes.quizId, questionBody2);
     sessionRes = requestQuizSessionCreate(registerRes.token, quizCreateRes.quizId, 4);
   });
 
@@ -75,9 +84,10 @@ describe('Testing PUT /v1/player/{playerid}/question/{questionposition}/answer',
     const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.SKIP_COUNTDOWN);
-    const questionInfoRes = requestQuestionInfo(playerRes.playerId, 1);
-    const questionAnswerId = questionInfoRes.answers[0].answerId;
-    const submitAnswerRes = requestSubmitAnswer([questionAnswerId], playerRes.playerid, 1);
+    const questionStatus = requestSessionStatus(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId);
+    expect(questionStatus.state).toStrictEqual(States.QUESTION_OPEN);
+    const questionAnswerId = questionStatus.metadata.questions[0].answers[0].answerId;
+    const submitAnswerRes = requestQuestionSubmit(playerRes.playerId, 1, [questionAnswerId]);
     expect(submitAnswerRes).toStrictEqual({});
   });
 
@@ -85,9 +95,9 @@ describe('Testing PUT /v1/player/{playerid}/question/{questionposition}/answer',
     const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.SKIP_COUNTDOWN);
-    const questionInfoRes = requestQuestionInfo(playerRes.playerId, 1);
-    const questionAnswerId = questionInfoRes.answers[0].answerId;
-    const submitAnswerRes = requestSubmitAnswer([questionAnswerId], playerRes.playerid + 1, 1);
+    const questionStatus = requestSessionStatus(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId);
+    const questionAnswerId = questionStatus.metadata.questions[0].answers[0].answerId
+    const submitAnswerRes = requestQuestionSubmit(playerRes.playerId + 1, 1, [questionAnswerId]);
     expect(submitAnswerRes).toStrictEqual({ error: expect.any(String) });
   });
 
@@ -95,26 +105,26 @@ describe('Testing PUT /v1/player/{playerid}/question/{questionposition}/answer',
     const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.SKIP_COUNTDOWN);
-    const questionInfoRes = requestQuestionInfo(playerRes.playerId, 1);
-    const questionAnswerId = questionInfoRes.answers[0].answerId;
-    const submitAnswerRes = requestSubmitAnswer([questionAnswerId], playerRes.playerid, 3);
+    const questionStatus = requestSessionStatus(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId);
+    const questionAnswerId = questionStatus.metadata.questions[0].answers[0].answerId
+    const submitAnswerRes = requestQuestionSubmit(playerRes.playerId, 3, [questionAnswerId]);
     expect(submitAnswerRes).toStrictEqual({ error: expect.any(String) });
   });
 
   test('fails if session is not in QUESTION_OPEN state', () => {
     const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
-    const questionInfoRes = requestQuestionInfo(playerRes.playerId, 1);
-    const questionAnswerId = questionInfoRes.answers[0].answerId;
-    const submitAnswerRes = requestSubmitAnswer([questionAnswerId], playerRes.playerid, 1);
+    const questionStatus = requestSessionStatus(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId);
+    const questionAnswerId = questionStatus.metadata.questions[0].answers[0].answerId
+    const submitAnswerRes = requestQuestionSubmit(playerRes.playerId, 1, [questionAnswerId]);
     expect(submitAnswerRes).toStrictEqual({ error: expect.any(String) });
   });
 
   test('fails if session is in QUESTION_COUNTDOWN state', () => {
     const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
-    const questionInfoRes = requestQuestionInfo(playerRes.playerId, 1);
-    const questionAnswerId = questionInfoRes.answers[0].answerId;
-    const submitAnswerRes = requestSubmitAnswer([questionAnswerId], playerRes.playerid, 1);
+    const questionStatus = requestSessionStatus(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId);
+    const questionAnswerId = questionStatus.metadata.questions[0].answers[0].answerId
+    const submitAnswerRes = requestQuestionSubmit(playerRes.playerId, 1, [questionAnswerId]);
     expect(submitAnswerRes).toStrictEqual({ error: expect.any(String) });
   });
 
@@ -122,33 +132,33 @@ describe('Testing PUT /v1/player/{playerid}/question/{questionposition}/answer',
     const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.SKIP_COUNTDOWN);
-    const questionInfoRes = requestQuestionInfo(playerRes.playerId, 1);
-    const questionAnswerId = questionInfoRes.answers[0].answerId;
-    const submitAnswerRes = requestSubmitAnswer([questionAnswerId], playerRes.playerid, 2);
+    const questionStatus = requestSessionStatus(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId);
+    const questionAnswerId = questionStatus.metadata.questions[0].answers[0].answerId
+    const submitAnswerRes = requestQuestionSubmit(playerRes.playerId, 2, [questionAnswerId]);
     expect(submitAnswerRes).toStrictEqual({ error: expect.any(String) });
   });
 
   test('Answer IDs are not valid for this particular question', () => {
     const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
-    const questionInfoRes = requestQuestionInfo(playerRes.playerId, 1);
-    const questionAnswerId = questionInfoRes.answers[0].answerId;
-    const submitAnswerRes = requestSubmitAnswer([questionAnswerId + 1], playerRes.playerid, 1);
+    const questionStatus = requestSessionStatus(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId);
+    const questionAnswerId = questionStatus.metadata.questions[0].answers[0].answerId
+    const submitAnswerRes = requestQuestionSubmit(playerRes.playerId, 1, [questionAnswerId + 1]);
     expect(submitAnswerRes).toStrictEqual({ error: expect.any(String) });
   });
 
   test('There are duplicate answer IDs provided', () => {
     const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
-    const questionInfoRes = requestQuestionInfo(playerRes.playerId, 1);
-    const questionAnswerId = questionInfoRes.answers[0].answerId;
-    const submitAnswerRes = requestSubmitAnswer([questionAnswerId, questionAnswerId], playerRes.playerid, 1);
+    const questionStatus = requestSessionStatus(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId);
+    const questionAnswerId = questionStatus.metadata.questions[0].answers[0].answerId
+    const submitAnswerRes = requestQuestionSubmit(playerRes.playerId, 1, [questionAnswerId, questionAnswerId]);
     expect(submitAnswerRes).toStrictEqual({ error: expect.any(String) });
   });
 
   test('Less than 1 answer ID was submitted', () => {
     const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
-    const questionInfoRes = requestQuestionInfo(playerRes.playerId, 1);
-    const questionAnswerId = questionInfoRes.answers[0].answerId;
-    const submitAnswerRes = requestSubmitAnswer([], playerRes.playerid, 1);
+    const questionStatus = requestSessionStatus(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId);
+    const questionAnswerId = questionStatus.metadata.questions[0].answers[0].answerId
+    const submitAnswerRes = requestQuestionSubmit(playerRes.playerId, 1, []);
     expect(submitAnswerRes).toStrictEqual({ error: expect.any(String) });
   });
 });

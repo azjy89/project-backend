@@ -5,11 +5,42 @@ import {
   PlayerId,
   States,
   Actions,
+  ErrorObject, 
+  Quiz, 
+  QuestionResult, 
+  QuizSession, 
+  Question
 } from './interfaces';
 import {
   sessionStateUpdate,
 } from './quiz';
 import HTTPError from 'http-errors';
+
+const checkPlayerAnswer = (playerId: number, question: Question, answerIds: number[]): boolean => {
+  if (!question || !question.answers || !Array.isArray(question.answers)) {
+    return false;
+  }
+
+  const submittedIds = answerIds.slice().sort(); // Make a copy to avoid modifying the original array
+  const correctIds = [];
+  
+  for (const answer of question.answers) {
+    if (answer.correct) {
+      correctIds.push(answer.answerId);
+    }
+  }
+  
+  correctIds.sort();
+
+  return JSON.stringify(submittedIds) === JSON.stringify(correctIds);
+}
+
+const calculateAverageAnswerTime = (quizSession: QuizSession, question: Question): number => {
+  const questionPosition = quizSession.atQuestion;
+  const questionStartTime = quizSession.questionStartTimes[questionPosition - 1];
+  const answerTime = Date.now() - questionStartTime;
+  return answerTime / 1000;
+}
 
 export const playerSubmitAnswer = (playerId: number, questionPosition: number, answerIds: number[]): object | ErrorObject => {
   const data: Data = getData();
@@ -32,22 +63,23 @@ export const playerSubmitAnswer = (playerId: number, questionPosition: number, a
   }
   const currentQuestion = quiz.questions[questionPosition - 1];
   
-  if (player.state !== States.QUESTION_OPEN) {
+  if (currentQuizSession.state !== States.QUESTION_OPEN) {
     throw HTTPError(400, 'Session is not in QUESTION_OPEN state');
   }
 
   if (currentQuizSession.atQuestion !== questionPosition) {
-    throw new HTTPError(400, 'Session is not yet up to this question');
+    throw HTTPError(400, 'Session is not yet up to this question');
   }
 
   const validAnswerIds = currentQuestion.answers.map(answer => answer.answerId);
-  const invalidAnswerIds = answerIds.filter(id => !validAnswerIds.includes(id));
-  if (invalidAnswerIds.length > 0) {
-    return HTTPError(400, 'Answer IDs are not valid for this particular question.');
+  const invalidAnswerIds = (answerIds || []).filter(id => !validAnswerIds.includes(id));
+
+  if (invalidAnswerIds && invalidAnswerIds.length > 0) {
+    throw HTTPError(400, 'Answer IDs are not valid for this particular question.');
   }
 
   if (new Set(answerIds).size !== answerIds.length || answerIds.length < 1) {
-    return HTTPError(400, 'Duplicate answer IDs provided or less than 1 answer ID submitted.');
+    throw HTTPError(400, 'Duplicate answer IDs provided or less than 1 answer ID submitted.');
   }
 
   //setdata
@@ -74,15 +106,3 @@ export const playerSubmitAnswer = (playerId: number, questionPosition: number, a
   return {};
 }
 
-const checkPlayerAnswer = (playerId: number, question: Question, answerIds: number[]): boolean => {
-  const submittedIds = answerIds.sort();
-  const correctIds = question.answers.filter(answer => answer.correct).map(answer => answer.answerId).sort();
-  return JSON.stringify(submittedIds) === JSON.stringify(correctIds);
-}
-
-const calculateAverageAnswerTime = (quizSession: QuizSession, question: Question): number => {
-  const questionPosition = quizSession.atQuestion;
-  const questionStartTime = quizSession.questionStartTimes[questionPosition - 1];
-  const answerTime = Date.now() - questionStartTime;
-  return answerTime / 1000;
-}
