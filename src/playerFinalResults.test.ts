@@ -5,13 +5,13 @@ import {
   requestQuizQuestionCreate,
   requestQuizSessionCreate,
   requestPlayerJoin,
-  requestAuthLogout,
-  requestSessionResults,
-  requestSessionStateUpdate,
   requestQuestionSubmit,
-  requestSessionResultsCsv,
-  requestSessionStatus
+  requestSessionStateUpdate,
+  requestPlayerFinalResults
 } from './httpRequests';
+
+const ERROR = { error: expect.any(String) };
+const NUMBER = expect.any(Number);
 
 import {
   Token,
@@ -23,9 +23,6 @@ import {
   Actions,
   QuestionId
 } from './interfaces';
-
-const ERROR = { error: expect.any(String) };
-const NUMBER = expect.any(Number);
 
 const firstName = 'Bobby';
 const lastName = 'Builder';
@@ -61,6 +58,10 @@ const questionBody1 = {
     {
       answer: 'Bobby the breaker',
       correct: false
+    },
+    {
+      answer: 'Bobby the licker',
+      correct: true
     }
   ],
   thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
@@ -98,76 +99,46 @@ describe('Error handling', () => {
   let registerRes: Token | ErrorObject;
   let quizRes: QuizId | ErrorObject;
   let sessionRes: SessionId | ErrorObject;
+  let playerRes1: PlayerId | ErrorObject;
   let token: Token;
   let quizId: QuizId;
   let sessionId: SessionId;
+  let playerId1: PlayerId;
   beforeEach(() => {
-    registerRes = requestAuthRegister(
-      email,
-      password,
-      firstName,
-      lastName
-    );
+    registerRes = requestAuthRegister(email, password, firstName, lastName);
     token = registerRes as Token;
     quizRes = requestQuizCreate(token.token, quizName, quizDescription);
     quizId = quizRes as QuizId;
     requestQuizQuestionCreate(token.token, quizId.quizId, questionBody);
     sessionRes = requestQuizSessionCreate(token.token, quizId.quizId, 5);
     sessionId = sessionRes as SessionId;
-    requestPlayerJoin(sessionId.sessionId, player1);
+    playerRes1 = requestPlayerJoin(sessionId.sessionId, player1);
+    playerId1 = playerRes1 as PlayerId;
   });
-  test('Invalid token', () => {
-    expect(requestSessionResults('1', quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
-    expect(requestSessionResultsCsv('1', quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
-  });
-  test('Invalid sessionId', () => {
-    expect(requestSessionResults(token.token, quizId.quizId, sessionId.sessionId + 1)).toStrictEqual(ERROR);
-    expect(requestSessionResultsCsv(token.token, quizId.quizId, sessionId.sessionId + 1)).toStrictEqual(ERROR);
-  });
-  test('Error conditions', () => {
-    const newUser = requestAuthRegister('pewpew@gmail.com', 'abcd1234', 'ajlskdf', 'asldsdff');
-    const newToken = newUser as Token;
-    requestAuthLogout(newToken.token);
-    // Invalid session token
-    expect(requestSessionResults(newToken.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
-    expect(requestSessionResultsCsv(newToken.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
-    // Invalid lobby state
-    expect(requestSessionResults(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
-    expect(requestSessionResultsCsv(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
-    // Transition state to final results
+
+  test('Invalid state or ID of some form', () => {
+    // Lobby state
+    expect(requestPlayerFinalResults(playerId1.playerId)).toStrictEqual(ERROR);
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_FINAL_RESULTS);
-    // quizId does not refer to a valid quiz
-    expect(requestSessionResults(token.token, 123, sessionId.sessionId)).toStrictEqual(ERROR);
-    expect(requestSessionResultsCsv(token.token, 123, sessionId.sessionId)).toStrictEqual(ERROR);
-    // user doesnt own the quiz
-    const randomUser = requestAuthRegister('mewmew@gmail.com', 'asdbf1235', 'Joanna', 'Zhong');
-    const randomToken = randomUser as Token;
-    const randomQuiz = requestQuizCreate(randomUser.token, 'New Quiz', 'What is my name?');
-    const randomQuizId = randomQuiz as QuizId;
-    expect(requestSessionResults(token.token, randomQuizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
-    expect(requestSessionResultsCsv(token.token, randomQuizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.END);
-    expect(requestSessionResults(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
-    expect(requestSessionResultsCsv(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
+    // Playerid doesnt exist
+    expect(requestPlayerFinalResults(123)).toStrictEqual(ERROR);
   });
 });
 
-describe('Successful output for successful', () => {
-  let registerRes: Token | ErrorObject;
-  let quizRes: QuizId | ErrorObject;
+describe('Successful playerfinalresults', () => {
   let sessionRes: SessionId | ErrorObject;
-  let playerRes: PlayerId | ErrorObject;
-  let question1: QuestionId | ErrorObject;
-  let question2: QuestionId | ErrorObject;
-  let question3: QuestionId | ErrorObject;
+  let playerRes1: PlayerId | ErrorObject;
   let token: Token;
   let quizId: QuizId;
   let sessionId: SessionId;
-  let playerId: PlayerId;
+  let playerId1: PlayerId;
   let questionId1: QuestionId;
   let questionId2: QuestionId;
-  let questionId3: QuestionId;
+  let question1: QuestionId | ErrorObject;
+  let question2: QuestionId | ErrorObject;
+  let quizRes: QuizId | ErrorObject;
+  let registerRes: Token | ErrorObject;
   beforeEach(() => {
     registerRes = requestAuthRegister(email, password, firstName, lastName);
     token = registerRes as Token;
@@ -175,33 +146,30 @@ describe('Successful output for successful', () => {
     quizId = quizRes as QuizId;
     question1 = requestQuizQuestionCreate(token.token, quizId.quizId, questionBody);
     question2 = requestQuizQuestionCreate(token.token, quizId.quizId, questionBody1);
-    question3 = requestQuizQuestionCreate(token.token, quizId.quizId, questionBody2);
     questionId1 = question1 as QuestionId;
     questionId2 = question2 as QuestionId;
-    questionId3 = question3 as QuestionId;
-    sessionRes = requestQuizSessionCreate(token.token, quizId.quizId, 5);
+    sessionRes = requestQuizSessionCreate(token.token, quizId.quizId, 3);
     sessionId = sessionRes as SessionId;
-    playerRes = requestPlayerJoin(sessionId.sessionId, player1);
-    playerId = playerRes as PlayerId;
+    playerRes1 = requestPlayerJoin(sessionId.sessionId, player1);
+    playerId1 = playerRes1 as PlayerId;
   });
-  test('Successful output', () => {
-    // Simulate 2 players joining the quiz
+
+  test('Correct Output', () => {
     const playerRes2 = requestPlayerJoin(sessionId.sessionId, player2);
-    const playerId2 = playerRes2 as PlayerId;
     const playerRes3 = requestPlayerJoin(sessionId.sessionId, player3);
+    const playerId2 = playerRes2 as PlayerId;
     const playerId3 = playerRes3 as PlayerId;
 
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
-    requestQuestionSubmit(playerId.playerId, 1, [0]);
+    requestQuestionSubmit(playerId1.playerId, 1, [0]);
     requestQuestionSubmit(playerId2.playerId, 1, [1]);
     requestQuestionSubmit(playerId3.playerId, 1, [1]);
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
-    requestQuestionSubmit(playerId.playerId, 2, [0, 2]);
+    requestQuestionSubmit(playerId1.playerId, 2, [0, 2]);
     requestQuestionSubmit(playerId2.playerId, 2, [0, 2]);
     requestQuestionSubmit(playerId3.playerId, 2, [1]);
-    const value = requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_FINAL_RESULTS);
-    console.log(requestSessionStatus(token.token, quizId.quizId, sessionId.sessionId));
-    expect(requestSessionResults(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_FINAL_RESULTS);
+    expect(requestPlayerFinalResults(playerId1.playerId)).toStrictEqual(
       {
         usersRankedByScore: [
           {
@@ -231,20 +199,12 @@ describe('Successful output for successful', () => {
             playersCorrectList: [
               player1,
               player2
-            ],
-            averageAnswerTime: NUMBER,
-            percentCorrect: NUMBER
-          },
-          {
-            questionId: questionId3.questionId,
-            playersCorrectList: [
-            ],
-            averageAnswerTime: NUMBER,
-            percentCorrect: NUMBER
-          },
+            ]
+          }
         ],
-      },
+        averageAnswerTime: NUMBER,
+        percentCorrect: NUMBER
+      }
     )
-  expect(requestSessionResultsCsv(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual({ url: expect.any(String) });
   });
 });

@@ -37,7 +37,10 @@ import {
   sessionsList,
   sessionStatus,
   sessionStateUpdate,
-  sessionResults
+  sessionResults,
+  sessionResultsCsv,
+  playerFinalResults,
+  playerQuestionResults
 } from './quiz';
 
 import {
@@ -677,8 +680,55 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res:
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
   // Call and return sessionResults
-  const response = sessionResults(userId.authUserId, quizId, sessionId);
+  const response = sessionResults(authUserId.authUserId, quizId, sessionId);
   return res.status(200).json(response);
+});
+
+/**GET
+ * Route for /v1/admin/quiz/:quizid/session/:sessionid/results/csv
+ *
+ * Get the link to the final results in CSV format for all players
+ */
+app.get('/v1/admin/quiz/:quizid/session/:sessionid/results/csv', (req: Request, res: Response) => {
+  // Parse quizId to int
+  const quizId = parseInt(req.params.quizid);
+  // Parse sessionId to int
+  const sessionId = parseInt(req.params.sessionid);
+  // Get token from header
+  const token = req.headers.token as string;
+   // Retrieve userid for the token
+   const userId = idFromToken(token);
+   const authUserId = userId as AuthUserId;
+   // Call and return sessionResultsCsv
+   const response = sessionResultsCsv(authUserId.authUserId, quizId, sessionId);
+   return res.status(200).json(response);
+});
+
+/**GET
+ * Request for /v1/player/:playerid/question/:questionposition/results
+ *
+ * Get the results for a particular question of the session a player is playing in
+ */
+app.get('/v1/player/:playerid/question/:questionposition/results', (req: Request, res: Response) => {
+  // Parse playerId to int
+  const playerId = parseInt(req.params.playerid);
+  // Parse questionPosition to int
+  const questionPosition = parseInt(req.params.questionposition);
+  // Call and return playerQuestionResults
+  const response = playerQuestionResults(playerId, questionPosition);
+  return res.json(response);
+});
+
+/** GET request for /v1/player/:playerid/results
+ *
+ * Get the final results for a whole session a player is playing in
+ */
+app.get('/v1/player/:playerid/results', (req: Request, res: Response) => {
+  // Parse playerId to int
+  const playerId = parseInt(req.params.playerid);
+  // Call and return playerFinalResults
+  const response = playerFinalResults(playerId);
+  return res.json(response);
 });
 
 /** POST

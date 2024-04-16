@@ -448,6 +448,19 @@ export const requestSessionResults = (token: string, quizId: number, sessionId: 
   return JSON.parse(res.body.toString());
 }
 
+export const requestSessionResultsCsv = (token: string, quizId: number, sessionId: number) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/session/${sessionId}/results/csv`,
+    {
+      headers: {
+        token: token,
+      }
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
 export const requestPlayerJoin = (sessionId: number, name: string) => {
   const res = request(
     'POST',
@@ -462,11 +475,29 @@ export const requestPlayerJoin = (sessionId: number, name: string) => {
   return JSON.parse(res.body.toString());
 };
 
+export const requestPlayerQuestionResults = (playerId: number, questionPosition: number) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/player/${playerId}/question/${questionPosition}/results`,
+    {}
+  );
+  return JSON.parse(res.body.toString());
+};
+
 export const requestPlayerStatus = (playerId: number) => {
   // console.log('TYPE: ' + typeof { playerId } + 'Value: ' + playerId);
   const res = request(
     'GET',
-    SERVER_URL + `/v1/player/${playerId}`
+    SERVER_URL + `/v1/player/${playerId}`,
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestPlayerFinalResults = (playerId: number) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/player/${playerId}/results`,
+    {}
   );
   return JSON.parse(res.body.toString());
 };
