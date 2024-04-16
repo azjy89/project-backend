@@ -5,7 +5,7 @@ import {
   requestQuizQuestionCreate,
   requestQuizSessionCreate,
   requestPlayerJoin,
-  requestPlayerAnswerSubmit,
+  requestQuestionSubmit,
   requestPlayerQuestionResults,
   requestSessionStateUpdate,
 } from './httpRequests';
@@ -122,9 +122,9 @@ describe('Error handling', () => {
     playerId1 = playerRes1 as PlayerId;
     playerId2 = playerRes2 as PlayerId;
     playerId3 = playerRes3 as PlayerId;
-    requestPlayerAnswerSubmit(playerId1.playerId, 1, [0]);
-    requestPlayerAnswerSubmit(playerId2.playerId, 1, [0]);
-    requestPlayerAnswerSubmit(playerId3.playerId, 1, [1]);
+    requestQuestionSubmit(playerId1.playerId, 1, [0]);
+    requestQuestionSubmit(playerId2.playerId, 1, [0]);
+    requestQuestionSubmit(playerId3.playerId, 1, [1]);
   });
 
   test('Invalid state or ID of some form', () => {
@@ -168,9 +168,9 @@ describe('Successful playerquestionresults', () => {
     playerId1 = playerRes1 as PlayerId;
     playerId2 = playerRes2 as PlayerId;
     playerId3 = playerRes3 as PlayerId;
-    requestPlayerAnswerSubmit(playerId1.playerId, 1, [0]);
-    requestPlayerAnswerSubmit(playerId2.playerId, 1, [0]);
-    requestPlayerAnswerSubmit(playerId3.playerId, 1, [1]);
+    requestQuestionSubmit(playerId1.playerId, 1, [0]);
+    requestQuestionSubmit(playerId2.playerId, 1, [0]);
+    requestQuestionSubmit(playerId3.playerId, 1, [1]);
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_ANSWER);
   });
   test('Successful', () => {
@@ -202,9 +202,9 @@ describe('Successful playerquestionresults', () => {
       percentCorrect: 50
     });
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
-    requestPlayerAnswerSubmit(playerId1.playerId, 2, [0, 1]);
-    requestPlayerAnswerSubmit(playerId2.playerId, 2, [1, 0]);
-    requestPlayerAnswerSubmit(playerId3.playerId, 2, [0, 2]);
+    requestQuestionSubmit(playerId1.playerId, 2, [0, 1]);
+    requestQuestionSubmit(playerId2.playerId, 2, [1, 0]);
+    requestQuestionSubmit(playerId3.playerId, 2, [0, 2]);
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_ANSWER);
     expect(requestPlayerQuestionResults(playerId1.playerId, 2)).toStrictEqual(
       [

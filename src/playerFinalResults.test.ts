@@ -5,7 +5,7 @@ import {
   requestQuizQuestionCreate,
   requestQuizSessionCreate,
   requestPlayerJoin,
-  requestPlayerAnswerSubmit,
+  requestQuestionSubmit,
   requestSessionStateUpdate,
   requestPlayerFinalResults
 } from './httpRequests';
@@ -161,13 +161,13 @@ describe('Successful playerfinalresults', () => {
     const playerId3 = playerRes3 as PlayerId;
 
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
-    requestPlayerAnswerSubmit(playerId1.playerId, 1, [0]);
-    requestPlayerAnswerSubmit(playerId2.playerId, 1, [1]);
-    requestPlayerAnswerSubmit(playerId3.playerId, 1, [1]);
+    requestQuestionSubmit(playerId1.playerId, 1, [0]);
+    requestQuestionSubmit(playerId2.playerId, 1, [1]);
+    requestQuestionSubmit(playerId3.playerId, 1, [1]);
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
-    requestPlayerAnswerSubmit(playerId1.playerId, 2, [0, 2]);
-    requestPlayerAnswerSubmit(playerId2.playerId, 2, [0, 2]);
-    requestPlayerAnswerSubmit(playerId3.playerId, 2, [1]);
+    requestQuestionSubmit(playerId1.playerId, 2, [0, 2]);
+    requestQuestionSubmit(playerId2.playerId, 2, [0, 2]);
+    requestQuestionSubmit(playerId3.playerId, 2, [1]);
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_FINAL_RESULTS);
     expect(requestPlayerFinalResults(playerId1.playerId)).toStrictEqual(
       {
