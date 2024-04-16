@@ -492,9 +492,9 @@ export const requestQuestionSubmit = (playerid: number, questionposition: number
     'PUT',
     SERVER_URL + `/v1/player/${playerid}/question/${questionposition}/answer`,
     {
-      body: JSON.stringify({
+      json: {
         answerIds: answerIds,
-      })
+      }
     }
   );
   return JSON.parse(res.body.toString());

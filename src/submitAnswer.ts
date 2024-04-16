@@ -17,9 +17,6 @@ import {
 import HTTPError from 'http-errors';
 
 const checkPlayerAnswer = (playerId: number, question: Question, answerIds: number[]): boolean => {
-  if (!question || !question.answers || !Array.isArray(question.answers)) {
-    return false;
-  }
 
   const submittedIds = answerIds.slice().sort(); // Make a copy to avoid modifying the original array
   const correctIds = [];
@@ -71,18 +68,21 @@ export const playerSubmitAnswer = (playerId: number, questionPosition: number, a
     throw HTTPError(400, 'Session is not yet up to this question');
   }
 
-  const validAnswerIds = currentQuestion.answers.map(answer => answer.answerId);
-  const invalidAnswerIds = (answerIds || []).filter(id => !validAnswerIds.includes(id));
+  if (answerIds.length < 1) {
+    throw HTTPError(400, 'Answer IDs should at least one');
+  }
 
-  if (invalidAnswerIds && invalidAnswerIds.length > 0) {
+  const validAnswerIds = currentQuestion.answers.map(answer => answer.answerId);
+  const invalidAnswerIds = answerIds.filter(id => !validAnswerIds.includes(id));
+
+  if (invalidAnswerIds.length > 0) {
     throw HTTPError(400, 'Answer IDs are not valid for this particular question.');
   }
 
-  if (new Set(answerIds).size !== answerIds.length || answerIds.length < 1) {
+  if (new Set(answerIds).size !== answerIds.length) {
     throw HTTPError(400, 'Duplicate answer IDs provided or less than 1 answer ID submitted.');
   }
 
-  //setdata
   const playersCorrectList: Player[] = [];
   currentQuizSession.players.forEach(sessionPlayer => {
     const isCorrect = checkPlayerAnswer(sessionPlayer.playerId, currentQuestion, answerIds);
@@ -101,7 +101,7 @@ export const playerSubmitAnswer = (playerId: number, questionPosition: number, a
     percentCorrect: percentCorrect
   };
 
-  data.questionResults.push(questionResult);
+  data.quizSessions[currentQuizSessionIndex].questionResults.push(questionResult);
   setData(data);
   return {};
 }
