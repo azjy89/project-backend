@@ -64,6 +64,7 @@ export const playerJoin = (sessionId: number, name: string): PlayerId => {
     state: States.LOBBY,
     numQuestions: quiz.questions.length,
     atQuestion: 0,
+    answeredQuestionIds: [],
   };
   currQuizSession.players.push(newPlayer);
   setData(data);

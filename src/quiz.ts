@@ -18,7 +18,10 @@ import {
   SessionList,
   SessionStatus,
   AdminQuizInfoReturn,
-  SessionResults
+  SessionResults,
+  Player,
+  QuestionResultReturn,
+  QuestionResult
 } from './interfaces';
 
 import HTTPError from 'http-errors';
@@ -1031,44 +1034,50 @@ function generateCsvString(session: QuizSession): string {
   return csvContent;
 }
 
-export function playerQuestionResults(playerId: number, questionPosition: number) {
-  let data = getData();
-  let sessionFind: QuizSession;
-  let playerFind: Player;
-  let checkFlag = false;
+export function playerQuestionResults(playerId: number, questionPosition: number): QuestionResultReturn {
+  const data = getData();
+  let currSession: QuizSession;
+  let player: Player;
 
   for (const session of data.quizSessions) {
-    playerFind = session.players.find(player => player.playerId === playerId);
-    if (playerFind) {
-      sessionFind = session;
+    player = session.players.find(player => player.playerId === playerId);
+    if (player) {
+      currSession = session;
       break;
     }
   }
 
-  if(!playerFind) {
+  if (!player) {
     throw HTTPError(400, 'Player with playerId does not exist');
   }
 
-  if (questionPosition < 1 || questionPosition > sessionFind.quiz.questions.length) {
+  if (questionPosition < 1 || questionPosition > currSession.quiz.questions.length) {
     throw HTTPError(400, 'Invalid questionPosition');
   }
 
-  if (sessionFind.state !== States.ANSWER_SHOW) {
+  if (currSession.state !== States.ANSWER_SHOW) {
     throw HTTPError(400, 'Session is not in ANSWER_SHOW state');
   }
 
-  if (sessionFind.atQuestion < questionPosition) {
+  if (currSession.atQuestion < questionPosition) {
     throw HTTPError(400, 'Session is not yet up to this question');
   }
 
-  const questionId = sessionFind.quiz.questions[questionPosition - 1].questionId;
+  const questionId = currSession.quiz.questions[questionPosition - 1].questionId;
 
-  const questionResult = sessionFind.questionResults.find(qr => qr.questionId === questionId);
+  const questionResult = currSession.questionResults.find(questionResult => questionResult.questionId === questionId);
+  const returnedPlayersCorrectList = questionResult.playersCorrectList.map(player => player.name);
+  const questionResultReturn: QuestionResultReturn = {
+    questionId: questionResult.questionId,
+    playersCorrectList: returnedPlayersCorrectList,
+    averageAnswerTime: questionResult.averageAnswerTime,
+    percentCorrect: questionResult.percentCorrect,
+  };
 
   if (!questionResult) {
     throw HTTPError(400, 'Question result not found for the given questionId');
   }
-  return questionResult;
+  return questionResultReturn;
 }
 
 export function playerFinalResults(playerId: number) {
@@ -1076,7 +1085,7 @@ export function playerFinalResults(playerId: number) {
   let data = getData();
 
   // Locate the session with the given playerId
-  sessionFind = data.quizSessions.find(session => 
+  sessionFind = data.quizSessions.find(session =>
     session.players.some(player => player.playerId === playerId)
   );
 

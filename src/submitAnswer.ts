@@ -2,69 +2,47 @@ import { getData, setData } from './dataStore';
 import {
   Data,
   Player,
-  PlayerId,
   States,
-  Actions,
-  ErrorObject, 
-  Quiz, 
-  QuestionResult, 
-  QuizSession, 
-  Question
+  ErrorObject,
+  Quiz,
+  QuestionResult,
+  QuizSession,
 } from './interfaces';
-import {
-  sessionStateUpdate,
-} from './quiz';
+
 import HTTPError from 'http-errors';
-
-const checkPlayerAnswer = (playerId: number, question: Question, answerIds: number[]): boolean => {
-
-  const submittedIds = answerIds.slice().sort(); // Make a copy to avoid modifying the original array
-  const correctIds = [];
-  
-  for (const answer of question.answers) {
-    if (answer.correct) {
-      correctIds.push(answer.answerId);
-    }
-  }
-  
-  correctIds.sort();
-
-  return JSON.stringify(submittedIds) === JSON.stringify(correctIds);
-}
-
-const calculateAverageAnswerTime = (quizSession: QuizSession, question: Question): number => {
-  const questionPosition = quizSession.atQuestion;
-  const questionStartTime = quizSession.questionStartTimes[questionPosition - 1];
-  const answerTime = Date.now() - questionStartTime;
-  return answerTime / 1000;
-}
 
 export const playerSubmitAnswer = (playerId: number, questionPosition: number, answerIds: number[]): object | ErrorObject => {
   const data: Data = getData();
-  const player: Player | undefined = data.quizSessions
-    .flatMap(quizSession => quizSession.players)
-    .find(player => player.playerId === playerId);
-
-  if (!player) {
-    throw HTTPError(400, 'Player ID does not exist');
+  let currSession: QuizSession;
+  let currPlayerIndex: number;
+  let isValidPlayerId = false;
+  let currPlayer: Player;
+  for (const [, session] of data.quizSessions.entries()) {
+    for (const [playerIndex, player] of session.players.entries()) {
+      if (player.playerId === playerId) {
+        currSession = session;
+        currPlayerIndex = playerIndex;
+        currPlayer = player;
+        isValidPlayerId = true;
+      }
+    }
   }
 
-  const currentQuizSessionIndex: number = data.quizSessions.findIndex(quizSession =>
-    quizSession.players.some(sessionPlayer => sessionPlayer.playerId === playerId)
-  );
-  const currentQuizSession: QuizSession = data.quizSessions[currentQuizSessionIndex];
-  const quiz: Quiz = currentQuizSession.quiz;
+  if (!isValidPlayerId) {
+    throw HTTPError(400, 'Player ID does not exist');
+  }
+  const quiz: Quiz = currSession.quiz;
 
   if (questionPosition < 1 || questionPosition > quiz.questions.length) {
     throw HTTPError(400, 'Question position is not valid for the session this player is in');
   }
   const currentQuestion = quiz.questions[questionPosition - 1];
-  
-  if (currentQuizSession.state !== States.QUESTION_OPEN) {
+
+  if (currSession.state !== States.QUESTION_OPEN) {
     throw HTTPError(400, 'Session is not in QUESTION_OPEN state');
   }
 
-  if (currentQuizSession.atQuestion !== questionPosition) {
+  if (currSession.atQuestion !== questionPosition) {
     throw HTTPError(400, 'Session is not yet up to this question');
   }
 
@@ -83,17 +61,39 @@ export const playerSubmitAnswer = (playerId: number, questionPosition: number, a
     throw HTTPError(400, 'Duplicate answer IDs provided or less than 1 answer ID submitted.');
   }
 
-  const playersCorrectList: Player[] = [];
-  currentQuizSession.players.forEach(sessionPlayer => {
-    const isCorrect = checkPlayerAnswer(sessionPlayer.playerId, currentQuestion, answerIds);
-    if (isCorrect) {
-      playersCorrectList.push(sessionPlayer);
+  const question = currSession.quiz.questions[currSession.atQuestion - 1];
+  let playersCorrectList: Player[] = [];
+  if (currSession.questionResults[currSession.atQuestion - 1]) {
+    playersCorrectList = currSession.questionResults[currSession.atQuestion - 1].playersCorrectList;
+  }
+
+  for (const answerId of answerIds) {
+    const answer = question.answers.find(answer => answer.answerId === answerId);
+    if (answer.correct) {
+      playersCorrectList.push(currPlayer);
+      break;
     }
-  })
+  }
 
-  const averageAnswerTime = calculateAverageAnswerTime(currentQuizSession, currentQuestion);
-  const percentCorrect = (playersCorrectList.length / currentQuizSession.players.length) * 100;
+  const percentCorrect: number = (playersCorrectList.length / currSession.players.length) * 100;
 
+  let numAnswered = 0;
+  for (const player of currSession.players) {
+    if (player.answeredQuestionIds.find(answeredQuestionId => answeredQuestionId === question.questionId)) {
+      numAnswered++;
+    }
+  }
+
+  const currQuestionResult = currSession.questionResults.find(questionResult => questionResult.questionId === question.questionId);
+  let averageAnswerTime: number;
+  const answerTime = Date.now() - currSession.questionStartTimes[questionPosition - 1];
+  if (numAnswered === 0) {
+    averageAnswerTime = answerTime;
+  } else {
+    averageAnswerTime = (answerTime + (numAnswered * currQuestionResult.averageAnswerTime)) / (numAnswered + 1);
+  }
+
+  currSession.players[currPlayerIndex].answeredQuestionIds.push(question.questionId);
   const questionResult: QuestionResult = {
     questionId: currentQuestion.questionId,
     playersCorrectList: playersCorrectList,
@@ -101,8 +101,7 @@ export const playerSubmitAnswer = (playerId: number, questionPosition: number, a
     percentCorrect: percentCorrect
   };
 
-  data.quizSessions[currentQuizSessionIndex].questionResults.push(questionResult);
+  currSession.questionResults[questionPosition - 1] = questionResult;
   setData(data);
   return {};
-}
-
+};

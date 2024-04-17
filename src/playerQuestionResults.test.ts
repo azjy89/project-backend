@@ -10,6 +10,8 @@ import {
   requestSessionStateUpdate,
 } from './httpRequests';
 
+import { getData } from './dataStore';
+
 const ERROR = { error: expect.any(String) };
 const NUMBER = expect.any(Number);
 
@@ -65,22 +67,6 @@ const questionBody1 = {
   ],
   thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
 };
-const questionBody2 = {
-  question: 'How are you sleeping?',
-  duration: 5,
-  points: 5,
-  answers: [
-    {
-      answer: 'Bobby the builder',
-      correct: true
-    },
-    {
-      answer: 'Bobby the breaker',
-      correct: false
-    }
-  ],
-  thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
-};
 
 const player1 = 'Nonny';
 const player2 = 'Rorry';
@@ -130,6 +116,8 @@ describe('Error handling', () => {
   test('Invalid state or ID of some form', () => {
     // Lobby state
     expect(requestPlayerQuestionResults(playerId1.playerId, 1)).toStrictEqual(ERROR);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.SKIP_COUNTDOWN);
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_ANSWER);
     // Question position not reached yet
     expect(requestPlayerQuestionResults(playerId1.playerId, 2)).toStrictEqual(ERROR);
@@ -168,87 +156,59 @@ describe('Successful playerquestionresults', () => {
     playerId1 = playerRes1 as PlayerId;
     playerId2 = playerRes2 as PlayerId;
     playerId3 = playerRes3 as PlayerId;
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.SKIP_COUNTDOWN);
     requestQuestionSubmit(playerId1.playerId, 1, [0]);
     requestQuestionSubmit(playerId2.playerId, 1, [0]);
     requestQuestionSubmit(playerId3.playerId, 1, [1]);
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_ANSWER);
   });
+
   test('Successful', () => {
     expect(requestPlayerQuestionResults(playerId1.playerId, 1)).toStrictEqual({
       questionId: NUMBER,
       playersCorrectList: [
+        'Nonny',
         'Rorry',
-        'Nonny'
       ],
       averageAnswerTime: NUMBER,
-      percentCorrect: 50
+      percentCorrect: 66.66666666666666,
     });
     expect(requestPlayerQuestionResults(playerId2.playerId, 1)).toStrictEqual({
       questionId: NUMBER,
       playersCorrectList: [
+        'Nonny',
         'Rorry',
-        'Nonny'
       ],
       averageAnswerTime: NUMBER,
-      percentCorrect: 50
+      percentCorrect: 66.66666666666666,
     });
     expect(requestPlayerQuestionResults(playerId3.playerId, 1)).toStrictEqual({
       questionId: NUMBER,
       playersCorrectList: [
+        'Nonny',
         'Rorry',
-        'Nonny'
       ],
       averageAnswerTime: NUMBER,
-      percentCorrect: 50
+      percentCorrect: 66.66666666666666,
     });
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.SKIP_COUNTDOWN);
     requestQuestionSubmit(playerId1.playerId, 2, [0, 1]);
     requestQuestionSubmit(playerId2.playerId, 2, [1, 0]);
     requestQuestionSubmit(playerId3.playerId, 2, [0, 2]);
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_ANSWER);
     expect(requestPlayerQuestionResults(playerId1.playerId, 2)).toStrictEqual(
-      [
-        {
-          questionId: NUMBER,
-          playersCorrectList: [
-            'Rorry',
-            'Coccy',
-            'Nonny',
-          ],
-          averageAnswerTime: NUMBER,
-          percentCorrect: 25
-        },
-        {
-          questionId: NUMBER,
-          playersCorrectList: [
-            'Coccy',
-          ],
-          averageAnswerTime: NUMBER,
-          percentCorrect: 25
-        }
-      ]
-    );
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_ANSWER);
-    expect(requestPlayerQuestionResults(playerId1.playerId, 3)).toStrictEqual(
-      [
-        {
-          questionId: NUMBER,
-          playersCorrectList: [
-            
-          ],
-          averageAnswerTime: 0,
-          percentCorrect: 0
-        },
-        {
-          questionId: NUMBER,
-          playersCorrectList: [
-            
-          ],
-          averageAnswerTime: 0,
-          percentCorrect: 0
-        }
-      ]
+      {
+        questionId: NUMBER,
+        playersCorrectList: [
+          'Nonny',
+          'Rorry',
+          'Coccy',
+        ],
+        averageAnswerTime: NUMBER,
+        percentCorrect: 100,
+      }
     );
   });
 });

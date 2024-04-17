@@ -446,7 +446,7 @@ export const requestSessionResults = (token: string, quizId: number, sessionId: 
     }
   );
   return JSON.parse(res.body.toString());
-}
+};
 
 export const requestSessionResultsCsv = (token: string, quizId: number, sessionId: number) => {
   const res = request(
@@ -488,7 +488,7 @@ export const requestPlayerStatus = (playerId: number) => {
   // console.log('TYPE: ' + typeof { playerId } + 'Value: ' + playerId);
   const res = request(
     'GET',
-    SERVER_URL + `/v1/player/${playerId}`,
+    SERVER_URL + `/v1/player/${playerId}`
   );
   return JSON.parse(res.body.toString());
 };

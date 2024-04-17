@@ -109,6 +109,7 @@ export interface Player {
   state: States,
   numQuestions: number,
   atQuestion: number,
+  answeredQuestionIds: number[],
 }
 
 export interface Message {
@@ -121,6 +122,15 @@ export interface Message {
 export interface QuestionResult {
   questionId: number,
   playersCorrectList: Player[],
+  averageAnswerTime: number,
+  percentCorrect: number,
+}
+
+export interface QuestionResultReturn {
+  questionId: number,
+  // unlike Question Result the reutrn has to just have the names as a string
+  // instead of the Player type
+  playersCorrectList: string[],
   averageAnswerTime: number,
   percentCorrect: number,
 }
@@ -229,13 +239,14 @@ export interface AdminQuizInfoReturn {
   thumbnailUrl: string,
 }
 
-export interface SessionResults {
-  usersRankedByScore: [],
-  questionResults: []
+export interface UsersRanked {
+  name: string,
+  score: number,
 }
 
-export interface PlayerId {
-  playerId: number,
+export interface SessionResults {
+  usersRankedByScore: UsersRanked[],
+  questionResults: QuestionResult[]
 }
 
 export interface ReturnPlayerStatus {
