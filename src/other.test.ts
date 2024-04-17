@@ -8,6 +8,10 @@ import {
 
 const ERROR = { error: expect.any(String) };
 
+afterAll(() => {
+  requestClear();
+});
+
 describe('clear', () => {
   test('successful clear', () => {
     const result = requestClear();

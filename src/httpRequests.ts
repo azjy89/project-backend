@@ -2,7 +2,7 @@ import request from 'sync-request-curl';
 import { port, url } from './config.json';
 const SERVER_URL = `${url}:${port}`;
 
-import { QuestionBody } from './interfaces';
+import { QuestionBody, Actions } from './interfaces';
 
 // Iteration 1 functions
 
@@ -348,6 +348,198 @@ export const requestQuizQuestionDuplicate = (token: string, quizId: number, ques
       headers: {
         'Content-type': 'application/json',
         token: `${token}`,
+      }
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestSessionsList = (token: string, quizId: number) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/sessions`,
+    {
+      headers: {
+        'Content-type': 'application/json',
+        token: `${token}`,
+      },
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestQuizSessionCreate = (token: string, quizId: number, autoStartNum: number) => {
+  const res = request(
+    'POST',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/session/start`,
+    {
+      body: JSON.stringify({
+        autoStartNum: autoStartNum,
+      }),
+      headers: {
+        'Content-type': 'application/json',
+        token: `${token}`,
+      },
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestSessionStatus = (token: string, quizId: number, sessionId: number) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/session/${sessionId}`,
+    {
+      headers: {
+        'Content-type': 'application/json',
+        token: `${token}`,
+      },
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestSessionStateUpdate = (token: string, quizId: number, sessionId: number, action: Actions | string) => {
+  let actionString: string;
+  switch (action) {
+    case Actions.END:
+      actionString = 'END';
+      break;
+    case Actions.NEXT_QUESTION:
+      actionString = 'NEXT_QUESTION';
+      break;
+    case Actions.GO_TO_ANSWER:
+      actionString = 'GO_TO_ANSWER';
+      break;
+    case Actions.GO_TO_FINAL_RESULTS:
+      actionString = 'GO_TO_FINAL_RESULTS';
+      break;
+    case Actions.SKIP_COUNTDOWN:
+      actionString = 'SKIP_COUNTDOWN';
+      break;
+  }
+
+  const res = request(
+    'PUT',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/session/${sessionId}`,
+    {
+      body: JSON.stringify({
+        action: actionString,
+      }),
+      headers: {
+        'Content-type': 'application/json',
+        token: `${token}`,
+      },
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestSessionResults = (token: string, quizId: number, sessionId: number) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/session/${sessionId}/results`,
+    {
+      headers: {
+        token: `${token}`,
+      }
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestSessionResultsCsv = (token: string, quizId: number, sessionId: number) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/admin/quiz/${quizId}/session/${sessionId}/results/csv`,
+    {
+      headers: {
+        token: token,
+      }
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestPlayerJoin = (sessionId: number, name: string) => {
+  const res = request(
+    'POST',
+    SERVER_URL + '/v1/player/join',
+    {
+      json: {
+        sessionId: sessionId,
+        name: name,
+      }
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestPlayerQuestionResults = (playerId: number, questionPosition: number) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/player/${playerId}/question/${questionPosition}/results`,
+    {}
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestPlayerStatus = (playerId: number) => {
+  // console.log('TYPE: ' + typeof { playerId } + 'Value: ' + playerId);
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/player/${playerId}`
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestPlayerFinalResults = (playerId: number) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/player/${playerId}/results`,
+    {}
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestQuestionInfo = (playerid: number, questionposition: number) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/player/${playerid}/question/${questionposition}`
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestMessagesList = (playerId: number) => {
+  const res = request(
+    'GET',
+    SERVER_URL + `/v1/player/${playerId}/chat`
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestQuestionSubmit = (playerid: number, questionposition: number, answerIds: number[]) => {
+  const res = request(
+    'PUT',
+    SERVER_URL + `/v1/player/${playerid}/question/${questionposition}/answer`,
+    {
+      json: {
+        answerIds: answerIds,
+      }
+    }
+  );
+  return JSON.parse(res.body.toString());
+};
+
+export const requestMessageSend = (playerId: number, messageBody: string) => {
+  const res = request(
+    'POST',
+    SERVER_URL + `/v1/player/${playerId}/chat`,
+    {
+      json: {
+        message: {
+          messageBody: messageBody,
+        },
       }
     }
   );
