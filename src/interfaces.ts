@@ -135,6 +135,7 @@ export interface QuestionResultReturn {
   percentCorrect: number,
 }
 
+
 export interface QuizSession {
   sessionId: number,
   quizId: number,
@@ -246,7 +247,7 @@ export interface UsersRanked {
 
 export interface SessionResults {
   usersRankedByScore: UsersRanked[],
-  questionResults: QuestionResult[]
+  questionResults: QuestionResultReturn[]
 }
 
 export interface ReturnPlayerStatus {
