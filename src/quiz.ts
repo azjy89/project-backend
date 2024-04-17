@@ -1009,14 +1009,21 @@ function generateCsvString(session: QuizSession): string {
       // Insert player score for the question
       playerRow.push(playerScore.toString());
       
-      // Calculate rank for the question
-      const sortedScores = session.questionResults[qIndex].playersCorrectList
-        .map(name => session.players.find(p => p.name === name)?.score || 0)
-        .sort((a, b) => b - a);
-      const playerRank = playerScore > 0 ? sortedScores.indexOf(playerScore) + 1 : 0;
+      // Calculate scores for ranking
+      const scoresForThisQuestion = session.players.map(p => {
+        return questionResult.playersCorrectList.some(pr => pr.playerId === p.playerId) ? question.points : 0;
+      }).sort((a, b) => b - a);
 
-      // Insert player rank for the question
-      playerRow.push(playerRank.toString());
+      let rank = 1;
+      for (let i = 0, rank = 1; i < scoresForThisQuestion.length; i++) {
+        if (i > 0 && scoresForThisQuestion[i] !== scoresForThisQuestion[i - 1]) {
+          rank = i + 1;
+        }
+        if (scoresForThisQuestion[i] === playerScore) {
+          playerRow.push(rank.toString());
+          break;
+        }
+      }
     });
     return playerRow;
   });
