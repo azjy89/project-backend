@@ -925,18 +925,12 @@ export function sessionStateUpdate(authUserId: number, quizId: number, sessionId
 export function sessionResults(authUserId: number, quizId: number, sessionId: number): SessionResults | ErrorObject {
   const data = getData();
   const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
-  if (!quizFind) {
-    throw HTTPError(400, 'quizId does not refer to an existing quiz');
-  }
   if (quizFind.ownerId !== authUserId) {
     throw HTTPError(400, 'Quiz does not belong to the user');
   }
   const sessionFind = data.quizSessions.find(sessionFind => sessionFind.sessionId === sessionId);
   if (!sessionFind) {
     throw HTTPError(400, 'sessionId does not refer to a valid session');
-  }
-  if (sessionFind.quizId !== quizId) {
-    throw HTTPError(400, 'Session and quiz do not match');
   }
   if (sessionFind.state !== States.FINAL_RESULTS) {
     throw HTTPError(400, 'Invalid state for showing final results');
@@ -968,9 +962,6 @@ export function sessionResults(authUserId: number, quizId: number, sessionId: nu
 export function sessionResultsCsv(authUserId: number, quizId: number, sessionId: number): object | ErrorObject {
   const data = getData();
   const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
-  if (!quizFind) {
-    throw HTTPError(400, 'quizId does not refer to an existing quiz');
-  }
   if (quizFind.ownerId !== authUserId) {
     throw HTTPError(400, 'Quiz does not belong to the user');
   }
@@ -1011,19 +1002,28 @@ function generateCsvString(session: QuizSession): string {
     const playerRow = [player.name];
     session.quiz.questions.forEach((question, qIndex) => {
       const questionResult = session.questionResults.find(result => result.questionId === question.questionId);
-      const playerScore = questionResult.playersCorrectList.includes(player.name) ? player.score : 0;
+      
+      const isPlayerCorrect = questionResult.playersCorrectList.some(p => p.playerId === player.playerId);
+      const playerScore = isPlayerCorrect ? question.points : 0;
 
       // Insert player score for the question
       playerRow.push(playerScore.toString());
       
-      // Calculate rank for the question
-      const sortedScores = session.questionResults[qIndex].playersCorrectList
-        .map(name => session.players.find(p => p.name === name)?.score || 0)
-        .sort((a, b) => b - a);
-      const playerRank = playerScore > 0 ? sortedScores.indexOf(playerScore) + 1 : 0;
+      // Calculate scores for ranking
+      const scoresForThisQuestion = session.players.map(p => {
+        return questionResult.playersCorrectList.some(pr => pr.playerId === p.playerId) ? question.points : 0;
+      }).sort((a, b) => b - a);
 
-      // Insert player rank for the question
-      playerRow.push(playerRank.toString());
+      let rank = 1;
+      for (let i = 0, rank = 1; i < scoresForThisQuestion.length; i++) {
+        if (i > 0 && scoresForThisQuestion[i] !== scoresForThisQuestion[i - 1]) {
+          rank = i + 1;
+        }
+        if (scoresForThisQuestion[i] === playerScore) {
+          playerRow.push(rank.toString());
+          break;
+        }
+      }
     });
     return playerRow;
   });
@@ -1073,13 +1073,37 @@ export function playerQuestionResults(playerId: number, questionPosition: number
     averageAnswerTime: questionResult.averageAnswerTime,
     percentCorrect: questionResult.percentCorrect,
   };
-
-  if (!questionResult) {
-    throw HTTPError(400, 'Question result not found for the given questionId');
-  }
   return questionResultReturn;
 }
 
+export function playerFinalQuestionResults(playerId: number, questionPosition: number): QuestionResultReturn {
+  const data = getData();
+  let currSession: QuizSession;
+  let player: Player;
+
+  for (const session of data.quizSessions) {
+    player = session.players.find(player => player.playerId === playerId);
+    if (player) {
+      currSession = session;
+      break;
+    }
+  }
+
+  const questionId = currSession.quiz.questions[questionPosition - 1].questionId;
+
+  const questionResult = currSession.questionResults.find(questionResult => questionResult.questionId === questionId);
+  if (!questionResult) {
+    return { error: 'Invalid questionId' };
+  }
+  const returnedPlayersCorrectList = questionResult.playersCorrectList.map(player => player.name);
+  const questionResultReturn: QuestionResultReturn = {
+    questionId: questionResult.questionId,
+    playersCorrectList: returnedPlayersCorrectList,
+    averageAnswerTime: questionResult.averageAnswerTime,
+    percentCorrect: questionResult.percentCorrect,
+  };
+  return questionResultReturn;
+}
 export function playerFinalResults(playerId: number) {
   let sessionFind: QuizSession | undefined;
   let data = getData();
@@ -1105,23 +1129,37 @@ export function playerFinalResults(playerId: number) {
 
   // Get the question results for the player
   for (let i = 1; i <= sessionFind.quiz.questions.length; i++) {
-    const questionResult = playerQuestionResults(playerId, i);
+    const questionResult = playerFinalQuestionResults(playerId, i);
     if(questionResult && !('error' in questionResult)) {
       results.questionResults.push(questionResult);
     }
   }
-
-  // Calculate total score for each player
+  // Iterate each player of the session
   sessionFind.players.forEach(player => {
+    let score = 0;  // Initialize score for the player
+
+    // Iterate through each questionResult to calculate score
+    sessionFind.questionResults.forEach(questionResult => {
+        // Check if player's ID is in the playersCorrectList for the question
+        if (questionResult.playersCorrectList.some(p => p.playerId === player.playerId)) {
+          // Find the matching question in the quiz questions array
+          const question = sessionFind.quiz.questions.find(q => q.questionId === questionResult.questionId);
+
+          if (question) {
+              score += question.points;  // Add points for the question to the player's score
+          }
+        }
+    });
+    // Add player and their score to the results array
     results.usersRankedByScore.push({
-      name: player.name,
-      score: player.score
+        name: player.name,
+        score: score
     });
   });
+ 
 
   // Sort users by score in descending order
   results.usersRankedByScore.sort((a, b) => b.score - a.score);
 
   return results;
 }
-

@@ -108,6 +108,7 @@ describe('Error handling', () => {
     playerId1 = playerRes1 as PlayerId;
     playerId2 = playerRes2 as PlayerId;
     playerId3 = playerRes3 as PlayerId;
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.SKIP_COUNTDOWN);
     requestQuestionSubmit(playerId1.playerId, 1, [0]);
     requestQuestionSubmit(playerId2.playerId, 1, [0]);
     requestQuestionSubmit(playerId3.playerId, 1, [1]);
@@ -156,7 +157,6 @@ describe('Successful playerquestionresults', () => {
     playerId1 = playerRes1 as PlayerId;
     playerId2 = playerRes2 as PlayerId;
     playerId3 = playerRes3 as PlayerId;
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.SKIP_COUNTDOWN);
     requestQuestionSubmit(playerId1.playerId, 1, [0]);
     requestQuestionSubmit(playerId2.playerId, 1, [0]);

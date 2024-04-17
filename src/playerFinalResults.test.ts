@@ -7,7 +7,7 @@ import {
   requestPlayerJoin,
   requestQuestionSubmit,
   requestSessionStateUpdate,
-  requestPlayerFinalResults
+  requestPlayerFinalResults,
 } from './httpRequests';
 
 const ERROR = { error: expect.any(String) };
@@ -161,13 +161,17 @@ describe('Successful playerfinalresults', () => {
     const playerId3 = playerRes3 as PlayerId;
 
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.SKIP_COUNTDOWN);
     requestQuestionSubmit(playerId1.playerId, 1, [0]);
     requestQuestionSubmit(playerId2.playerId, 1, [1]);
     requestQuestionSubmit(playerId3.playerId, 1, [1]);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_ANSWER);
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.SKIP_COUNTDOWN);
     requestQuestionSubmit(playerId1.playerId, 2, [0, 2]);
     requestQuestionSubmit(playerId2.playerId, 2, [0, 2]);
     requestQuestionSubmit(playerId3.playerId, 2, [1]);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_ANSWER);
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_FINAL_RESULTS);
     expect(requestPlayerFinalResults(playerId1.playerId)).toStrictEqual(
       {
@@ -199,11 +203,11 @@ describe('Successful playerfinalresults', () => {
             playersCorrectList: [
               player1,
               player2
-            ]
+            ],
+            averageAnswerTime: NUMBER,
+            percentCorrect: NUMBER
           }
         ],
-        averageAnswerTime: NUMBER,
-        percentCorrect: NUMBER
       }
     )
   });
