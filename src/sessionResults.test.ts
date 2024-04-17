@@ -1,3 +1,6 @@
+import * as path from 'path';
+import { deleteFolderRecursive } from './helpers';
+
 import {
   requestClear,
   requestQuizCreate,
@@ -5,12 +8,10 @@ import {
   requestQuizQuestionCreate,
   requestQuizSessionCreate,
   requestPlayerJoin,
-  requestAuthLogout,
   requestSessionResults,
   requestSessionStateUpdate,
   requestQuestionSubmit,
   requestSessionResultsCsv,
-  requestSessionStatus
 } from './httpRequests';
 
 import {
@@ -128,6 +129,7 @@ describe('Error handling', () => {
     requestQuestionSubmit(playerId2.playerId, 1, [0]);
     requestQuestionSubmit(playerId3.playerId, 1, [1]);
   });
+
   test('Error conditions', () => {
     // lobby state
     expect(requestSessionResults(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
@@ -138,7 +140,7 @@ describe('Error handling', () => {
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_FINAL_RESULTS);
     expect(requestSessionResults('123', quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
     expect(requestSessionResultsCsv('123', quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
-    
+
     // user doesnt own the quiz
     const randomUser = requestAuthRegister('mewmew@gmail.com', 'asdbf1235', 'Joanna', 'Zhong');
     const randomToken = randomUser as Token;
@@ -148,7 +150,7 @@ describe('Error handling', () => {
     // session id doesnt exist
     expect(requestSessionResults(token.token, quizId.quizId, 123)).toStrictEqual(ERROR);
     expect(requestSessionResultsCsv(token.token, quizId.quizId, 123)).toStrictEqual(ERROR);
-    
+
     // check lobby state again
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.END);
     expect(requestSessionResults(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
@@ -202,6 +204,7 @@ describe('Successful case', () => {
     requestQuestionSubmit(playerId2.playerId, 2, [0]);
     requestQuestionSubmit(playerId3.playerId, 2, [1]);
   });
+
   test('Successful output', () => {
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_ANSWER);
     requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_FINAL_RESULTS);
@@ -242,8 +245,10 @@ describe('Successful case', () => {
             percentCorrect: NUMBER
           },
         ],
-      },
-    )
-  expect(requestSessionResultsCsv(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual({ url: expect.any(String) });
+      }
+    );
+    expect(requestSessionResultsCsv(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual({ url: expect.any(String) });
+    deleteFolderRecursive(path.join(__dirname, '../results'));
+    expect(requestSessionResultsCsv(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual({ url: expect.any(String) });
   });
 });

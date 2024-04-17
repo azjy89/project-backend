@@ -4,27 +4,20 @@ import {
   requestClear,
   requestQuizQuestionCreate,
   requestSessionStateUpdate,
-  requestQuizSessionCreate, 
+  requestQuizSessionCreate,
   requestPlayerJoin,
-  requestPlayerStatus,
   requestQuestionInfo,
-  requestQuizInfo, 
   requestSessionStatus
 } from '../src/httpRequests';
 
 import {
-  States,
   Actions,
   TokenReturn,
   QuizId,
-  Quiz,
   QuestionBody,
-  QuestionId,
   Question,
-  AdminQuizInfoReturn,
-  QuizSession, 
+  QuizSession,
 } from './interfaces';
-
 
 beforeEach(() => {
   requestClear();
@@ -37,9 +30,11 @@ afterAll(() => {
 describe('Testing GET /v1/player/{playerid}/question/{questionposition}', () => {
   let registerRes: TokenReturn;
   let quizCreateRes: QuizId;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let question: Question;
   let sessionRes: QuizSession;
   let questionCreateRes1: Question;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let questionCreateRes2: Question;
   beforeEach(() => {
     requestClear();
@@ -83,7 +78,7 @@ describe('Testing GET /v1/player/{playerid}/question/{questionposition}', () => 
   });
 
   test('successfully get current question information', () => {
-    const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
+    const playerRes = requestPlayerJoin(sessionRes.sessionId, 'Random Player');
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.SKIP_COUNTDOWN);
     const questionInfoRes = requestQuestionInfo(playerRes.playerId, 1);
@@ -106,11 +101,11 @@ describe('Testing GET /v1/player/{playerid}/question/{questionposition}', () => 
           colour: questionStatus.metadata.questions[0].answers[1].colour,
         }
       ]
-    })
+    });
   });
 
   test('fails when player ID does not exist', () => {
-    const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
+    const playerRes = requestPlayerJoin(sessionRes.sessionId, 'Random Player');
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.SKIP_COUNTDOWN);
     const questionInfoRes = requestQuestionInfo(playerRes.playerId + 1, 1);
@@ -118,7 +113,7 @@ describe('Testing GET /v1/player/{playerid}/question/{questionposition}', () => 
   });
 
   test('fails if question position is not valid for the session this player is in', () => {
-    const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
+    const playerRes = requestPlayerJoin(sessionRes.sessionId, 'Random Player');
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.SKIP_COUNTDOWN);
     const questionInfoRes = requestQuestionInfo(playerRes.playerId, 3);
@@ -126,7 +121,7 @@ describe('Testing GET /v1/player/{playerid}/question/{questionposition}', () => 
   });
 
   test('fails if session is not currently on this question', () => {
-    const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
+    const playerRes = requestPlayerJoin(sessionRes.sessionId, 'Random Player');
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.SKIP_COUNTDOWN);
     const questionInfoRes = requestQuestionInfo(playerRes.playerId, 2);
@@ -134,20 +129,20 @@ describe('Testing GET /v1/player/{playerid}/question/{questionposition}', () => 
   });
 
   test('fails if session is in LOBBY state', () => {
-    const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
+    const playerRes = requestPlayerJoin(sessionRes.sessionId, 'Random Player');
     const questionInfoRes = requestQuestionInfo(playerRes.playerId, 1);
     expect(questionInfoRes).toStrictEqual({ error: expect.any(String) });
   });
 
   test('fails if session is in QUESTION_COUNTDOWN state', () => {
-    const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
+    const playerRes = requestPlayerJoin(sessionRes.sessionId, 'Random Player');
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
     const questionInfoRes = requestQuestionInfo(playerRes.playerId, 1);
     expect(questionInfoRes).toStrictEqual({ error: expect.any(String) });
   });
 
   test('fails if session is in END state', () => {
-    const playerRes = requestPlayerJoin(sessionRes.sessionId, "Random Player");
+    const playerRes = requestPlayerJoin(sessionRes.sessionId, 'Random Player');
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.END);
     const questionInfoRes = requestQuestionInfo(playerRes.playerId, 1);
     expect(questionInfoRes).toStrictEqual({ error: expect.any(String) });

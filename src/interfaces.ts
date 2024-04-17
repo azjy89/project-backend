@@ -135,7 +135,6 @@ export interface QuestionResultReturn {
   percentCorrect: number,
 }
 
-
 export interface QuizSession {
   sessionId: number,
   quizId: number,
@@ -259,4 +258,3 @@ export interface ReturnPlayerStatus {
 export interface MessagesListReturn {
   messages: Message[],
 }
-

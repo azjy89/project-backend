@@ -16,8 +16,6 @@ import {
   Actions,
 } from './interfaces';
 
-import { getData } from './dataStore';
-
 beforeEach(() => {
   requestClear();
 });

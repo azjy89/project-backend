@@ -63,7 +63,7 @@ import {
 } from './playerJoin';
 import {
   playerStatus
-} from './playerStatus'
+} from './playerStatus';
 
 import {
   playerSubmitAnswer
@@ -684,7 +684,7 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res:
   return res.status(200).json(response);
 });
 
-/**GET
+/** GET
  * Route for /v1/admin/quiz/:quizid/session/:sessionid/results/csv
  *
  * Get the link to the final results in CSV format for all players
@@ -696,15 +696,15 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid/results/csv', (req: Request, 
   const sessionId = parseInt(req.params.sessionid);
   // Get token from header
   const token = req.headers.token as string;
-   // Retrieve userid for the token
-   const userId = idFromToken(token);
-   const authUserId = userId as AuthUserId;
-   // Call and return sessionResultsCsv
-   const response = sessionResultsCsv(authUserId.authUserId, quizId, sessionId);
-   return res.status(200).json(response);
+  // Retrieve userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+  // Call and return sessionResultsCsv
+  const response = sessionResultsCsv(authUserId.authUserId, quizId, sessionId);
+  return res.status(200).json(response);
 });
 
-/**GET
+/** GET
  * Request for /v1/player/:playerid/question/:questionposition/results
  *
  * Get the results for a particular question of the session a player is playing in

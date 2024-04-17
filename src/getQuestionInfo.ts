@@ -1,26 +1,14 @@
-import { getData, getTimerData, setData } from './dataStore';
+import { getData } from './dataStore';
 import {
   ErrorObject,
-  AdminQuizListReturn,
-  QuizId,
   Data,
   Quiz,
-  QuestionBody,
-  QuestionId,
-  Question,
-  DupedQuestionId,
-  SessionId,
-  Actions,
   States,
   Player,
   QuizSession,
-  SessionList,
-  SessionStatus,
-  AdminQuizInfoReturn,
 } from './interfaces';
 
 import HTTPError from 'http-errors';
-
 
 export const getQuestionInfo = (playerId: number, questionPosition: number): object | ErrorObject => {
   const data: Data = getData();
@@ -44,10 +32,10 @@ export const getQuestionInfo = (playerId: number, questionPosition: number): obj
   }
   const question = quiz.questions[questionPosition - 1];
 
-  if (currentQuizSession.atQuestion !== questionPosition) { //session is not currently on this question
+  if (currentQuizSession.atQuestion !== questionPosition) { // session is not currently on this question
     throw HTTPError(400, 'session is not currently on this question');
   }
-  
+
   if (currentQuizSession.state === States.LOBBY || currentQuizSession.state === States.QUESTION_COUNTDOWN || currentQuizSession.state === States.END) {
     throw HTTPError(400, 'session not working');
   }
@@ -65,4 +53,4 @@ export const getQuestionInfo = (playerId: number, questionPosition: number): obj
     }))
   };
   return questionInfo;
-}
+};

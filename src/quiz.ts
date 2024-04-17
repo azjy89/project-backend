@@ -26,11 +26,6 @@ import {
 
 import HTTPError from 'http-errors';
 
-type QuizScores = {
-  playerId: number;
-  scores: number[]; // of each question in order
-}[];
-
 // Global Variables
 const maxNameLength = 30;
 const minNameLength = 3;
@@ -729,6 +724,15 @@ export function adminQuizSessionCreate(authUserId: number, quizId: number, autoS
   }
 
   const newSessionId = Math.floor(Math.random() * (1000000 - 10000 + 1)) + 10000;
+  const newQuestionResults: QuestionResult[] = [];
+  for (const question of quiz.questions) {
+    newQuestionResults.push({
+      questionId: question.questionId,
+      playersCorrectList: [],
+      averageAnswerTime: 0,
+      percentCorrect: 0,
+    });
+  }
   const newSession: QuizSession = {
     sessionId: newSessionId,
     quizId: quizId,
@@ -935,28 +939,27 @@ export function sessionResults(authUserId: number, quizId: number, sessionId: nu
   if (sessionFind.state !== States.FINAL_RESULTS) {
     throw HTTPError(400, 'Invalid state for showing final results');
   }
-  
-  const finalResults = {
+
+  const finalResults: SessionResults = {
     usersRankedByScore: [],
-    questionResults: []
+    questionResults: [],
   };
 
   sessionFind.players.forEach(player => {
-    let playerResult = playerFinalResults(player.playerId);
+    const playerResult = playerFinalResults(player.playerId);
     finalResults.usersRankedByScore.push(playerResult.usersRankedByScore.find(p => p.name === player.name));
   });
 
   // Since we only want the unique question results, we'll take the first player's as representative for all
   if (sessionFind.players.length > 0) {
-    let firstPlayerResult = playerFinalResults(sessionFind.players[0].playerId);
+    const firstPlayerResult = playerFinalResults(sessionFind.players[0].playerId);
     finalResults.questionResults = firstPlayerResult.questionResults;
   }
 
   // Sorting the users by score in descending order
   finalResults.usersRankedByScore.sort((a, b) => b.score - a.score);
-  
-  return finalResults;
 
+  return finalResults;
 }
 
 export function sessionResultsCsv(authUserId: number, quizId: number, sessionId: number): object | ErrorObject {
@@ -990,31 +993,30 @@ export function sessionResultsCsv(authUserId: number, quizId: number, sessionId:
 function generateCsvString(session: QuizSession): string {
   // Sort players by name
   const sortedPlayers = [...session.players].sort((a, b) => a.name.localeCompare(b.name));
-  
+
   // Create header row for CSV
   const headerRow = ['Player'];
   for (let i = 1; i <= session.quiz.questions.length; i++) {
     headerRow.push(`question${i}score`, `question${i}rank`);
   }
-  
+
   // Initialize rows for player data
   const playerRows = sortedPlayers.map(player => {
     const playerRow = [player.name];
     session.quiz.questions.forEach((question, qIndex) => {
       const questionResult = session.questionResults.find(result => result.questionId === question.questionId);
-      
+
       const isPlayerCorrect = questionResult.playersCorrectList.some(p => p.playerId === player.playerId);
       const playerScore = isPlayerCorrect ? question.points : 0;
 
       // Insert player score for the question
       playerRow.push(playerScore.toString());
-      
+
       // Calculate scores for ranking
       const scoresForThisQuestion = session.players.map(p => {
         return questionResult.playersCorrectList.some(pr => pr.playerId === p.playerId) ? question.points : 0;
       }).sort((a, b) => b - a);
 
-      let rank = 1;
       for (let i = 0, rank = 1; i < scoresForThisQuestion.length; i++) {
         if (i > 0 && scoresForThisQuestion[i] !== scoresForThisQuestion[i - 1]) {
           rank = i + 1;
@@ -1027,10 +1029,10 @@ function generateCsvString(session: QuizSession): string {
     });
     return playerRow;
   });
-  
+
   // Assemble CSV content
   const csvContent = [headerRow, ...playerRows].map(row => row.join(',')).join('\r\n');
-  
+
   return csvContent;
 }
 
@@ -1076,7 +1078,7 @@ export function playerQuestionResults(playerId: number, questionPosition: number
   return questionResultReturn;
 }
 
-export function playerFinalQuestionResults(playerId: number, questionPosition: number): QuestionResultReturn {
+function playerFinalQuestionResults(playerId: number, questionPosition: number): QuestionResultReturn {
   const data = getData();
   let currSession: QuizSession;
   let player: Player;
@@ -1092,9 +1094,6 @@ export function playerFinalQuestionResults(playerId: number, questionPosition: n
   const questionId = currSession.quiz.questions[questionPosition - 1].questionId;
 
   const questionResult = currSession.questionResults.find(questionResult => questionResult.questionId === questionId);
-  if (!questionResult) {
-    return { error: 'Invalid questionId' };
-  }
   const returnedPlayersCorrectList = questionResult.playersCorrectList.map(player => player.name);
   const questionResultReturn: QuestionResultReturn = {
     questionId: questionResult.questionId,
@@ -1104,12 +1103,11 @@ export function playerFinalQuestionResults(playerId: number, questionPosition: n
   };
   return questionResultReturn;
 }
-export function playerFinalResults(playerId: number) {
-  let sessionFind: QuizSession | undefined;
-  let data = getData();
 
+export function playerFinalResults(playerId: number) {
+  const data = getData();
   // Locate the session with the given playerId
-  sessionFind = data.quizSessions.find(session =>
+  const sessionFind = data.quizSessions.find(session =>
     session.players.some(player => player.playerId === playerId)
   );
 
@@ -1122,7 +1120,7 @@ export function playerFinalResults(playerId: number) {
   }
 
   // Initial result object structure
-  const results = {
+  const results: SessionResults = {
     usersRankedByScore: [],
     questionResults: []
   };
@@ -1130,33 +1128,30 @@ export function playerFinalResults(playerId: number) {
   // Get the question results for the player
   for (let i = 1; i <= sessionFind.quiz.questions.length; i++) {
     const questionResult = playerFinalQuestionResults(playerId, i);
-    if(questionResult && !('error' in questionResult)) {
+    if (questionResult && !('error' in questionResult)) {
       results.questionResults.push(questionResult);
     }
   }
   // Iterate each player of the session
   sessionFind.players.forEach(player => {
-    let score = 0;  // Initialize score for the player
+    let score = 0; // Initialize score for the player
 
     // Iterate through each questionResult to calculate score
     sessionFind.questionResults.forEach(questionResult => {
-        // Check if player's ID is in the playersCorrectList for the question
-        if (questionResult.playersCorrectList.some(p => p.playerId === player.playerId)) {
-          // Find the matching question in the quiz questions array
-          const question = sessionFind.quiz.questions.find(q => q.questionId === questionResult.questionId);
+      // Check if player's ID is in the playersCorrectList for the question
+      if (questionResult.playersCorrectList.some(p => p.playerId === player.playerId)) {
+        // Find the matching question in the quiz questions array
+        const question = sessionFind.quiz.questions.find(q => q.questionId === questionResult.questionId);
 
-          if (question) {
-              score += question.points;  // Add points for the question to the player's score
-          }
-        }
+        score += question.points; // Add points for the question to the player's score
+      }
     });
     // Add player and their score to the results array
     results.usersRankedByScore.push({
-        name: player.name,
-        score: score
+      name: player.name,
+      score: score
     });
   });
- 
 
   // Sort users by score in descending order
   results.usersRankedByScore.sort((a, b) => b.score - a.score);

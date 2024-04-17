@@ -66,22 +66,6 @@ const questionBody1 = {
   ],
   thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
 };
-const questionBody2 = {
-  question: 'How are you sleeping?',
-  duration: 5,
-  points: 5,
-  answers: [
-    {
-      answer: 'Bobby the builder',
-      correct: true
-    },
-    {
-      answer: 'Bobby the breaker',
-      correct: false
-    }
-  ],
-  thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
-};
 
 const player1 = 'Nonny';
 const player2 = 'Rorry';
@@ -209,6 +193,6 @@ describe('Successful playerfinalresults', () => {
           }
         ],
       }
-    )
+    );
   });
 });

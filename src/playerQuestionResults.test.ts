@@ -10,8 +10,6 @@ import {
   requestSessionStateUpdate,
 } from './httpRequests';
 
-import { getData } from './dataStore';
-
 const ERROR = { error: expect.any(String) };
 const NUMBER = expect.any(Number);
 
