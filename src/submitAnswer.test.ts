@@ -70,7 +70,7 @@ describe('Testing PUT /v1/player/{playerid}/question/{questionposition}/answer',
       thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     questionRes1 = requestQuizQuestionCreate(registerRes.token, quizCreateRes.quizId, questionBody1);
-    questionRes2 = requestQuizQuestionCreate(registerRes.token, quizCreateRes.quizId, questionBody2);
+    requestQuizQuestionCreate(registerRes.token, quizCreateRes.quizId, questionBody2);
     sessionRes = requestQuizSessionCreate(registerRes.token, quizCreateRes.quizId, 4);
   });
 
