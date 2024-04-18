@@ -13,8 +13,12 @@ import {
   requestQuizQuestionRemove,
   requestQuizQuestionMove,
   requestQuizQuestionDuplicate,
-  requestTrashQuizList
+  requestTrashQuizList,
+  requestQuizSessionCreate
 } from './httpRequests';
+
+import { getData } from './dataStore';
+
 import {
   TokenReturn,
   QuizId,
@@ -183,6 +187,29 @@ describe('requestQuizRemove', () => {
     expect(requestQuizRemove(resToken.token, quiz1.quizId)).toStrictEqual({ error: expect.any(String) });
   });
 });
+test('quiz has active session', () => {
+  const resToken = requestAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
+  const quiz = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+  const questionBody: QuestionBody = {
+    question: 'When are you sleeping?',
+    duration: 5,
+    points: 5,
+    answers: [
+      {
+        answer: 'Bobby the builder',
+        correct: true
+      },
+      {
+        answer: 'Bobby the breaker',
+        correct: false
+      }
+    ],
+    thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
+  };
+  requestQuizQuestionCreate(resToken.token, quiz.quizId, questionBody);
+  requestQuizSessionCreate(resToken.token, quiz.quizId, 3);
+  expect(requestQuizRemove(resToken.token, quiz.quizId));
+});
 
 describe('requestQuizInfo', () => {
   test('Quiz info retrieved successfully', () => {
@@ -278,7 +305,24 @@ describe('requestQuizNameUpdate', () => {
     // eslint-disable-next-line
     const quizId1 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
     const quizId2 = requestQuizCreate(resToken.token, 'bahahaha', 'Blahblah!');
+    expect(requestQuizNameUpdate(resToken.token, quizId2.quizId, 'COMP1531')).toStrictEqual({ error: expect.any(String) });
+  });
+
+  test('name contains invalid characters', () => {
+    const resToken = requestAuthRegister('quiz@unsw.edu.au',
+      'abcd1234', 'Bobby', 'Dickens');
+    // eslint-disable-next-line
+    const quizId1 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+    const quizId2 = requestQuizCreate(resToken.token, 'bahahaha', 'Blahblah!');
     expect(requestQuizNameUpdate(resToken.token, quizId2.quizId, 'COMP1531!')).toStrictEqual({ error: expect.any(String) });
+  });
+
+  test('invalid nameLength', () => {
+    const resToken = requestAuthRegister('quiz@unsw.edu.au',
+      'abcd1234', 'Bobby', 'Dickens');
+    // eslint-disable-next-line
+    const quizId1 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+    expect(requestQuizNameUpdate(resToken.token, quizId1.quizId, 'C')).toStrictEqual({ error: expect.any(String) });
   });
 });
 
@@ -1244,9 +1288,50 @@ describe('requestQuizQuestionRemove', () => {
   test('invalid token', () => {
     expect(requestQuizQuestionRemove('1', quiz1.quizId, quizQuestion.questionId)).toStrictEqual({ error: expect.any(String) });
   });
-  test('Successful return and status code', () => {
-    const response = requestQuizQuestionDuplicate(resToken.token, quiz1.quizId, quizQuestion.questionId);
-    expect(response).toStrictEqual({ newQuestionId: expect.any(Number) });
+
+  test('invalid quizId', () => {
+    expect(requestQuizQuestionRemove('1', quiz1.quizId, quizQuestion.questionId)).toStrictEqual({ error: expect.any(String) });
+  });
+
+  test('Successful question removal', () => {
+    const response = requestQuizQuestionRemove(resToken.token, quiz1.quizId, quizQuestion.questionId);
+    expect(response).toStrictEqual({});
+    const info = requestQuizInfo(resToken.token, quiz1.quizId);
+    expect(info.questions.length).toStrictEqual(0);
+  });
+
+  test('user does not own quiz', () => {
+    const resToken2 = requestAuthRegister('quiz2@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
+    const response = requestQuizQuestionRemove(resToken2.token, quiz1.quizId, quizQuestion.questionId);
+    expect(response).toStrictEqual({ error: expect.any(String) });
+  });
+
+  test('quiz has active sessions', () => {
+    requestQuizSessionCreate(resToken.token, quiz1.quizId, 3);
+    expect(requestQuizQuestionRemove(resToken.token, quiz1.quizId, quizQuestion.questionId)).toStrictEqual({ error: expect.any(String) });
+  });
+
+  test('QuestionId does not exist under the quiz', () => {
+    const quiz2 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+    const question: QuestionBody = {
+      question: 'Who is the Monarch of England?',
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: 'King Charles',
+          correct: true
+        },
+        {
+          answer: 'Queen Elizabeth',
+          correct: false
+        }
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
+    };
+    const quiz2Question = requestQuizQuestionCreate(resToken.token, quiz2.quizId, question);
+    const response = requestQuizQuestionRemove(resToken.token, quiz1.quizId, quiz2Question.questionId);
+    expect(response).toStrictEqual({ error: expect.any(String) });
   });
 });
 
@@ -1299,12 +1384,32 @@ describe('requestQuizQuestionMove', () => {
     expect(requestQuizQuestionMove(resToken.token, quiz1.quizId, quizQuestion.questionId, 1)).toEqual({});
     const quizInfo = requestQuizInfo(resToken.token, quiz1.quizId);
     expect(quizInfo.timeLastEdited).toEqual(expect.any(Number));
+    expect(quizInfo.questions[1].questionId).toStrictEqual(quizQuestion.questionId);
   });
 
   test('Question Id Invalid', () => {
-    expect(requestQuizQuestionMove(resToken.token, quiz1.quizId + 1, quizQuestion2.questionId, 1)).toEqual({ error: expect.any(String) });
-    const quizInfo = requestQuizInfo(resToken.token, quiz1.quizId);
-    expect(quizInfo.timeLastEdited).toEqual(expect.any(Number));
+    const quiz2 = requestQuizCreate(resToken.token, 'COMP15312', 'Welcome!');
+    const questionBody: QuestionBody = {
+      question: 'Who is the PM of England?',
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: 'Theresa May',
+          correct: false
+        },
+        {
+          answer: 'Rishi Sunak',
+          correct: true
+        }
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
+    };
+    const questionCreateRes = requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody);
+
+    const data = getData();
+    console.error(data.quizzes[1].ownerId);
+    expect(requestQuizQuestionMove(resToken.token, quiz2.quizId, questionCreateRes.questionId, 1)).toEqual({ error: expect.any(String) });
   });
 
   test('Invalid Position', () => {
@@ -1401,7 +1506,27 @@ describe('Testing PUT /v1/admin/quiz/{quizId}/transfer', () => {
     user2 = requestAuthRegister('second@unsw.edu.au', 'SecondUser123', 'Second', 'User');
     quiz2 = requestQuizCreate(user2.token, 'COMP1511', 'A description of my quiz');
   });
-
+  test('quiz has active sessions', () => {
+    const questionBody: QuestionBody = {
+      question: 'When are you sleeping?',
+      duration: 5,
+      points: 5,
+      answers: [
+        {
+          answer: 'Bobby the builder',
+          correct: true
+        },
+        {
+          answer: 'Bobby the breaker',
+          correct: false
+        }
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
+    };
+    requestQuizQuestionCreate(user.token, quiz.quizId, questionBody);
+    requestQuizSessionCreate(user.token, quiz.quizId, 3);
+    expect(requestQuizTransfer(user.token, quiz.quizId, 'second@unsw.edu.au')).toStrictEqual({ error: expect.any(String) });
+  });
   test('userEmail is not a real user', () => {
     const response = requestQuizTransfer(user2.token, quiz2.quizId, 'notReal@unsw.edu.au');
     expect(response).toStrictEqual({ error: expect.any(String) });
@@ -1432,7 +1557,7 @@ describe('Testing PUT /v1/admin/quiz/{quizId}/transfer', () => {
 
   test('Valid token; quiz not owned by user. (userId not found in quiz)', () => {
     // first user (testing the user who is transfering quiz)
-    const response = requestQuizTransfer(user.token, quiz.quizId + 1, 'first@unsw.edu.au');
+    const response = requestQuizTransfer(user2.token, quiz.quizId, 'second@unsw.edu.au');
     // expect(response.statusCode).toStrictEqual(403);
     expect(response).toStrictEqual({ error: expect.any(String) });
   });

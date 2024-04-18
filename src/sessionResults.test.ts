@@ -1,16 +1,29 @@
+import * as path from 'path';
+import { deleteFolderRecursive } from './helpers';
+
 import {
   requestClear,
   requestQuizCreate,
   requestAuthRegister,
-  requestQuizCreate,
   requestQuizQuestionCreate,
-  requestSessionStart,
+  requestQuizSessionCreate,
   requestPlayerJoin,
-  requestAuthLogout,
   requestSessionResults,
   requestSessionStateUpdate,
-  requestPlayerAnswerSubmit
+  requestQuestionSubmit,
+  requestSessionResultsCsv,
 } from './httpRequests';
+
+import {
+  Token,
+  ErrorObject,
+  QuizId,
+  SessionId,
+  PlayerId,
+  QuestionBody,
+  Actions,
+  QuestionId
+} from './interfaces';
 
 const ERROR = { error: expect.any(String) };
 const NUMBER = expect.any(Number);
@@ -21,7 +34,7 @@ const email = 'users@unsw.edu.au';
 const password = '1234abcd';
 const quizName = 'Construction sites';
 const quizDescription = 'Test yourself against Bobbys knowledge of construction';
-const questionBody = {
+const questionBody: QuestionBody = {
   question: 'When are you sleeping?',
   duration: 5,
   points: 5,
@@ -85,98 +98,152 @@ afterAll(() => {
 describe('Error handling', () => {
   let registerRes: Token | ErrorObject;
   let quizRes: QuizId | ErrorObject;
-  let sessionRes: SessionId | ErrorObject;
+  let sessionRes;
+  let playerRes1: PlayerId | ErrorObject;
+  let playerRes2: PlayerId | ErrorObject;
+  let playerRes3: PlayerId | ErrorObject;
   let token: Token;
   let quizId: QuizId;
   let sessionId: SessionId;
-  beforeEach(() => {
-    registerRes = requestAuthRegister(
-      email,
-      password,
-      firstName,
-      lastName
-    );
-    token = registerRes as Token;
-    quizRes = requestQuizCreate(token.token, quizName, quizDescription);
-    quizId = quizRes as QuizId;
-    requestQuizQuestionCreate(token.token, quizId.quizId, questionBody);
-    sessionRes = requestSessionStart(token.token, quizId.quizId, 5);
-    sessionId = sessionRes as SessionId;
-    requestPlayerJoin(sessionId.sessionId, player1);
-  });
-  test('Invalid token', () => {
-    expect(requestSessionResults('1', quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
-  });
-  test('Error conditions', () => {
-    const newUser = requestAuthRegister('pewpew@gmail.com', 'abcd1234', 'ajlskdf', 'asldsdff');
-    const newToken = newUser as Token;
-    requestAuthLogout(newToken.token);
-    // Invalid session token
-    expect(requestSessionResults(newToken.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
-    // Invalid lobby state
-    expect(requestSessionResults(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
-    // Transition state to final results
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'NEXT_QUESTION');
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'GO_TO_FINAL_RESULTS');
-    // quizId does not refer to a valid quiz
-    expect(requestSessionResults(token.token, 123, sessionId.sessionId)).toStrictEqual(ERROR);
-    // user doesnt own the quiz
-    const randomUser = requestAuthRegister('mewmew@gmail.com', 'asdbf1235', 'Joanna', 'Zhong');
-    const randomToken = randomUser as Token;
-    const randomQuiz = requestQuizCreate(randomUser.token, 'New Quiz', 'What is my name?');
-    const randomQuizId = randomQuiz as QuizId;
-    expect(requestSessionResults(token.token, randomQuizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
-  });
-});
-
-describe('Successful output for successful', () => {
-  let registerRes: Token | ErrorObject;
-  let quizRes: QuizId | ErrorObject;
-  let sessionRes: SessionId | ErrorObject;
-  let playerRes: PlayerId | ErrorObject;
-  let question1: QuestionId | ErrorObject;
-  let question2: QuestionId | ErrorObject;
-  let question3: QuestionId | ErrorObject;
-  let token: Token;
-  let quizId: QuizId;
-  let sessionId: SessionId;
-  let playerId: PlayerId;
-  let questionId1: QuestionId;
-  let questionId2: QuestionId;
-  let questionId3: QuestionId;
+  let playerId1: PlayerId;
+  let playerId2: PlayerId;
+  let playerId3: PlayerId;
   beforeEach(() => {
     registerRes = requestAuthRegister(email, password, firstName, lastName);
     token = registerRes as Token;
     quizRes = requestQuizCreate(token.token, quizName, quizDescription);
     quizId = quizRes as QuizId;
-    question1 = requestQuizQuestionCreate(token.token, quizId.quizId, questionBody);
-    question2 = requestQuizQuestionCreate(token.token, quizId.quizId, questionBody1);
-    question3 = requestQuizQuestionCreate(token.token, quizId.quizId, questionBody2);
-    questionId1 = question1 as QuestionId;
-    questionId2 = question2 as QuestionId;
-    questionId3 = question3 as QuestionId;
-    sessionRes = requestSessionStart(token.token, quizId.quizId, 5);
+    requestQuizQuestionCreate(token.token, quizId.quizId, questionBody);
+    requestQuizQuestionCreate(token.token, quizId.quizId, questionBody1);
+    sessionRes = requestQuizSessionCreate(token.token, quizId.quizId, 3);
     sessionId = sessionRes as SessionId;
-    playerRes = requestPlayerJoin(sessionId.sessionId, player1);
-    playerId = playerRes as PlayerId;
-  });
-  test('Successful output', () => {
-    // Simulate 2 players joining the quiz
-    const playerRes2 = requestPlayerJoin(sessionId.sessionId, player2);
-    const playerId2 = playerRes2 as PlayerId;
-    const playerRes3 = requestPlayerJoin(sessionId.sessionId, player3);
-    const playerId3 = playerRes3 as PlayerId;
+    playerRes1 = requestPlayerJoin(sessionId.sessionId, player1);
+    playerRes2 = requestPlayerJoin(sessionId.sessionId, player2);
+    playerRes3 = requestPlayerJoin(sessionId.sessionId, player3);
+    playerId1 = playerRes1 as PlayerId;
+    playerId2 = playerRes2 as PlayerId;
+    playerId3 = playerRes3 as PlayerId;
 
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'NEXT_QUESTION');
-    requestPlayerAnswerSubmit(playerId.playerId, 1, [0]);
-    requestPlayerAnswerSubmit(playerId2.playerId, 1, [1]);
-    requestPlayerAnswerSubmit(playerId3.playerId, 1, [1]);
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'NEXT_QUESTION');
-    requestPlayerAnswerSubmit(playerId.playerId, 2, [0, 2]);
-    requestPlayerAnswerSubmit(playerId2.playerId, 2, [0, 2]);
-    requestPlayerAnswerSubmit(playerId3.playerId, 2, [1]);
-    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, 'GO_TO_FINAL_RESULTS');
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.SKIP_COUNTDOWN);
+    requestQuestionSubmit(playerId1.playerId, 1, [0]);
+    requestQuestionSubmit(playerId2.playerId, 1, [0]);
+    requestQuestionSubmit(playerId3.playerId, 1, [1]);
+  });
+
+  test('Error conditions', () => {
+    // lobby state
+    expect(requestSessionResults(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
+    expect(requestSessionResultsCsv(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
+
+    // Invalid token
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_ANSWER);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_FINAL_RESULTS);
+    expect(requestSessionResults('123', quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
+    expect(requestSessionResultsCsv('123', quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
+
+    // user doesnt own the quiz
+    const randomUser = requestAuthRegister('mewmew@gmail.com', 'asdbf1235', 'Joanna', 'Zhong');
+    const randomToken = randomUser as Token;
+    expect(requestSessionResults(randomToken.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
+    expect(requestSessionResultsCsv(randomToken.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
+
+    // session id doesnt exist
+    expect(requestSessionResults(token.token, quizId.quizId, 123)).toStrictEqual(ERROR);
+    expect(requestSessionResultsCsv(token.token, quizId.quizId, 123)).toStrictEqual(ERROR);
+
+    // check lobby state again
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.END);
+    expect(requestSessionResults(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
+    expect(requestSessionResultsCsv(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(ERROR);
+  });
+});
+
+describe('Empty session', () => {
+  let registerRes: Token | ErrorObject;
+  let quizRes: QuizId | ErrorObject;
+  let sessionRes;
+  let token: Token;
+  let quizId: QuizId;
+  let sessionId: SessionId;
+  beforeEach(() => {
+    registerRes = requestAuthRegister(email, password, firstName, lastName);
+    token = registerRes as Token;
+    quizRes = requestQuizCreate(token.token, quizName, quizDescription);
+    quizId = quizRes as QuizId;
+    requestQuizQuestionCreate(token.token, quizId.quizId, questionBody);
+    requestQuizQuestionCreate(token.token, quizId.quizId, questionBody1);
+    sessionRes = requestQuizSessionCreate(token.token, quizId.quizId, 3);
+    sessionId = sessionRes as SessionId;
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.SKIP_COUNTDOWN);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_ANSWER);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_FINAL_RESULTS);
+  });
+  test('Empty session return val', () => {
     expect(requestSessionResults(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(
+      {
+        usersRankedByScore: [],
+        questionResults: [],
+      }
+    );
+  });
+});
+
+describe('2 sessions', () => {
+  let registerRes: Token | ErrorObject;
+  let quizRes: QuizId | ErrorObject;
+  let sessionRes;
+  let playerRes1: PlayerId | ErrorObject;
+  let playerRes2: PlayerId | ErrorObject;
+  let playerRes3: PlayerId | ErrorObject;
+  let token: Token;
+  let quizId: QuizId;
+  let sessionId: SessionId;
+  let playerId1: PlayerId;
+  let playerId2: PlayerId;
+  let playerId3: PlayerId;
+  let randomSess: SessionId | ErrorObject;
+  let randomSessId: SessionId;
+  let randomTokenRes: Token | ErrorObject;
+  let randomToken: Token;
+  let randomQuizRes: QuizId | ErrorObject;
+  let randomQuizId: QuizId;
+  let question1: QuestionId | ErrorObject;
+  let questionId1: QuestionId;
+  beforeEach(() => {
+    registerRes = requestAuthRegister(email, password, firstName, lastName);
+    token = registerRes as Token;
+    quizRes = requestQuizCreate(token.token, quizName, quizDescription);
+    quizId = quizRes as QuizId;
+    requestQuizQuestionCreate(token.token, quizId.quizId, questionBody);
+    requestQuizQuestionCreate(token.token, quizId.quizId, questionBody1);
+    sessionRes = requestQuizSessionCreate(token.token, quizId.quizId, 3);
+    sessionId = sessionRes as SessionId;
+    randomTokenRes = requestAuthRegister('bewbew@gmail.com', 'asdf1245', 'asdfa', 'adsfg');
+    randomToken = randomTokenRes as Token;
+    randomQuizRes = requestQuizCreate(randomToken.token, 'BOBBYTHE', 'BUILDERRR');
+    randomQuizId = randomQuizRes as QuizId;
+    question1 = requestQuizQuestionCreate(randomToken.token, randomQuizId.quizId, questionBody);
+    questionId1 = question1 as QuestionId;
+    randomSess = requestQuizSessionCreate(randomToken.token, randomQuizId.quizId, 3);
+    randomSessId = randomSess as SessionId;
+    playerRes1 = requestPlayerJoin(randomSessId.sessionId, player1);
+    playerRes2 = requestPlayerJoin(randomSessId.sessionId, player2);
+    playerRes3 = requestPlayerJoin(randomSessId.sessionId, player3);
+    playerId1 = playerRes1 as PlayerId;
+    playerId2 = playerRes2 as PlayerId;
+    playerId3 = playerRes3 as PlayerId;
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.SKIP_COUNTDOWN);
+    requestSessionStateUpdate(randomToken.token, randomQuizId.quizId, randomSessId.sessionId, Actions.SKIP_COUNTDOWN);
+    requestQuestionSubmit(playerId1.playerId, 1, [0]);
+    requestQuestionSubmit(playerId2.playerId, 1, [0]);
+    requestQuestionSubmit(playerId3.playerId, 1, [1]);
+    requestSessionStateUpdate(randomToken.token, randomQuizId.quizId, randomSessId.sessionId, Actions.GO_TO_ANSWER);
+    requestSessionStateUpdate(randomToken.token, randomQuizId.quizId, randomSessId.sessionId, Actions.GO_TO_FINAL_RESULTS);
+  });
+  test('Test it', () => {
+    expect(requestSessionResults(randomToken.token, randomQuizId.quizId, randomSessId.sessionId)).toStrictEqual(
       {
         usersRankedByScore: [
           {
@@ -196,7 +263,90 @@ describe('Successful output for successful', () => {
           {
             questionId: questionId1.questionId,
             playersCorrectList: [
-              player1
+              player1,
+              player2
+            ],
+            averageAnswerTime: NUMBER,
+            percentCorrect: NUMBER
+          },
+        ],
+      }
+    );
+  });
+});
+describe('Successful case', () => {
+  let registerRes: Token | ErrorObject;
+  let quizRes: QuizId | ErrorObject;
+  let sessionRes;
+  let playerRes1: PlayerId | ErrorObject;
+  let playerRes2: PlayerId | ErrorObject;
+  let playerRes3: PlayerId | ErrorObject;
+  let token: Token;
+  let quizId: QuizId;
+  let sessionId: SessionId;
+  let playerId1: PlayerId;
+  let playerId2: PlayerId;
+  let playerId3: PlayerId;
+  let questionId1: QuestionId;
+  let questionId2: QuestionId;
+  let question1: QuestionId | ErrorObject;
+  let question2: QuestionId | ErrorObject;
+  beforeEach(() => {
+    registerRes = requestAuthRegister(email, password, firstName, lastName);
+    token = registerRes as Token;
+    quizRes = requestQuizCreate(token.token, quizName, quizDescription);
+    quizId = quizRes as QuizId;
+    question1 = requestQuizQuestionCreate(token.token, quizId.quizId, questionBody1);
+    question2 = requestQuizQuestionCreate(token.token, quizId.quizId, questionBody2);
+    questionId1 = question1 as QuestionId;
+    questionId2 = question2 as QuestionId;
+    sessionRes = requestQuizSessionCreate(token.token, quizId.quizId, 3);
+    sessionId = sessionRes as SessionId;
+    playerRes1 = requestPlayerJoin(sessionId.sessionId, player1);
+    playerRes2 = requestPlayerJoin(sessionId.sessionId, player2);
+    playerRes3 = requestPlayerJoin(sessionId.sessionId, player3);
+    playerId1 = playerRes1 as PlayerId;
+    playerId2 = playerRes2 as PlayerId;
+    playerId3 = playerRes3 as PlayerId;
+
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.SKIP_COUNTDOWN);
+    requestQuestionSubmit(playerId1.playerId, 1, [0]);
+    requestQuestionSubmit(playerId2.playerId, 1, [0]);
+    requestQuestionSubmit(playerId3.playerId, 1, [1]);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_ANSWER);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.SKIP_COUNTDOWN);
+    requestQuestionSubmit(playerId1.playerId, 2, [0]);
+    requestQuestionSubmit(playerId2.playerId, 2, [0]);
+    requestQuestionSubmit(playerId3.playerId, 2, [1]);
+  });
+
+  test('Successful output', () => {
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_ANSWER);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_FINAL_RESULTS);
+    const boom = requestSessionResults(token.token, quizId.quizId, sessionId.sessionId);
+    expect(boom).toStrictEqual(
+      {
+        usersRankedByScore: [
+          {
+            name: player1,
+            score: NUMBER
+          },
+          {
+            name: player2,
+            score: NUMBER
+          },
+          {
+            name: player3,
+            score: NUMBER
+          }
+        ],
+        questionResults: [
+          {
+            questionId: questionId1.questionId,
+            playersCorrectList: [
+              player1,
+              player2
             ],
             averageAnswerTime: NUMBER,
             percentCorrect: NUMBER
@@ -210,15 +360,11 @@ describe('Successful output for successful', () => {
             averageAnswerTime: NUMBER,
             percentCorrect: NUMBER
           },
-          {
-            questionId: questionId3.questionId,
-            playersCorrectList: [
-            ],
-            averageAnswerTime: NUMBER,
-            percentCorrect: NUMBER
-          },
         ],
       }
     );
+    expect(requestSessionResultsCsv(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual({ url: expect.any(String) });
+    deleteFolderRecursive(path.join(__dirname, '../results'));
+    expect(requestSessionResultsCsv(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual({ url: expect.any(String) });
   });
 });

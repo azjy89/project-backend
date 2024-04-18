@@ -1,4 +1,6 @@
 import { getData, getTimerData, setData } from './dataStore';
+import fs from 'fs';
+import path from 'path';
 import {
   ErrorObject,
   AdminQuizListReturn,
@@ -16,6 +18,10 @@ import {
   SessionList,
   SessionStatus,
   AdminQuizInfoReturn,
+  SessionResults,
+  Player,
+  QuestionResultReturn,
+  QuestionResult
 } from './interfaces';
 
 import HTTPError from 'http-errors';
@@ -84,8 +90,8 @@ export const adminQuizCreate = (authUserId: number, name: string, description: s
     quizId: newQuizId,
     name: name,
     ownerId: authUserId,
-    timeCreated: Date.now(),
-    timeLastEdited: Date.now(),
+    timeCreated: Math.floor(Date.now() / 1000),
+    timeLastEdited: Math.floor(Date.now() / 1000),
     description: description,
     questions: [],
     duration: 0,
@@ -122,7 +128,7 @@ export const adminQuizRemove = (authUserId: number, quizId: number): object | Er
     throw HTTPError(400, 'Invalid quizId');
   }
 
-  if (data.quizSessions.find(session => session.quizId === quizId)) {
+  if (data.quizSessions.find(session => session.quizId === quizId && session.state !== States.END)) {
     throw HTTPError(400, 'Quiz has active sessions');
   }
 
@@ -215,7 +221,7 @@ export const adminQuizNameUpdate = (authUserId: number, quizId: number, name: st
   }
   // Update the quiz name in the data store
   data.quizzes[quizIndex].name = name;
-  data.quizzes[quizIndex].timeLastEdited = Date.now();
+  data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
 
   setData(data);
 
@@ -253,7 +259,7 @@ export const adminQuizDescriptionUpdate = (authUserId: number, quizId: number, d
   }
   // Updates description
   data.quizzes[quizIndex].description = description;
-  data.quizzes[quizIndex].timeLastEdited = Date.now();
+  data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
 
   setData(data);
 
@@ -272,6 +278,10 @@ export const adminQuizTransfer = (authUserId: number, quizId: number, userEmail:
   const data = getData();
   // Finds user with the email
   const targetUser = data.users.find(user => user.email === userEmail);
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (quiz.ownerId !== authUserId) {
+    throw HTTPError(403, 'authUserId does not own this quiz');
+  }
   // User not found
   if (!targetUser) {
     throw HTTPError(400, 'userEmail is not a real user');
@@ -280,36 +290,20 @@ export const adminQuizTransfer = (authUserId: number, quizId: number, userEmail:
   if (targetUser.userId === authUserId) {
     throw HTTPError(400, 'userEmail is the current logged in user');
   }
-  // Find quiz
-  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
-  // Quiz is not owned by user
-  if (quiz.ownerId !== authUserId) {
-    throw HTTPError(403, 'Quiz ID does not refer to a quiz that this user own');
-  }
-  // Quiz not found
-  if (!quiz) {
-    throw HTTPError(400, 'QuizId does not refer to a valid quiz');
-  }
   // Find same quiz name
   const similarNameFound = data.quizzes.some(q => q.ownerId === targetUser.userId && q.name === quiz.name);
   // Same quiz name found
   if (similarNameFound) {
     throw HTTPError(400, 'Quiz ID refers to a quiz that has a name that is already used by the target user');
   }
-  // Find user index
-  const currentUserIndex = data.users.findIndex(user => user.userId === authUserId);
-  // User not found
-  if (currentUserIndex === -1) {
-    throw HTTPError(400, 'AuthUserId is not a valid user');
-  }
 
-  if (data.quizSessions.find(session => session.quizId === quizId)) {
+  if (data.quizSessions.find(session => session.quizId === quizId && session.state !== States.END)) {
     throw HTTPError(400, 'Quiz has active sessions');
   }
 
   // Successful Transfer, i.e. change ownerId of current quiz to the targetUser's userId.
   quiz.ownerId = targetUser.userId;
-  quiz.timeLastEdited = Date.now();
+  quiz.timeLastEdited = Math.floor(Date.now() / 1000);
 
   setData(data);
 
@@ -419,7 +413,7 @@ export function adminQuizQuestionCreate(quizId: number, authUserId: number, ques
 
   // Updating values
   quizFind.duration += questionBody.duration;
-  quizFind.timeLastEdited = Date.now();
+  quizFind.timeLastEdited = Math.floor(Date.now() / 1000);
 
   setData(data);
 
@@ -441,14 +435,8 @@ export function adminQuizQuestionUpdate(quizId: number, questionId: number, auth
   // Finds quiz
   const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
   // Quiz is not owned by user
-  if (quizFind) {
-    if (quizFind.ownerId !== authUserId) {
-      throw HTTPError(403, 'Quiz does not belong to user');
-    }
-  }
-  // Quiz not found
-  if (!quizFind) {
-    throw HTTPError(400, 'Invalid quizId');
+  if (quizFind.ownerId !== authUserId) {
+    throw HTTPError(403, 'authUserId does not own this quiz');
   }
   // Finds question
   const questionFind = quizFind.questions.find(questionFind => questionFind.questionId === questionId);
@@ -510,6 +498,7 @@ export function adminQuizQuestionUpdate(quizId: number, questionId: number, auth
   data.quizzes[quizIndex].questions[questionIndex].question = questionBody.question;
   data.quizzes[quizIndex].questions[questionIndex].points = questionBody.points;
   const colours = ['red', 'blue', 'green', 'yellow'];
+  data.quizzes[quizIndex].questions[questionIndex].answers = [];
 
   for (const answer of questionBody.answers) {
     const randomIndex = Math.floor(Math.random() * colours.length);
@@ -521,7 +510,7 @@ export function adminQuizQuestionUpdate(quizId: number, questionId: number, auth
     });
   }
 
-  data.quizzes[quizIndex].timeLastEdited = Date.now();
+  data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
   data.quizzes[quizIndex].duration += (questionBody.duration - data.quizzes[quizIndex].questions[questionIndex].duration);
 
   setData(data);
@@ -544,26 +533,20 @@ export function adminQuizQuestionRemove(quizId: number, questionId: number, auth
   // Finds quiz
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
   // Quiz is not owned by user
-  if (quiz) {
-    if (quiz.ownerId !== authUserId) {
-      throw HTTPError(403, 'authUserId does not own this quiz');
-    }
-  }
-  // Quiz not found
-  if (!quiz) {
-    throw HTTPError(400, 'Invalid quizId');
+  if (quiz.ownerId !== authUserId) {
+    throw HTTPError(403, 'authUserId does not own this quiz');
   }
   // Checks if there is a question in that quiz
   if (!quiz.questions.find(question => question.questionId === questionId)) {
     throw HTTPError(400, 'Question Not Found');
   }
 
-  if (data.quizSessions.find(session => session.quizId === quizId)) {
+  if (data.quizSessions.find(session => session.quizId === quizId && session.state !== States.END)) {
     throw HTTPError(400, 'Quiz has active sessions');
   }
 
   // Removes the question from the quiz
-  quiz.questions.filter(question => question.questionId !== questionId);
+  quiz.questions = quiz.questions.filter(question => question.questionId !== questionId);
 
   setData(data);
 
@@ -586,14 +569,8 @@ export function adminQuizQuestionMove(quizId: number, questionId: number, authUs
   // Finds quiz
   const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
   // Quiz not owned by user
-  if (quizFind) {
-    if (quizFind.ownerId !== authUserId) {
-      throw HTTPError(403, 'Quiz does not belong to user');
-    }
-  }
-  // Quiz not found
-  if (!quizFind) {
-    throw HTTPError(400, 'Invalid quizId');
+  if (quizFind.ownerId !== authUserId) {
+    throw HTTPError(403, 'authUserId does not own this quiz');
   }
   // Finds question
   const questionFind = quizFind.questions.find(questionFind => questionFind.questionId === questionId);
@@ -612,7 +589,7 @@ export function adminQuizQuestionMove(quizId: number, questionId: number, authUs
   // Removes and inserts question from original position to new position
   const removedQuestion = quizFind.questions.splice(questionIndex, 1)[0];
   quizFind.questions.splice(newPosition, 0, removedQuestion);
-  quizFind.timeLastEdited = Date.now();
+  quizFind.timeLastEdited = Math.floor(Date.now() / 1000);
 
   setData(data);
 
@@ -636,19 +613,12 @@ export function adminQuizQuestionDuplicate(quizId: number, questionId: number, a
   const question: Question = quiz.questions.find(question => question.questionId === questionId);
   const questionIndex = quiz.questions.findIndex(question => question.questionId === questionId);
   // Error: Valid authUserId, but not quiz owner.
-  if (quiz) {
-    if (quiz.ownerId !== authUserId) {
-      throw HTTPError(403, 'Quiz ID does not refer to a quiz that this user own');
-    }
+  if (quiz.ownerId !== authUserId) {
+    throw HTTPError(403, 'authUserId does not own this quiz');
   }
   // Question not found
   if (!question) {
     throw HTTPError(400, 'Question Id does not refer to a valid question within this quiz');
-  }
-  // Error: Invalid authUserId
-  const userIndex = data.users.findIndex(user => user.userId === authUserId);
-  if (userIndex === -1) {
-    throw HTTPError(400, 'AuthUserId is not a valid user');
   }
   // Generates a newQuestionId (a random 6 digit number)
   // Keeps doing it until a new ID is generated
@@ -680,7 +650,7 @@ export function adminQuizQuestionDuplicate(quizId: number, questionId: number, a
   // splice to right after quiz location
   quiz.questions.splice(questionIndex + 1, 0, newQuestion);
   // update timeLastEdited of quiz.
-  quiz.timeLastEdited = Date.now();
+  quiz.timeLastEdited = Math.floor(Date.now() / 1000);
 
   setData(data);
 
@@ -701,10 +671,8 @@ export function adminQuizQuestionDuplicate(quizId: number, questionId: number, a
 export function adminQuizThumbnailUpdate(authUserId: number, quizId: number, imgUrl: string): ErrorObject | object {
   const data = getData();
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
-  if (quiz) {
-    if (quiz.ownerId !== authUserId) {
-      throw HTTPError(403, 'User does not own quiz');
-    }
+  if (quiz.ownerId !== authUserId) {
+    throw HTTPError(403, 'User does not own quiz');
   }
 
   if (!(imgUrl.endsWith('.jpeg')) && !(imgUrl.endsWith('.jpg')) && !(imgUrl.endsWith('.png'))) {
@@ -715,7 +683,7 @@ export function adminQuizThumbnailUpdate(authUserId: number, quizId: number, img
     throw HTTPError(400, 'Invalid url');
   }
 
-  quiz.timeLastEdited = Date.now();
+  quiz.timeLastEdited = Math.floor(Date.now() / 1000);
   quiz.thumbnailUrl = imgUrl;
   setData(data);
 
@@ -756,6 +724,15 @@ export function adminQuizSessionCreate(authUserId: number, quizId: number, autoS
   }
 
   const newSessionId = Math.floor(Math.random() * (1000000 - 10000 + 1)) + 10000;
+  const newQuestionResults: QuestionResult[] = [];
+  for (const question of quiz.questions) {
+    newQuestionResults.push({
+      questionId: question.questionId,
+      playersCorrectList: [],
+      averageAnswerTime: 0,
+      percentCorrect: 0,
+    });
+  }
   const newSession: QuizSession = {
     sessionId: newSessionId,
     quizId: quizId,
@@ -766,6 +743,7 @@ export function adminQuizSessionCreate(authUserId: number, quizId: number, autoS
     messages: [],
     quiz: JSON.parse(JSON.stringify(quiz)),
     questionResults: [],
+    questionStartTimes: [],
   };
 
   data.quizSessions.push(newSession);
@@ -783,10 +761,8 @@ export function adminQuizSessionCreate(authUserId: number, quizId: number, autoS
 export function sessionsList(authUserId: number, quizId: number): SessionList {
   const data = getData();
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
-  if (quiz) {
-    if (quiz.ownerId !== authUserId) {
-      throw HTTPError(403, 'token is valid but user does not own quiz');
-    }
+  if (quiz.ownerId !== authUserId) {
+    throw HTTPError(403, 'User does not own quiz');
   }
 
   const activeSessions = data.quizSessions.filter(session => session.state !== States.END && session.quizId === quizId).map(session => session.sessionId);
@@ -809,13 +785,11 @@ export function sessionsList(authUserId: number, quizId: number): SessionList {
 export function sessionStatus(authUserId: number, quizId: number, sessionId: number): SessionStatus {
   const data = getData();
   const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
-  if (quiz) {
-    if (quiz.ownerId !== authUserId) {
-      throw HTTPError(403, 'token is valid but user does not own quiz');
-    }
+  if (quiz.ownerId !== authUserId) {
+    throw HTTPError(403, 'User does not own quiz');
   }
 
-  if (!data.quizSessions.find(session => session.sessionId === sessionId)) {
+  if (!data.quizSessions.find(session => session.sessionId === sessionId && session.quizId === quizId)) {
     throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
   }
 
@@ -832,23 +806,8 @@ export function sessionStatus(authUserId: number, quizId: number, sessionId: num
 
 export function sessionStateUpdate(authUserId: number, quizId: number, sessionId: number, action: Actions): object | ErrorObject {
   const data = getData();
-  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
-  if (quiz) {
-    if (quiz.ownerId !== authUserId) {
-      throw HTTPError(403, 'token is valid but user does not own quiz');
-    }
-  }
-
   if (!data.quizSessions.find(session => session.sessionId === sessionId && session.quizId === quizId)) {
     throw HTTPError(400, 'Session Id does not refer to a valid session within this quiz');
-  }
-
-  if (action !== Actions.END &&
-      action !== Actions.GO_TO_ANSWER &&
-      action !== Actions.GO_TO_FINAL_RESULTS &&
-      action !== Actions.NEXT_QUESTION &&
-      action !== Actions.SKIP_COUNTDOWN) {
-    throw HTTPError(400, 'invalid action type');
   }
 
   const session = data.quizSessions.find(session => session.sessionId === sessionId);
@@ -882,6 +841,7 @@ export function sessionStateUpdate(authUserId: number, quizId: number, sessionId
     session.state === States.FINAL_RESULTS) && action === Actions.NEXT_QUESTION) {
     throw HTTPError(400, 'Action enum cannot be applied in the current state');
   }
+
   const timerData = getTimerData();
   if ((session.state !== States.ANSWER_SHOW && session.state !== States.END) && action === Actions.END) {
     session.state = States.END;
@@ -897,6 +857,7 @@ export function sessionStateUpdate(authUserId: number, quizId: number, sessionId
   if (session.state === States.QUESTION_COUNTDOWN && action === Actions.SKIP_COUNTDOWN) {
     const session = data.quizSessions.find(session => session.sessionId === sessionId);
     session.state = States.QUESTION_OPEN;
+    session.questionStartTimes[session.atQuestion - 1] = Math.floor(Date.now() / 1000);
     for (const [timerIndex, timer] of timerData.timers.entries()) {
       if (timer.sessionId === sessionId) {
         clearTimeout(timer.timerId);
@@ -936,35 +897,264 @@ export function sessionStateUpdate(authUserId: number, quizId: number, sessionId
     setData(data);
     return {};
   }
-
-  if ((session.state === States.LOBBY ||
-    session.state === States.QUESTION_CLOSE ||
-    session.state === States.ANSWER_SHOW) && action === Actions.NEXT_QUESTION) {
-    session.state = States.QUESTION_COUNTDOWN;
-    session.atQuestion++;
-    const timerId = setTimeout(() => {
-      const session = data.quizSessions.find(session => session.sessionId === sessionId);
-      session.state = States.QUESTION_OPEN;
-      const timerIndex = timerData.timers.findIndex(timer => timer.timerId === timerId);
-      timerData.timers.splice(timerIndex, 1);
-
-      const questionTimerId = setTimeout(() => {
-        session.state = States.QUESTION_CLOSE;
-        const questionTimerIndex = timerData.timers.findIndex(timer => timer.timerId === questionTimerId);
-        timerData.timers.splice(questionTimerIndex, 1);
-        setData(data);
-      }, session.quiz.questions[session.atQuestion - 1].duration * 1000);
-      timerData.timers.push({ timerId: questionTimerId, sessionId: sessionId });
-      setData(data);
-    }, 3 * 1000);
-    timerData.timers.push({ timerId: timerId, sessionId: sessionId });
+  if (action === Actions.NEXT_QUESTION && session.atQuestion === session.quiz.questions.length) {
+    throw HTTPError(400, 'Action enum cannot be applied in the current state');
   }
+
+  session.state = States.QUESTION_COUNTDOWN;
+  session.atQuestion++;
+  const timerId = setTimeout(() => {
+    const session = data.quizSessions.find(session => session.sessionId === sessionId);
+    session.state = States.QUESTION_OPEN;
+    session.questionStartTimes[session.atQuestion - 1] = Math.floor(Date.now() / 1000);
+    const timerIndex = timerData.timers.findIndex(timer => timer.timerId === timerId);
+    timerData.timers.splice(timerIndex, 1);
+
+    const questionTimerId = setTimeout(() => {
+      session.state = States.QUESTION_CLOSE;
+      const questionTimerIndex = timerData.timers.findIndex(timer => timer.timerId === questionTimerId);
+      timerData.timers.splice(questionTimerIndex, 1);
+      setData(data);
+    }, session.quiz.questions[session.atQuestion - 1].duration * 1000);
+    timerData.timers.push({ timerId: questionTimerId, sessionId: sessionId });
+    setData(data);
+  }, 3 * 1000);
+  timerData.timers.push({ timerId: timerId, sessionId: sessionId });
 
   setData(data);
 
   return {};
 }
 
-export function sessionResults(authUserId: number, quizId: number, sessionId: number): object | ErrorObject {
-  return {};
+export function sessionResults(authUserId: number, quizId: number, sessionId: number): SessionResults | ErrorObject {
+  const data = getData();
+  const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
+  if (quizFind.ownerId !== authUserId) {
+    throw HTTPError(400, 'Quiz does not belong to the user');
+  }
+  const sessionFind = data.quizSessions.find(sessionFind => sessionFind.sessionId === sessionId);
+  if (!sessionFind) {
+    throw HTTPError(400, 'sessionId does not refer to a valid session');
+  }
+  if (sessionFind.state !== States.FINAL_RESULTS) {
+    throw HTTPError(400, 'Invalid state for showing final results');
+  }
+
+  const finalResults: SessionResults = {
+    usersRankedByScore: [],
+    questionResults: [],
+  };
+
+  sessionFind.players.forEach(player => {
+    const playerResult = playerFinalResults(player.playerId);
+    finalResults.usersRankedByScore.push(playerResult.usersRankedByScore.find(p => p.name === player.name));
+  });
+
+  // Since we only want the unique question results, we'll take the first player's as representative for all
+  if (sessionFind.players.length > 0) {
+    const firstPlayerResult = playerFinalResults(sessionFind.players[0].playerId);
+    finalResults.questionResults = firstPlayerResult.questionResults;
+  } else {
+    finalResults.usersRankedByScore = [];
+    finalResults.questionResults = [];
+  }
+
+  // Sorting the users by score in descending order
+  finalResults.usersRankedByScore.sort((a, b) => b.score - a.score);
+
+  return finalResults;
+}
+
+export function sessionResultsCsv(authUserId: number, quizId: number, sessionId: number): object | ErrorObject {
+  const data = getData();
+  const quizFind = data.quizzes.find(quizFind => quizFind.quizId === quizId);
+  if (quizFind.ownerId !== authUserId) {
+    throw HTTPError(400, 'Quiz does not belong to the user');
+  }
+  const sessionFind = data.quizSessions.find(sessionFind => sessionFind.sessionId === sessionId);
+  if (!sessionFind) {
+    throw HTTPError(400, 'sessionId does not refer to a valid session');
+  }
+
+  if (sessionFind.state !== States.FINAL_RESULTS) {
+    throw HTTPError(400, 'Session is not in FINAL_RESULTS state');
+  }
+
+  const csvContent = generateCsvString(sessionFind);
+
+  const fileName = sessionFind.sessionId.toString() + '.csv';
+  const localPath = path.join(__dirname, '..', 'results', fileName);
+  const folderPath = path.dirname(localPath);
+
+  if (!fs.existsSync(folderPath)) {
+    fs.mkdirSync(folderPath, { recursive: true });
+  }
+  fs.writeFileSync(localPath, csvContent);
+  return { url: localPath };
+}
+
+function generateCsvString(session: QuizSession): string {
+  // Sort players by name
+  const sortedPlayers = [...session.players].sort((a, b) => a.name.localeCompare(b.name));
+
+  // Create header row for CSV
+  const headerRow = ['Player'];
+  for (let i = 1; i <= session.quiz.questions.length; i++) {
+    headerRow.push(`question${i}score`, `question${i}rank`);
+  }
+
+  // Initialize rows for player data
+  const playerRows = sortedPlayers.map(player => {
+    const playerRow = [player.name];
+    session.quiz.questions.forEach((question, qIndex) => {
+      const questionResult = session.questionResults.find(result => result.questionId === question.questionId);
+
+      const isPlayerCorrect = questionResult.playersCorrectList.some(p => p.playerId === player.playerId);
+      const playerScore = isPlayerCorrect ? question.points : 0;
+
+      // Insert player score for the question
+      playerRow.push(playerScore.toString());
+
+      // Calculate scores for ranking
+      const scoresForThisQuestion = session.players.map(p => {
+        return questionResult.playersCorrectList.some(pr => pr.playerId === p.playerId) ? question.points : 0;
+      }).sort((a, b) => b - a);
+
+      for (let i = 0, rank = 1; i < scoresForThisQuestion.length; i++) {
+        if (i > 0 && scoresForThisQuestion[i] !== scoresForThisQuestion[i - 1]) {
+          rank = i + 1;
+        }
+        if (scoresForThisQuestion[i] === playerScore) {
+          playerRow.push(rank.toString());
+          break;
+        }
+      }
+    });
+    return playerRow;
+  });
+
+  // Assemble CSV content
+  const csvContent = [headerRow, ...playerRows].map(row => row.join(',')).join('\r\n');
+
+  return csvContent;
+}
+
+export function playerQuestionResults(playerId: number, questionPosition: number): QuestionResultReturn {
+  const data = getData();
+  let currSession: QuizSession;
+  let player: Player;
+
+  for (const session of data.quizSessions) {
+    player = session.players.find(player => player.playerId === playerId);
+    if (player) {
+      currSession = session;
+      break;
+    }
+  }
+
+  if (!player) {
+    throw HTTPError(400, 'Player with playerId does not exist');
+  }
+
+  if (questionPosition < 1 || questionPosition > currSession.quiz.questions.length) {
+    throw HTTPError(400, 'Invalid questionPosition');
+  }
+
+  if (currSession.state !== States.ANSWER_SHOW) {
+    throw HTTPError(400, 'Session is not in ANSWER_SHOW state');
+  }
+
+  if (currSession.atQuestion < questionPosition) {
+    throw HTTPError(400, 'Session is not yet up to this question');
+  }
+
+  const questionId = currSession.quiz.questions[questionPosition - 1].questionId;
+
+  const questionResult = currSession.questionResults.find(questionResult => questionResult.questionId === questionId);
+  const returnedPlayersCorrectList = questionResult.playersCorrectList.map(player => player.name);
+  const questionResultReturn: QuestionResultReturn = {
+    questionId: questionResult.questionId,
+    playersCorrectList: returnedPlayersCorrectList,
+    averageAnswerTime: questionResult.averageAnswerTime,
+    percentCorrect: questionResult.percentCorrect,
+  };
+  return questionResultReturn;
+}
+
+function playerFinalQuestionResults(playerId: number, questionPosition: number): QuestionResultReturn {
+  const data = getData();
+  let currSession: QuizSession;
+
+  for (const session of data.quizSessions) {
+    const playerExists = session.players.some(player => player.playerId === playerId);
+    if (playerExists) {
+      currSession = session;
+      break;
+    }
+  }
+
+  const questionId = currSession.quiz.questions[questionPosition - 1].questionId;
+
+  const questionResult = currSession.questionResults.find(questionResult => questionResult.questionId === questionId);
+  const returnedPlayersCorrectList = questionResult.playersCorrectList.map(player => player.name);
+  const questionResultReturn: QuestionResultReturn = {
+    questionId: questionResult.questionId,
+    playersCorrectList: returnedPlayersCorrectList,
+    averageAnswerTime: questionResult.averageAnswerTime,
+    percentCorrect: questionResult.percentCorrect,
+  };
+  return questionResultReturn;
+}
+
+export function playerFinalResults(playerId: number) {
+  const data = getData();
+  // Locate the session with the given playerId
+  const sessionFind = data.quizSessions.find(session =>
+    session.players.some(player => player.playerId === playerId)
+  );
+
+  if (!sessionFind) {
+    throw HTTPError(400, 'Player ID is invalid');
+  }
+
+  if (sessionFind.state !== States.FINAL_RESULTS) {
+    throw HTTPError(400, 'Must be in FINAL_RESULTS state');
+  }
+
+  // Initial result object structure
+  const results: SessionResults = {
+    usersRankedByScore: [],
+    questionResults: []
+  };
+
+  // Get the question results for the player
+  for (let i = 1; i <= sessionFind.quiz.questions.length; i++) {
+    const questionResult = playerFinalQuestionResults(playerId, i);
+    results.questionResults.push(questionResult);
+  }
+  // Iterate each player of the session
+  sessionFind.players.forEach(player => {
+    let score = 0; // Initialize score for the player
+
+    // Iterate through each questionResult to calculate score
+    sessionFind.questionResults.forEach(questionResult => {
+      // Check if player's ID is in the playersCorrectList for the question
+      if (questionResult.playersCorrectList.some(p => p.playerId === player.playerId)) {
+        // Find the matching question in the quiz questions array
+        const question = sessionFind.quiz.questions.find(q => q.questionId === questionResult.questionId);
+
+        score += question.points; // Add points for the question to the player's score
+      }
+    });
+    // Add player and their score to the results array
+    results.usersRankedByScore.push({
+      name: player.name,
+      score: score
+    });
+  });
+
+  // Sort users by score in descending order
+  results.usersRankedByScore.sort((a, b) => b.score - a.score);
+
+  return results;
 }

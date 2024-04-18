@@ -42,6 +42,11 @@ export interface AuthUserId {
 export interface QuizId {
   quizId: number
 }
+
+export interface PlayerId {
+  playerId: number
+}
+
 // UserDetails interface (return type)
 export interface UserDetails {
   user: {
@@ -104,6 +109,7 @@ export interface Player {
   state: States,
   numQuestions: number,
   atQuestion: number,
+  answeredQuestionIds: number[],
 }
 
 export interface Message {
@@ -120,6 +126,15 @@ export interface QuestionResult {
   percentCorrect: number,
 }
 
+export interface QuestionResultReturn {
+  questionId: number,
+  // unlike Question Result the reutrn has to just have the names as a string
+  // instead of the Player type
+  playersCorrectList: string[],
+  averageAnswerTime: number,
+  percentCorrect: number,
+}
+
 export interface QuizSession {
   sessionId: number,
   quizId: number,
@@ -130,6 +145,7 @@ export interface QuizSession {
   messages: Message[],
   quiz: Quiz,
   questionResults: QuestionResult[],
+  questionStartTimes: number[],
 }
 
 export interface Timer {
@@ -151,21 +167,21 @@ export interface Data {
 }
 
 export enum States {
-  LOBBY,
-  QUESTION_COUNTDOWN,
-  QUESTION_OPEN,
-  QUESTION_CLOSE,
-  ANSWER_SHOW,
-  FINAL_RESULTS,
-  END,
+  LOBBY = 'LOBBY',
+  QUESTION_COUNTDOWN = 'QUESTION_COUNTDOWN',
+  QUESTION_OPEN = 'QUESTION_OPEN',
+  QUESTION_CLOSE = 'QUESTION_CLOSE',
+  ANSWER_SHOW = 'ANSWER_SHOW',
+  FINAL_RESULTS = 'FINAL_RESULTS',
+  END = 'END',
 }
 
 export enum Actions {
-  NEXT_QUESTION,
-  SKIP_COUNTDOWN,
-  GO_TO_ANSWER,
-  GO_TO_FINAL_RESULTS,
-  END,
+  NEXT_QUESTION = 'NEXT_QUESTION',
+  SKIP_COUNTDOWN = 'SKIP_COUNTDOWN',
+  GO_TO_ANSWER = 'GO_TO_ANSWER',
+  GO_TO_FINAL_RESULTS = 'GO_TO_FINAL_RESULTS',
+  END = 'END',
 }
 
 export interface SessionId {
@@ -223,6 +239,22 @@ export interface AdminQuizInfoReturn {
   thumbnailUrl: string,
 }
 
-export interface PlayerId {
-  playerId: number,
+export interface UsersRanked {
+  name: string,
+  score: number,
+}
+
+export interface SessionResults {
+  usersRankedByScore: UsersRanked[],
+  questionResults: QuestionResultReturn[]
+}
+
+export interface ReturnPlayerStatus {
+  state: string,
+  numQuestions: number,
+  atQuestion: number,
+}
+
+export interface MessagesListReturn {
+  messages: Message[],
 }

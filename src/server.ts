@@ -37,7 +37,10 @@ import {
   sessionsList,
   sessionStatus,
   sessionStateUpdate,
-  sessionResults
+  sessionResults,
+  sessionResultsCsv,
+  playerFinalResults,
+  playerQuestionResults
 } from './quiz';
 
 import {
@@ -45,6 +48,7 @@ import {
 } from './other';
 
 import {
+  Actions,
   AuthUserId
 } from './interfaces';
 
@@ -53,9 +57,27 @@ import {
   trashQuizRestore,
   trashEmpty
 } from './trash';
+
 import {
   playerJoin
 } from './playerJoin';
+import {
+  playerStatus
+} from './playerStatus';
+
+import {
+  playerSubmitAnswer
+} from './submitAnswer';
+
+import { getData } from './dataStore';
+
+import { messagesList } from './messagesList';
+import { messageSend } from './messageSend';
+import HTTPError from 'http-errors';
+
+import {
+  getQuestionInfo
+} from './getQuestionInfo';
 
 // Set up web app
 const app = express();
@@ -562,13 +584,37 @@ app.put('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Respons
   // Parse quizId as int
   const quizId = parseInt(req.params.quizid);
   const sessionId = parseInt(req.params.sessionid);
-
-  const action = parseInt(req.body.action);
   // Get token as a header
   const token = req.headers.token as string;
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
+  const data = getData();
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (quiz.ownerId !== authUserId.authUserId) {
+    throw HTTPError(403, 'token is valid but user does not own quiz');
+  }
+  const actionString = req.body.action as string;
+  let action: Actions;
+  switch (actionString) {
+    case 'END':
+      action = Actions.END;
+      break;
+    case 'NEXT_QUESTION':
+      action = Actions.NEXT_QUESTION;
+      break;
+    case 'GO_TO_ANSWER':
+      action = Actions.GO_TO_ANSWER;
+      break;
+    case 'GO_TO_FINAL_RESULTS':
+      action = Actions.GO_TO_FINAL_RESULTS;
+      break;
+    case 'SKIP_COUNTDOWN':
+      action = Actions.SKIP_COUNTDOWN;
+      break;
+    default:
+      throw HTTPError(400, 'Invalid ');
+  }
 
   const response = sessionStateUpdate(authUserId.authUserId, quizId, sessionId, action);
   return res.status(200).json(response);
@@ -593,6 +639,31 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Respons
   return res.status(200).json(response);
 });
 
+/**
+ * Request for /v1/player/:playerid/chat
+ *
+ * Get list of messages for a session a player is in
+ */
+app.get('/v1/player/:playerid/chat', (req: Request, res: Response) => {
+  const playerId = parseInt(req.params.playerid);
+  const response = messagesList(playerId);
+
+  return res.status(200).json(response);
+});
+
+/**
+ * Request for /v1/player/{playerid}/chat
+ *
+ * Send a message for a specified player
+ */
+app.post('/v1/player/:playerid/chat', (req: Request, res: Response) => {
+  const playerId = parseInt(req.params.playerid);
+  const messageBody = req.body.message.messageBody as string;
+  const response = messageSend(playerId, messageBody);
+
+  return res.status(200).json(response);
+});
+
 /** GET
  * Request for /v1/admin/quiz/:quizid/session/:sessionid/results
  *
@@ -609,8 +680,55 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res:
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
   // Call and return sessionResults
-  const response = sessionResults(userId.authUserId, quizId, sessionId);
+  const response = sessionResults(authUserId.authUserId, quizId, sessionId);
   return res.status(200).json(response);
+});
+
+/** GET
+ * Route for /v1/admin/quiz/:quizid/session/:sessionid/results/csv
+ *
+ * Get the link to the final results in CSV format for all players
+ */
+app.get('/v1/admin/quiz/:quizid/session/:sessionid/results/csv', (req: Request, res: Response) => {
+  // Parse quizId to int
+  const quizId = parseInt(req.params.quizid);
+  // Parse sessionId to int
+  const sessionId = parseInt(req.params.sessionid);
+  // Get token from header
+  const token = req.headers.token as string;
+  // Retrieve userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+  // Call and return sessionResultsCsv
+  const response = sessionResultsCsv(authUserId.authUserId, quizId, sessionId);
+  return res.status(200).json(response);
+});
+
+/** GET
+ * Request for /v1/player/:playerid/question/:questionposition/results
+ *
+ * Get the results for a particular question of the session a player is playing in
+ */
+app.get('/v1/player/:playerid/question/:questionposition/results', (req: Request, res: Response) => {
+  // Parse playerId to int
+  const playerId = parseInt(req.params.playerid);
+  // Parse questionPosition to int
+  const questionPosition = parseInt(req.params.questionposition);
+  // Call and return playerQuestionResults
+  const response = playerQuestionResults(playerId, questionPosition);
+  return res.json(response);
+});
+
+/** GET request for /v1/player/:playerid/results
+ *
+ * Get the final results for a whole session a player is playing in
+ */
+app.get('/v1/player/:playerid/results', (req: Request, res: Response) => {
+  // Parse playerId to int
+  const playerId = parseInt(req.params.playerid);
+  // Call and return playerFinalResults
+  const response = playerFinalResults(playerId);
+  return res.json(response);
 });
 
 /** POST
@@ -618,12 +736,44 @@ app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res:
  *
  * Allow a guest player to join a session.
  */
-app.post('/v1/player/join', (req:Request, res: Response) => {
+app.post('/v1/player/join', (req: Request, res: Response) => {
+  // Parse sessionId to int
   const sessionId = parseInt(req.body.sessionId);
+  // Request name from body
   const name = req.body.name as string;
+  // Call and return playerJoin
   const response = playerJoin(sessionId, name);
   return res.status(200).json(response);
 });
+
+app.get('/v1/player/:playerid/question/:questionposition', (req:Request, res: Response) => {
+  const playerid = parseInt(req.params.playerid);
+  const questionposition = parseInt(req.params.questionposition);
+  const response = getQuestionInfo(playerid, questionposition);
+  return res.status(200).json(response);
+});
+
+app.put('/v1/player/:playerid/question/:questionposition/answer', (req:Request, res: Response) => {
+  const playerid = parseInt(req.params.playerid);
+  const questionposition = parseInt(req.params.questionposition);
+  const answerIds = req.body.answerIds;
+  const response = playerSubmitAnswer(playerid, questionposition, answerIds);
+  return res.status(200).json(response);
+});
+
+/** GET
+ * Request for /v1/player/{playerid}
+ *
+ * Get the status of a guest player that has already joined a session.
+ */
+app.get('/v1/player/:playerid', (req: Request, res: Response) => {
+  // Parse playerId to int
+  const playerId = parseInt(req.params.playerid);
+  // Call and return playerStatus
+  const response = playerStatus(playerId);
+  return res.status(200).json(response);
+});
+
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
