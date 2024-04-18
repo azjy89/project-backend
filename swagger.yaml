@@ -18,6 +18,8 @@ tags:
     description: Iteration 3 routes are a modification of iteration 1 and iteration 2 routes
   - name: "Iteration 3 (New)"
     description: Iteration 3 routes that are a mix of new routes as well as slightly modified routes from iteration 1 and 2
+  - name: "Iter3 Additional Features"
+    description: "The new conceptual features added as per iter3 section 5.5"
 
 components:
   prim:
@@ -348,6 +350,31 @@ components:
           type: array
           items:
             $ref: '#/components/group/QuestionResults'
+    
+    CurrentRanking:
+      type: object
+      properties:
+        topThreeUsersRankedByCurrentScore:
+          type: array:
+          items:
+            type: object
+            properties:
+              rank:
+                type: number
+                example: 1
+                description: The rank of the current top 3 player, and my rank.
+              name:
+                type: string
+                example: CSgod
+                descriptoin: The name of the player with the respective rank.
+              score:
+                type: number
+                example: 46
+                description: The current score for the user.
+          description: A list of the top 3 who players ranked in descending order by score, followed by my current rank and score. 
+    
+
+
 
   path:
     PlayerId:
@@ -893,6 +920,8 @@ components:
           type: array
           items:
             $ref: '#/components/group/Message'
+    PlayerCurrentRankings:
+      $ref: '#/components/group/CurrentRanking'
 
 paths:
 
@@ -2569,7 +2598,38 @@ paths:
             - If message body is less than 1 character or more than 100 characters
           schema:
             $ref: '#/components/return/Error'
-      
+
+
+
+
+
+
+
+
+
+  /v1/admin/quiz/{quizid}/session/{sessionId}/results/{playerid}/current:
+    get:
+      summary: get quiz session current ranking
+      description: Takes in the quizId and sessionId and find the top 3 players with the highest score, and the user's current score. If only one player, the top player is the only player. Return the data for this top 3 ranking and player's own current ranking.
+      tags:
+      # - "By Topic: Access Management"
+		  - "Iter3 Additional Features"
+      parameters:
+        - $ref: '#/components/path/PlayerId'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/components/return/PlayerCurrentRankings'
+        400:
+          description: |
+          If any of the following are true:
+          - If player ID does not exist
+          - Session is not in CURRENT_RESULTS state
+        schema:
+          $ref: '#/components/return/Error'
+
+
 
 
   /v1/clear:
