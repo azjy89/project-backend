@@ -90,8 +90,8 @@ export const adminQuizCreate = (authUserId: number, name: string, description: s
     quizId: newQuizId,
     name: name,
     ownerId: authUserId,
-    timeCreated: Date.now(),
-    timeLastEdited: Date.now(),
+    timeCreated: Math.floor(Date.now() / 1000),
+    timeLastEdited: Math.floor(Date.now() / 1000),
     description: description,
     questions: [],
     duration: 0,
@@ -221,7 +221,7 @@ export const adminQuizNameUpdate = (authUserId: number, quizId: number, name: st
   }
   // Update the quiz name in the data store
   data.quizzes[quizIndex].name = name;
-  data.quizzes[quizIndex].timeLastEdited = Date.now();
+  data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
 
   setData(data);
 
@@ -259,7 +259,7 @@ export const adminQuizDescriptionUpdate = (authUserId: number, quizId: number, d
   }
   // Updates description
   data.quizzes[quizIndex].description = description;
-  data.quizzes[quizIndex].timeLastEdited = Date.now();
+  data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
 
   setData(data);
 
@@ -303,7 +303,7 @@ export const adminQuizTransfer = (authUserId: number, quizId: number, userEmail:
 
   // Successful Transfer, i.e. change ownerId of current quiz to the targetUser's userId.
   quiz.ownerId = targetUser.userId;
-  quiz.timeLastEdited = Date.now();
+  quiz.timeLastEdited = Math.floor(Date.now() / 1000);
 
   setData(data);
 
@@ -413,7 +413,7 @@ export function adminQuizQuestionCreate(quizId: number, authUserId: number, ques
 
   // Updating values
   quizFind.duration += questionBody.duration;
-  quizFind.timeLastEdited = Date.now();
+  quizFind.timeLastEdited = Math.floor(Date.now() / 1000);
 
   setData(data);
 
@@ -510,7 +510,7 @@ export function adminQuizQuestionUpdate(quizId: number, questionId: number, auth
     });
   }
 
-  data.quizzes[quizIndex].timeLastEdited = Date.now();
+  data.quizzes[quizIndex].timeLastEdited = Math.floor(Date.now() / 1000);
   data.quizzes[quizIndex].duration += (questionBody.duration - data.quizzes[quizIndex].questions[questionIndex].duration);
 
   setData(data);
@@ -589,7 +589,7 @@ export function adminQuizQuestionMove(quizId: number, questionId: number, authUs
   // Removes and inserts question from original position to new position
   const removedQuestion = quizFind.questions.splice(questionIndex, 1)[0];
   quizFind.questions.splice(newPosition, 0, removedQuestion);
-  quizFind.timeLastEdited = Date.now();
+  quizFind.timeLastEdited = Math.floor(Date.now() / 1000);
 
   setData(data);
 
@@ -650,7 +650,7 @@ export function adminQuizQuestionDuplicate(quizId: number, questionId: number, a
   // splice to right after quiz location
   quiz.questions.splice(questionIndex + 1, 0, newQuestion);
   // update timeLastEdited of quiz.
-  quiz.timeLastEdited = Date.now();
+  quiz.timeLastEdited = Math.floor(Date.now() / 1000);
 
   setData(data);
 
@@ -683,7 +683,7 @@ export function adminQuizThumbnailUpdate(authUserId: number, quizId: number, img
     throw HTTPError(400, 'Invalid url');
   }
 
-  quiz.timeLastEdited = Date.now();
+  quiz.timeLastEdited = Math.floor(Date.now() / 1000);
   quiz.thumbnailUrl = imgUrl;
   setData(data);
 
@@ -857,7 +857,7 @@ export function sessionStateUpdate(authUserId: number, quizId: number, sessionId
   if (session.state === States.QUESTION_COUNTDOWN && action === Actions.SKIP_COUNTDOWN) {
     const session = data.quizSessions.find(session => session.sessionId === sessionId);
     session.state = States.QUESTION_OPEN;
-    session.questionStartTimes[session.atQuestion - 1] = Date.now();
+    session.questionStartTimes[session.atQuestion - 1] = Math.floor(Date.now() / 1000);
     for (const [timerIndex, timer] of timerData.timers.entries()) {
       if (timer.sessionId === sessionId) {
         clearTimeout(timer.timerId);
@@ -906,7 +906,7 @@ export function sessionStateUpdate(authUserId: number, quizId: number, sessionId
   const timerId = setTimeout(() => {
     const session = data.quizSessions.find(session => session.sessionId === sessionId);
     session.state = States.QUESTION_OPEN;
-    session.questionStartTimes[session.atQuestion - 1] = Date.now();
+    session.questionStartTimes[session.atQuestion - 1] = Math.floor(Date.now() / 1000);
     const timerIndex = timerData.timers.findIndex(timer => timer.timerId === timerId);
     timerData.timers.splice(timerIndex, 1);
 

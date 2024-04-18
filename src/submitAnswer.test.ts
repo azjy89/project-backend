@@ -20,6 +20,7 @@ import {
   QuizSession,
   QuestionId,
 } from '../src/interfaces';
+import { sleepSync } from './helpers';
 
 beforeEach(() => {
   requestClear();
@@ -85,6 +86,28 @@ describe('Testing PUT /v1/player/{playerid}/question/{questionposition}/answer',
     expect(submitAnswerRes).toStrictEqual({});
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.GO_TO_ANSWER);
     const resultRes = requestPlayerQuestionResults(playerRes.playerId, 1);
+    console.log(resultRes.averageAnswerTime);
+    expect(resultRes).toStrictEqual({
+      questionId: questionRes1.questionId,
+      playersCorrectList: ['Random Player'],
+      averageAnswerTime: expect.any(Number),
+      percentCorrect: 100,
+    });
+  });
+
+  test('successfully submit answer wait', () => {
+    const playerRes = requestPlayerJoin(sessionRes.sessionId, 'Random Player');
+    requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.NEXT_QUESTION);
+    requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.SKIP_COUNTDOWN);
+    const questionStatus = requestSessionStatus(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId);
+    expect(questionStatus.state).toStrictEqual(States.QUESTION_OPEN);
+    const questionAnswerId = questionStatus.metadata.questions[0].answers[0].answerId;
+    sleepSync(2 * 1000);
+    const submitAnswerRes = requestQuestionSubmit(playerRes.playerId, 1, [questionAnswerId]);
+    expect(submitAnswerRes).toStrictEqual({});
+    requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.GO_TO_ANSWER);
+    const resultRes = requestPlayerQuestionResults(playerRes.playerId, 1);
+    console.log(resultRes.averageAnswerTime);
     expect(resultRes).toStrictEqual({
       questionId: questionRes1.questionId,
       playersCorrectList: ['Random Player'],
@@ -103,11 +126,13 @@ describe('Testing PUT /v1/player/{playerid}/question/{questionposition}/answer',
     const questionAnswerId = questionStatus.metadata.questions[0].answers[0].answerId;
     const questionAnswerId2 = questionStatus.metadata.questions[0].answers[1].answerId;
     const submitAnswerRes = requestQuestionSubmit(playerRes.playerId, 1, [questionAnswerId]);
+    sleepSync(2 * 1000);
     const submitAnswerRes2 = requestQuestionSubmit(playerRes2.playerId, 1, [questionAnswerId2]);
     expect(submitAnswerRes2).toStrictEqual({});
     expect(submitAnswerRes).toStrictEqual({});
     requestSessionStateUpdate(registerRes.token, quizCreateRes.quizId, sessionRes.sessionId, Actions.GO_TO_ANSWER);
     const resultRes = requestPlayerQuestionResults(playerRes.playerId, 1);
+    console.log(resultRes.averageAnswerTime);
     expect(resultRes).toStrictEqual({
       questionId: questionRes1.questionId,
       playersCorrectList: ['Random Player'],

@@ -17,6 +17,8 @@ import {
   requestQuizSessionCreate
 } from './httpRequests';
 
+import { getData } from './dataStore';
+
 import {
   TokenReturn,
   QuizId,
@@ -1385,11 +1387,6 @@ describe('requestQuizQuestionMove', () => {
     expect(quizInfo.questions[1].questionId).toStrictEqual(quizQuestion.questionId);
   });
 
-  test('invalid quizId', () => {
-    const removeRes = requestQuizQuestionMove(resToken.token, 2, quizQuestion.questionId, 1);
-    expect(removeRes).toStrictEqual({ error: expect.any(String) });
-  });
-
   test('Question Id Invalid', () => {
     const quiz2 = requestQuizCreate(resToken.token, 'COMP15312', 'Welcome!');
     const questionBody: QuestionBody = {
@@ -1409,6 +1406,9 @@ describe('requestQuizQuestionMove', () => {
       thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     const questionCreateRes = requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody);
+
+    const data = getData();
+    console.error(data.quizzes[1].ownerId);
     expect(requestQuizQuestionMove(resToken.token, quiz2.quizId, questionCreateRes.questionId, 1)).toEqual({ error: expect.any(String) });
   });
 

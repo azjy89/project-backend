@@ -86,7 +86,7 @@ export const playerSubmitAnswer = (playerId: number, questionPosition: number, a
 
   const currQuestionResult = currSession.questionResults.find(questionResult => questionResult.questionId === question.questionId);
   let averageAnswerTime: number;
-  const answerTime = Date.now() - currSession.questionStartTimes[questionPosition - 1];
+  const answerTime = Math.floor(Date.now() / 1000) - currSession.questionStartTimes[questionPosition - 1];
   if (numAnswered === 0) {
     averageAnswerTime = answerTime;
   } else {
