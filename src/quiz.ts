@@ -954,6 +954,9 @@ export function sessionResults(authUserId: number, quizId: number, sessionId: nu
   if (sessionFind.players.length > 0) {
     const firstPlayerResult = playerFinalResults(sessionFind.players[0].playerId);
     finalResults.questionResults = firstPlayerResult.questionResults;
+  } else {
+    finalResults.usersRankedByScore = [];
+    finalResults.questionResults = [];
   }
 
   // Sorting the users by score in descending order
@@ -1081,11 +1084,10 @@ export function playerQuestionResults(playerId: number, questionPosition: number
 function playerFinalQuestionResults(playerId: number, questionPosition: number): QuestionResultReturn {
   const data = getData();
   let currSession: QuizSession;
-  let player: Player;
 
   for (const session of data.quizSessions) {
-    player = session.players.find(player => player.playerId === playerId);
-    if (player) {
+    const playerExists = session.players.some(player => player.playerId === playerId);
+    if (playerExists) {
       currSession = session;
       break;
     }
@@ -1128,9 +1130,7 @@ export function playerFinalResults(playerId: number) {
   // Get the question results for the player
   for (let i = 1; i <= sessionFind.quiz.questions.length; i++) {
     const questionResult = playerFinalQuestionResults(playerId, i);
-    if (questionResult && !('error' in questionResult)) {
-      results.questionResults.push(questionResult);
-    }
+    results.questionResults.push(questionResult);
   }
   // Iterate each player of the session
   sessionFind.players.forEach(player => {

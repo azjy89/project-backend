@@ -158,6 +158,122 @@ describe('Error handling', () => {
   });
 });
 
+describe('Empty session', () => {
+  let registerRes: Token | ErrorObject;
+  let quizRes: QuizId | ErrorObject;
+  let sessionRes;
+  let token: Token;
+  let quizId: QuizId;
+  let sessionId: SessionId;
+  beforeEach(() => {
+    registerRes = requestAuthRegister(email, password, firstName, lastName);
+    token = registerRes as Token;
+    quizRes = requestQuizCreate(token.token, quizName, quizDescription);
+    quizId = quizRes as QuizId;
+    requestQuizQuestionCreate(token.token, quizId.quizId, questionBody);
+    requestQuizQuestionCreate(token.token, quizId.quizId, questionBody1);
+    sessionRes = requestQuizSessionCreate(token.token, quizId.quizId, 3);
+    sessionId = sessionRes as SessionId;
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.SKIP_COUNTDOWN);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_ANSWER);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.GO_TO_FINAL_RESULTS);
+  });
+  test('Empty session return val', () => {
+    expect(requestSessionResults(token.token, quizId.quizId, sessionId.sessionId)).toStrictEqual(
+      {
+        usersRankedByScore: [],
+        questionResults: [],
+      }
+    );
+  });
+});
+
+describe('2 sessions', () => {
+  let registerRes: Token | ErrorObject;
+  let quizRes: QuizId | ErrorObject;
+  let sessionRes;
+  let playerRes1: PlayerId | ErrorObject;
+  let playerRes2: PlayerId | ErrorObject;
+  let playerRes3: PlayerId | ErrorObject;
+  let token: Token;
+  let quizId: QuizId;
+  let sessionId: SessionId;
+  let playerId1: PlayerId;
+  let playerId2: PlayerId;
+  let playerId3: PlayerId;
+  let randomSess: SessionId | ErrorObject;
+  let randomSessId: SessionId;
+  let randomTokenRes: Token | ErrorObject;
+  let randomToken: Token;
+  let randomQuizRes: QuizId | ErrorObject;
+  let randomQuizId: QuizId;
+  let question1: QuestionId | ErrorObject;
+  let questionId1: QuestionId;
+  beforeEach(() => {
+    registerRes = requestAuthRegister(email, password, firstName, lastName);
+    token = registerRes as Token;
+    quizRes = requestQuizCreate(token.token, quizName, quizDescription);
+    quizId = quizRes as QuizId;
+    requestQuizQuestionCreate(token.token, quizId.quizId, questionBody);
+    requestQuizQuestionCreate(token.token, quizId.quizId, questionBody1);
+    sessionRes = requestQuizSessionCreate(token.token, quizId.quizId, 3);
+    sessionId = sessionRes as SessionId;
+    randomTokenRes = requestAuthRegister('bewbew@gmail.com', 'asdf1245', 'asdfa', 'adsfg');
+    randomToken = randomTokenRes as Token;
+    randomQuizRes = requestQuizCreate(randomToken.token, 'BOBBYTHE', 'BUILDERRR');
+    randomQuizId = randomQuizRes as QuizId;
+    question1 = requestQuizQuestionCreate(randomToken.token, randomQuizId.quizId, questionBody);
+    questionId1 = question1 as QuestionId;
+    randomSess = requestQuizSessionCreate(randomToken.token, randomQuizId.quizId, 3);
+    randomSessId = randomSess as SessionId;
+    playerRes1 = requestPlayerJoin(randomSessId.sessionId, player1);
+    playerRes2 = requestPlayerJoin(randomSessId.sessionId, player2);
+    playerRes3 = requestPlayerJoin(randomSessId.sessionId, player3);
+    playerId1 = playerRes1 as PlayerId;
+    playerId2 = playerRes2 as PlayerId;
+    playerId3 = playerRes3 as PlayerId;
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.NEXT_QUESTION);
+    requestSessionStateUpdate(token.token, quizId.quizId, sessionId.sessionId, Actions.SKIP_COUNTDOWN);
+    requestSessionStateUpdate(randomToken.token, randomQuizId.quizId, randomSessId.sessionId, Actions.SKIP_COUNTDOWN);
+    requestQuestionSubmit(playerId1.playerId, 1, [0]);
+    requestQuestionSubmit(playerId2.playerId, 1, [0]);
+    requestQuestionSubmit(playerId3.playerId, 1, [1]);
+    requestSessionStateUpdate(randomToken.token, randomQuizId.quizId, randomSessId.sessionId, Actions.GO_TO_ANSWER);
+    requestSessionStateUpdate(randomToken.token, randomQuizId.quizId, randomSessId.sessionId, Actions.GO_TO_FINAL_RESULTS);
+  });
+  test('Test it', () => {
+    expect(requestSessionResults(randomToken.token, randomQuizId.quizId, randomSessId.sessionId)).toStrictEqual(
+      {
+        usersRankedByScore: [
+          {
+            name: player1,
+            score: NUMBER
+          },
+          {
+            name: player2,
+            score: NUMBER
+          },
+          {
+            name: player3,
+            score: NUMBER
+          }
+        ],
+        questionResults: [
+          {
+            questionId: questionId1.questionId,
+            playersCorrectList: [
+              player1,
+              player2
+            ],
+            averageAnswerTime: NUMBER,
+            percentCorrect: NUMBER
+          },
+        ],
+      }
+    );
+  });
+});
 describe('Successful case', () => {
   let registerRes: Token | ErrorObject;
   let quizRes: QuizId | ErrorObject;
