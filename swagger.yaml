@@ -355,7 +355,7 @@ components:
       type: object
       properties:
         topThreeUsersRankedByCurrentScore:
-          type: array:
+          type: array
           items:
             type: object
             properties:
