@@ -13,6 +13,10 @@ beforeEach(() => {
   requestClear();
 });
 
+afterAll(() => {
+  requestClear();
+});
+
 describe('trashQuizList', () => {
   test('Successful run', () => {
     const resToken = requestAuthRegister('quiz@unsw.edu.au',
@@ -21,7 +25,7 @@ describe('trashQuizList', () => {
     requestQuizRemove(resToken.token, resQuizId.quizId);
     const resTrash = requestTrashQuizList(resToken.token);
     expect(resTrash).toStrictEqual({
-      trash: [
+      quizzes: [
         {
           quizId: resQuizId.quizId,
           name: 'COMP1531'
@@ -78,7 +82,7 @@ describe('Testing POST /v1/admin/quiz/{quizid}/restore', () => {
   test('user is not an owner of this quiz', () => {
     const resToken1 = requestAuthRegister('quiz@unsw.edu.au',
       'abcd1234', 'Bobby', 'Dickens');
-    const resToken2 = requestAuthRegister('quiz@unsw.edu.au',
+    const resToken2 = requestAuthRegister('quiz2@unsw.edu.au',
       'abcd1234', 'Bobby', 'Dickens');
     const resQuizId1 = requestQuizCreate(resToken1.token, 'COMP1531', 'Welcome!');
     requestQuizRemove(resToken1.token, resQuizId1.quizId);
@@ -94,7 +98,7 @@ describe('Testing DELETE /v1/admin/quiz/trash/empty', () => {
     requestQuizRemove(resToken.token, resQuizId.quizId);
     expect(requestTrashEmpty(resToken.token, [resQuizId.quizId])).toStrictEqual({});
     expect(requestTrashQuizList(resToken.token)).toStrictEqual({
-      trash: []
+      quizzes: []
     });
   });
 
@@ -110,7 +114,7 @@ describe('Testing DELETE /v1/admin/quiz/trash/empty', () => {
     expect(requestQuizRemove(resToken.token, resQuizId3.quizId)).toEqual({});
     expect(requestTrashEmpty(resToken.token, [resQuizId1.quizId, resQuizId2.quizId, resQuizId3.quizId])).toStrictEqual({});
     expect(requestTrashQuizList(resToken.token)).toStrictEqual({
-      trash: [
+      quizzes: [
 
       ]
     });
@@ -139,7 +143,7 @@ describe('Testing DELETE /v1/admin/quiz/trash/empty', () => {
   test('user is not an owner of this quiz', () => {
     const resToken1 = requestAuthRegister('quiz@unsw.edu.au',
       'abcd1234', 'Bobby', 'Dickens');
-    const resToken2 = requestAuthRegister('quiz@unsw.edu.au',
+    const resToken2 = requestAuthRegister('quiz2@unsw.edu.au',
       'abcd1234', 'Bobby', 'Dickens');
     const resQuizId1 = requestQuizCreate(resToken1.token, 'COMP1531', 'Welcome!');
     const resQuizId2 = requestQuizCreate(resToken1.token, 'COMP1532', 'Welcome!');

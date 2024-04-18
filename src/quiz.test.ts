@@ -13,18 +13,27 @@ import {
   requestQuizQuestionRemove,
   requestQuizQuestionMove,
   requestQuizQuestionDuplicate,
-  requestTrashQuizList
+  requestTrashQuizList,
+  requestQuizSessionCreate
 } from './httpRequests';
+
+import { getData } from './dataStore';
+
 import {
   TokenReturn,
   QuizId,
   Quiz,
   QuestionBody,
   QuestionId,
-  Question
+  Question,
+  AdminQuizInfoReturn,
 } from './interfaces';
 
 beforeEach(() => {
+  requestClear();
+});
+
+afterAll(() => {
   requestClear();
 });
 
@@ -75,6 +84,16 @@ describe('requestQuizCreate', () => {
       'abcd1234', 'Bobby', 'Dickens');
     const quiz = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
     expect(quiz).toStrictEqual({ quizId: expect.any(Number) });
+    expect(requestQuizInfo(resToken.token, quiz.quizId)).toStrictEqual({
+      quizId: quiz.quizId,
+      name: 'COMP1531',
+      timeCreated: expect.any(Number),
+      timeLastEdited: expect.any(Number),
+      description: 'Welcome!',
+      numQuestions: 0,
+      questions: [],
+      duration: 0,
+    });
   });
 
   test('token doesnt exist', () => {
@@ -136,7 +155,7 @@ describe('requestQuizRemove', () => {
       quizzes: []
     });
     expect(requestTrashQuizList(resToken.token)).toStrictEqual({
-      trash: [
+      quizzes: [
         {
           quizId: quiz.quizId,
           name: 'COMP1531',
@@ -168,6 +187,29 @@ describe('requestQuizRemove', () => {
     expect(requestQuizRemove(resToken.token, quiz1.quizId)).toStrictEqual({ error: expect.any(String) });
   });
 });
+test('quiz has active session', () => {
+  const resToken = requestAuthRegister('quiz@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
+  const quiz = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+  const questionBody: QuestionBody = {
+    question: 'When are you sleeping?',
+    duration: 5,
+    points: 5,
+    answers: [
+      {
+        answer: 'Bobby the builder',
+        correct: true
+      },
+      {
+        answer: 'Bobby the breaker',
+        correct: false
+      }
+    ],
+    thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
+  };
+  requestQuizQuestionCreate(resToken.token, quiz.quizId, questionBody);
+  requestQuizSessionCreate(resToken.token, quiz.quizId, 3);
+  expect(requestQuizRemove(resToken.token, quiz.quizId));
+});
 
 describe('requestQuizInfo', () => {
   test('Quiz info retrieved successfully', () => {
@@ -175,15 +217,15 @@ describe('requestQuizInfo', () => {
     const quizId = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
     const quizInfo = requestQuizInfo(resToken.token, quizId.quizId);
     // Define the expected quiz information structure
-    const expectedQuizInfo: Quiz = {
+    const expectedQuizInfo: Partial<AdminQuizInfoReturn> = {
       quizId: expect.any(Number),
       name: 'COMP1531',
-      ownerId: expect.any(Number),
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
       description: 'Welcome!',
+      numQuestions: 0,
       questions: [],
-      duration: 0
+      duration: 0,
     };
 
     // Compare quizInfo object with the expected quiz information structure
@@ -263,7 +305,24 @@ describe('requestQuizNameUpdate', () => {
     // eslint-disable-next-line
     const quizId1 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
     const quizId2 = requestQuizCreate(resToken.token, 'bahahaha', 'Blahblah!');
+    expect(requestQuizNameUpdate(resToken.token, quizId2.quizId, 'COMP1531')).toStrictEqual({ error: expect.any(String) });
+  });
+
+  test('name contains invalid characters', () => {
+    const resToken = requestAuthRegister('quiz@unsw.edu.au',
+      'abcd1234', 'Bobby', 'Dickens');
+    // eslint-disable-next-line
+    const quizId1 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+    const quizId2 = requestQuizCreate(resToken.token, 'bahahaha', 'Blahblah!');
     expect(requestQuizNameUpdate(resToken.token, quizId2.quizId, 'COMP1531!')).toStrictEqual({ error: expect.any(String) });
+  });
+
+  test('invalid nameLength', () => {
+    const resToken = requestAuthRegister('quiz@unsw.edu.au',
+      'abcd1234', 'Bobby', 'Dickens');
+    // eslint-disable-next-line
+    const quizId1 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+    expect(requestQuizNameUpdate(resToken.token, quizId1.quizId, 'C')).toStrictEqual({ error: expect.any(String) });
   });
 });
 
@@ -345,7 +404,8 @@ describe('requestQuizQuestionCreate', () => {
             answer: 'Bobby the breaker',
             correct: false
           }
-        ]
+        ],
+        thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
       }
     },
     // question string greater than 50 characters
@@ -363,7 +423,8 @@ describe('requestQuizQuestionCreate', () => {
             answer: 'Bobby the breaker',
             correct: false
           }
-        ]
+        ],
+        thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
       }
     },
     // question has more than 6 answers
@@ -401,7 +462,8 @@ describe('requestQuizQuestionCreate', () => {
             answer: 'Bobby the barker',
             correct: false
           },
-        ]
+        ],
+        thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
       }
     },
     // question has less than 2 answers
@@ -415,7 +477,8 @@ describe('requestQuizQuestionCreate', () => {
             answer: 'Bobby the builder',
             correct: true
           },
-        ]
+        ],
+        thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
       }
     },
     // question duration is not a postive number
@@ -433,7 +496,8 @@ describe('requestQuizQuestionCreate', () => {
             answer: 'Bobby the breaker',
             correct: false
           }
-        ]
+        ],
+        thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
       }
     },
     // question duration for one question is too long
@@ -451,7 +515,8 @@ describe('requestQuizQuestionCreate', () => {
             answer: 'Bobby the breaker',
             correct: false
           }
-        ]
+        ],
+        thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
       }
     },
     // question points is less than 1
@@ -469,7 +534,8 @@ describe('requestQuizQuestionCreate', () => {
             answer: 'Bobby the breaker',
             correct: false
           }
-        ]
+        ],
+        thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
       }
     },
     // question points is greater than 10
@@ -487,7 +553,8 @@ describe('requestQuizQuestionCreate', () => {
             answer: 'Bobby the breaker',
             correct: false
           }
-        ]
+        ],
+        thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
       }
     },
     // question answer less than 1 character long
@@ -505,7 +572,8 @@ describe('requestQuizQuestionCreate', () => {
             answer: 'Bobby the breaker',
             correct: false
           }
-        ]
+        ],
+        thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
       }
     },
     // question answer is longer than 30 characters
@@ -523,7 +591,8 @@ describe('requestQuizQuestionCreate', () => {
             answer: 'But when i get back to my room and i shut the door, everything hits me at once. i know your not coming back to me, its not enough just knowing this is how it has to be',
             correct: false
           }
-        ]
+        ],
+        thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
       }
     },
     // question has duplicate answers
@@ -541,7 +610,8 @@ describe('requestQuizQuestionCreate', () => {
             answer: 'Bobby the builder',
             correct: false
           }
-        ]
+        ],
+        thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg'
       }
     },
     // question has no correct answers
@@ -559,7 +629,8 @@ describe('requestQuizQuestionCreate', () => {
             answer: 'Bobby the breaker',
             correct: false
           }
-        ]
+        ],
+        thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
       }
     },
   ])("Invalid question body: '$questionBody'", ({ questionBody }) => {
@@ -579,7 +650,8 @@ describe('requestQuizQuestionCreate', () => {
           answer: 'Bobby the breaker',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     expect(requestQuizQuestionCreate('1', quiz1.quizId, questionBody)).toStrictEqual({ error: expect.any(String) });
   });
@@ -597,7 +669,8 @@ describe('requestQuizQuestionCreate', () => {
           answer: 'Bobby the breaker',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     const resToken2 = requestAuthRegister('quiz1@unsw.edu.au', 'abcd1234', 'Bob', 'Builder');
     expect(requestQuizQuestionCreate(resToken2.token, quiz1.quizId, questionBody)).toStrictEqual({ error: expect.any(String) });
@@ -616,11 +689,55 @@ describe('requestQuizQuestionCreate', () => {
           answer: 'Bobby the breaker',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     const question = requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody);
     expect(question.questionId).toStrictEqual(expect.any(Number));
   });
+
+  test('invalid http', () => {
+    const questionBody: QuestionBody = {
+      question: 'When are you sleeping?',
+      duration: 5,
+      points: 5,
+      answers: [
+        {
+          answer: 'Bobby the builder',
+          correct: true
+        },
+        {
+          answer: 'Bobby the breaker',
+          correct: false
+        }
+      ],
+      thumbnailUrl: 'steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
+    };
+    const question = requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody);
+    expect(question).toStrictEqual({ error: expect.any(String) });
+  });
+
+  test('invalid file format', () => {
+    const questionBody: QuestionBody = {
+      question: 'When are you sleeping?',
+      duration: 5,
+      points: 5,
+      answers: [
+        {
+          answer: 'Bobby the builder',
+          correct: true
+        },
+        {
+          answer: 'Bobby the breaker',
+          correct: false
+        }
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true',
+    };
+    const question = requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody);
+    expect(question).toStrictEqual({ error: expect.any(String) });
+  });
+
   test('successful multiple creations', () => {
     const questionBody1: QuestionBody = {
       question: 'When are you sleeping?',
@@ -635,7 +752,8 @@ describe('requestQuizQuestionCreate', () => {
           answer: 'Bobby the breaker',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://imw=637&imh=3.jpeg',
     };
     const questionBody2: QuestionBody = {
       question: 'When are you not sleeping?',
@@ -650,49 +768,45 @@ describe('requestQuizQuestionCreate', () => {
           answer: 'Bobby the breeker',
           correct: false
         }
-      ]
-    };
-    const questionBody3: QuestionBody = {
-      question: 'When are you always sleeping?',
-      duration: 5,
-      points: 5,
-      answers: [
-        {
-          answer: 'Bobby the brooder',
-          correct: true
-        },
-        {
-          answer: 'Bobby the boomer',
-          correct: false
-        }
-      ]
-    };
-    const question1 = requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody1);
-    const question2 = requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody2);
-    const question3 = requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody3);
-    expect(requestQuizInfo(resToken.token, quiz1.quizId)).toStrictEqual({
-      quizId: quiz1.quizId,
-      name: 'COMP1531',
-      ownerId: expect.any(Number),
-      timeCreated: expect.any(Number),
-      timeLastEdited: expect.any(Number),
-      description: 'Welcome!',
-      questions: [
-        {
-          questionBody: questionBody1,
-          questionId: question1.questionId
-        },
-        {
-          questionBody: questionBody2,
-          questionId: question2.questionId
-        },
-        {
-          questionBody: questionBody3,
-          questionId: question3.questionId
-        }
       ],
-      duration: 15
-    });
+      thumbnailUrl: 'https://imw=637&imh=3.jpeg',
+    };
+
+    requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody1);
+    requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody2);
+    const info = requestQuizInfo(resToken.token, quiz1.quizId);
+    expect(info.quizId).toStrictEqual(expect.any(Number));
+    expect(info.name).toStrictEqual('COMP1531');
+    expect(info.timeCreated).toStrictEqual(expect.any(Number));
+    expect(info.timeLastEdited).toStrictEqual(expect.any(Number));
+    expect(info.description).toStrictEqual('Welcome!');
+    expect(info.numQuestions).toStrictEqual(2);
+
+    expect(info.questions[0].questionId).toStrictEqual(expect.any(Number));
+    expect(info.questions[0].question).toStrictEqual('When are you sleeping?');
+    expect(info.questions[0].duration).toStrictEqual(5);
+    expect(info.questions[0].points).toStrictEqual(5);
+    expect(info.questions[0].answers[0].answerId).toStrictEqual(0);
+    expect(info.questions[0].answers[0].answer).toStrictEqual('Bobby the builder');
+    expect(info.questions[0].answers[0].colour).toStrictEqual(expect.any(String));
+    expect(info.questions[0].answers[0].correct).toStrictEqual(true);
+    expect(info.questions[0].answers[1].answerId).toStrictEqual(1);
+    expect(info.questions[0].answers[1].answer).toStrictEqual('Bobby the breaker');
+    expect(info.questions[0].answers[1].colour).toStrictEqual(expect.any(String));
+    expect(info.questions[0].answers[1].correct).toStrictEqual(false);
+
+    expect(info.questions[1].questionId).toStrictEqual(expect.any(Number));
+    expect(info.questions[1].question).toStrictEqual('When are you not sleeping?');
+    expect(info.questions[1].duration).toStrictEqual(5);
+    expect(info.questions[1].points).toStrictEqual(5);
+    expect(info.questions[1].answers[0].answerId).toStrictEqual(0);
+    expect(info.questions[1].answers[0].answer).toStrictEqual('Bobby the buulder');
+    expect(info.questions[1].answers[0].colour).toStrictEqual(expect.any(String));
+    expect(info.questions[1].answers[0].correct).toStrictEqual(true);
+    expect(info.questions[1].answers[1].answerId).toStrictEqual(1);
+    expect(info.questions[1].answers[1].answer).toStrictEqual('Bobby the breeker');
+    expect(info.questions[1].answers[1].colour).toStrictEqual(expect.any(String));
+    expect(info.questions[1].answers[1].correct).toStrictEqual(false);
   });
 });
 
@@ -717,7 +831,8 @@ describe('requestQuizQuestionUpdate', () => {
           answer: 'Queen Elizabeth',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     quizQuestion = requestQuizQuestionCreate(resToken.token, quiz1.quizId, question);
   });
@@ -736,10 +851,53 @@ describe('requestQuizQuestionUpdate', () => {
           answer: 'Queen Elizabeth',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     const updateReturn = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, quizQuestion.questionId, newQuestion);
     expect(updateReturn).toEqual({});
+  });
+
+  test('invalid http', () => {
+    const newQuestion: QuestionBody = {
+      question: 'Who is the Monarch of England?',
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: 'King Charles',
+          correct: true
+        },
+        {
+          answer: 'Queen Elizabeth',
+          correct: false
+        }
+      ],
+      thumbnailUrl: 'steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
+    };
+    const updateReturn = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, quizQuestion.questionId, newQuestion);
+    expect(updateReturn).toEqual({ error: expect.any(String) });
+  });
+
+  test('invalid file format', () => {
+    const newQuestion: QuestionBody = {
+      question: 'Who is the Monarch of England?',
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: 'King Charles',
+          correct: true
+        },
+        {
+          answer: 'Queen Elizabeth',
+          correct: false
+        }
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true',
+    };
+    const updateReturn = requestQuizQuestionUpdate(resToken.token, quiz1.quizId, quizQuestion.questionId, newQuestion);
+    expect(updateReturn).toEqual({ error: expect.any(String) });
   });
 
   test('Question Id not valid', () => {
@@ -756,7 +914,8 @@ describe('requestQuizQuestionUpdate', () => {
           answer: 'Queen Elizabeth',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     const updateReturn = requestQuizQuestionUpdate(resToken.token, quiz1.quizId,
       quizQuestion.questionId + 1, newQuestion);
@@ -777,7 +936,8 @@ describe('requestQuizQuestionUpdate', () => {
           answer: 'Queen Elizabeth',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     const updateReturn1 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId,
       quizQuestion.questionId, newQuestion1);
@@ -797,7 +957,8 @@ describe('requestQuizQuestionUpdate', () => {
           answer: 'King Charles',
           correct: true
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     const updateReturn1 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId,
       quizQuestion.questionId, newQuestion1);
@@ -835,7 +996,8 @@ describe('requestQuizQuestionUpdate', () => {
           answer: '7',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     const updateReturn2 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId,
       quizQuestion.questionId, newQuestion2);
@@ -856,7 +1018,8 @@ describe('requestQuizQuestionUpdate', () => {
           answer: 'Queen Elizabeth',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     const updateReturn = requestQuizQuestionUpdate(resToken.token, quiz1.quizId,
       quizQuestion.questionId, newQuestion1);
@@ -874,7 +1037,8 @@ describe('requestQuizQuestionUpdate', () => {
           answer: 'Queen Elizabeth',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     const updateReturn2 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId,
       quizQuestion.questionId, newQuestion2);
@@ -895,7 +1059,8 @@ describe('requestQuizQuestionUpdate', () => {
           answer: 'Queen Elizabeth',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     const updateReturn1 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId,
       quizQuestion.questionId, newQuestion1);
@@ -913,7 +1078,8 @@ describe('requestQuizQuestionUpdate', () => {
           answer: 'Queen Elizabeth',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     const updateReturn2 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId,
       quizQuestion.questionId, newQuestion2);
@@ -934,7 +1100,8 @@ describe('requestQuizQuestionUpdate', () => {
           answer: 'Queen Elizabeth',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     const updateReturn1 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId,
       quizQuestion.questionId, newQuestion1);
@@ -952,7 +1119,8 @@ describe('requestQuizQuestionUpdate', () => {
           answer: 'Queen Elizabeth',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     const updateReturn2 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId,
       quizQuestion.questionId, newQuestion2);
@@ -973,7 +1141,8 @@ describe('requestQuizQuestionUpdate', () => {
           answer: 'Queen Elizabeth',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     const updateReturn1 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId,
       quizQuestion.questionId, newQuestion1);
@@ -991,7 +1160,8 @@ describe('requestQuizQuestionUpdate', () => {
           answer: '1234512345123451234512345123451',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     const updateReturn2 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId,
       quizQuestion.questionId, newQuestion2);
@@ -1012,7 +1182,8 @@ describe('requestQuizQuestionUpdate', () => {
           answer: 'King Charles',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     const updateReturn1 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId,
       quizQuestion.questionId, newQuestion1);
@@ -1033,7 +1204,8 @@ describe('requestQuizQuestionUpdate', () => {
           answer: 'Queen Elizabeth',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     const updateReturn1 = requestQuizQuestionUpdate(resToken.token, quiz1.quizId,
       quizQuestion.questionId, newQuestion1);
@@ -1054,7 +1226,8 @@ describe('requestQuizQuestionUpdate', () => {
           answer: 'Queen Elizabeth',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     const updateReturn1 = requestQuizQuestionUpdate('1', quiz1.quizId,
       quizQuestion.questionId, newQuestion1);
@@ -1077,7 +1250,8 @@ describe('requestQuizQuestionUpdate', () => {
           answer: 'Queen Elizabeth',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     const updateReturn1 = requestQuizQuestionUpdate(resToken2.token, quiz1.quizId,
       quizQuestion.questionId, newQuestion1);
@@ -1106,16 +1280,58 @@ describe('requestQuizQuestionRemove', () => {
           answer: 'Queen Elizabeth',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     quizQuestion = requestQuizQuestionCreate(resToken.token, quiz1.quizId, question);
   });
   test('invalid token', () => {
     expect(requestQuizQuestionRemove('1', quiz1.quizId, quizQuestion.questionId)).toStrictEqual({ error: expect.any(String) });
   });
-  test('Successful return and status code', () => {
-    const response = requestQuizQuestionDuplicate(resToken.token, quiz1.quizId, quizQuestion.questionId);
-    expect(response).toStrictEqual({ newQuestionId: expect.any(Number) });
+
+  test('invalid quizId', () => {
+    expect(requestQuizQuestionRemove('1', quiz1.quizId, quizQuestion.questionId)).toStrictEqual({ error: expect.any(String) });
+  });
+
+  test('Successful question removal', () => {
+    const response = requestQuizQuestionRemove(resToken.token, quiz1.quizId, quizQuestion.questionId);
+    expect(response).toStrictEqual({});
+    const info = requestQuizInfo(resToken.token, quiz1.quizId);
+    expect(info.questions.length).toStrictEqual(0);
+  });
+
+  test('user does not own quiz', () => {
+    const resToken2 = requestAuthRegister('quiz2@unsw.edu.au', 'abcd1234', 'Bobby', 'Dickens');
+    const response = requestQuizQuestionRemove(resToken2.token, quiz1.quizId, quizQuestion.questionId);
+    expect(response).toStrictEqual({ error: expect.any(String) });
+  });
+
+  test('quiz has active sessions', () => {
+    requestQuizSessionCreate(resToken.token, quiz1.quizId, 3);
+    expect(requestQuizQuestionRemove(resToken.token, quiz1.quizId, quizQuestion.questionId)).toStrictEqual({ error: expect.any(String) });
+  });
+
+  test('QuestionId does not exist under the quiz', () => {
+    const quiz2 = requestQuizCreate(resToken.token, 'COMP1531', 'Welcome!');
+    const question: QuestionBody = {
+      question: 'Who is the Monarch of England?',
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: 'King Charles',
+          correct: true
+        },
+        {
+          answer: 'Queen Elizabeth',
+          correct: false
+        }
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
+    };
+    const quiz2Question = requestQuizQuestionCreate(resToken.token, quiz2.quizId, question);
+    const response = requestQuizQuestionRemove(resToken.token, quiz1.quizId, quiz2Question.questionId);
+    expect(response).toStrictEqual({ error: expect.any(String) });
   });
 });
 
@@ -1141,7 +1357,8 @@ describe('requestQuizQuestionMove', () => {
           answer: 'Queen Elizabeth',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     const question2: QuestionBody = {
       question: 'Who is the PM of England?',
@@ -1156,7 +1373,8 @@ describe('requestQuizQuestionMove', () => {
           answer: 'Rishi Sunak',
           correct: true
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     quizQuestion = requestQuizQuestionCreate(resToken.token, quiz1.quizId, question);
     quizQuestion2 = requestQuizQuestionCreate(resToken.token, quiz1.quizId, question2);
@@ -1166,12 +1384,32 @@ describe('requestQuizQuestionMove', () => {
     expect(requestQuizQuestionMove(resToken.token, quiz1.quizId, quizQuestion.questionId, 1)).toEqual({});
     const quizInfo = requestQuizInfo(resToken.token, quiz1.quizId);
     expect(quizInfo.timeLastEdited).toEqual(expect.any(Number));
+    expect(quizInfo.questions[1].questionId).toStrictEqual(quizQuestion.questionId);
   });
 
   test('Question Id Invalid', () => {
-    expect(requestQuizQuestionMove(resToken.token, quiz1.quizId + 1, quizQuestion2.questionId, 1)).toEqual({ error: expect.any(String) });
-    const quizInfo = requestQuizInfo(resToken.token, quiz1.quizId);
-    expect(quizInfo.timeLastEdited).toEqual(expect.any(Number));
+    const quiz2 = requestQuizCreate(resToken.token, 'COMP15312', 'Welcome!');
+    const questionBody: QuestionBody = {
+      question: 'Who is the PM of England?',
+      duration: 4,
+      points: 5,
+      answers: [
+        {
+          answer: 'Theresa May',
+          correct: false
+        },
+        {
+          answer: 'Rishi Sunak',
+          correct: true
+        }
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
+    };
+    const questionCreateRes = requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody);
+
+    const data = getData();
+    console.error(data.quizzes[1].ownerId);
+    expect(requestQuizQuestionMove(resToken.token, quiz2.quizId, questionCreateRes.questionId, 1)).toEqual({ error: expect.any(String) });
   });
 
   test('Invalid Position', () => {
@@ -1224,7 +1462,8 @@ describe('requestQuizQuestionDuplicate', () => {
           answer: 'Bobby the breaker',
           correct: false
         }
-      ]
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
     };
     question = requestQuizQuestionCreate(resToken.token, quiz1.quizId, questionBody);
   });
@@ -1267,7 +1506,27 @@ describe('Testing PUT /v1/admin/quiz/{quizId}/transfer', () => {
     user2 = requestAuthRegister('second@unsw.edu.au', 'SecondUser123', 'Second', 'User');
     quiz2 = requestQuizCreate(user2.token, 'COMP1511', 'A description of my quiz');
   });
-
+  test('quiz has active sessions', () => {
+    const questionBody: QuestionBody = {
+      question: 'When are you sleeping?',
+      duration: 5,
+      points: 5,
+      answers: [
+        {
+          answer: 'Bobby the builder',
+          correct: true
+        },
+        {
+          answer: 'Bobby the breaker',
+          correct: false
+        }
+      ],
+      thumbnailUrl: 'https://steamuserimages-a.akamaihd.net/ugc/2287332779831334224/EF3F8F1CF9E9A1395686A5B39FC67C64C851BE0D/?imw=637&imh=358&ima=fit&impolicy=Letterbox&imcolor=%23000000&letterbox=true.jpeg',
+    };
+    requestQuizQuestionCreate(user.token, quiz.quizId, questionBody);
+    requestQuizSessionCreate(user.token, quiz.quizId, 3);
+    expect(requestQuizTransfer(user.token, quiz.quizId, 'second@unsw.edu.au')).toStrictEqual({ error: expect.any(String) });
+  });
   test('userEmail is not a real user', () => {
     const response = requestQuizTransfer(user2.token, quiz2.quizId, 'notReal@unsw.edu.au');
     expect(response).toStrictEqual({ error: expect.any(String) });
@@ -1298,7 +1557,7 @@ describe('Testing PUT /v1/admin/quiz/{quizId}/transfer', () => {
 
   test('Valid token; quiz not owned by user. (userId not found in quiz)', () => {
     // first user (testing the user who is transfering quiz)
-    const response = requestQuizTransfer(user.token, quiz.quizId + 1, 'first@unsw.edu.au');
+    const response = requestQuizTransfer(user2.token, quiz.quizId, 'second@unsw.edu.au');
     // expect(response.statusCode).toStrictEqual(403);
     expect(response).toStrictEqual({ error: expect.any(String) });
   });
@@ -1312,10 +1571,10 @@ describe('Testing PUT /v1/admin/quiz/{quizId}/transfer', () => {
     expect(quizInfo).toStrictEqual({
       quizId: quiz.quizId,
       name: 'COMP1531',
-      ownerId: expect.any(Number),
       timeCreated: expect.any(Number),
       timeLastEdited: expect.any(Number),
       description: 'A description of my quiz',
+      numQuestions: 0,
       questions: [],
       duration: 0,
     });

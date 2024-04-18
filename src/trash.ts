@@ -1,3 +1,4 @@
+import HTTPError from 'http-errors';
 import {
   getData,
   setData
@@ -22,7 +23,7 @@ export const trashQuizList = (authUserId: number): TrashQuizListReturn => {
     quizId: quiz.quizId,
     name: quiz.name,
   }));
-  return { trash: trashList };
+  return { quizzes: trashList };
 };
 
 /** Restore a particular quiz from the trash back to an active quiz.
@@ -36,23 +37,18 @@ export function trashQuizRestore(authUserId: number, quizId: number): object | E
   const data: Data = getData();
 
   const quizFind = data.trash.find(quizFind => quizFind.quizId === quizId);
-  if (!quizFind) {
-    return {
-      error: 'quizId is not in trash'
-    };
+  if (quizFind) {
+    if (quizFind.ownerId !== authUserId) {
+      throw HTTPError(403, 'authUserId does not own this quiz');
+    }
   }
-
-  if (quizFind.ownerId !== authUserId) {
-    return {
-      error: 'authUserId does not own this quiz'
-    };
+  if (!quizFind) {
+    throw HTTPError(400, 'quizId is not in trash');
   }
 
   const nameExists = data.quizzes.some(quiz => quiz.name === quizFind.name);
   if (nameExists) {
-    return {
-      error: 'Quiz name is already being used'
-    };
+    throw HTTPError(400, 'name is being used');
   }
   quizFind.timeLastEdited = Date.now();
   const quizIndex = data.trash.findIndex(quiz => quiz.quizId === quizId);
@@ -73,11 +69,17 @@ export function trashEmpty(authUserId: number, quizIds: number[]): ErrorObject |
   const data = getData();
   for (const quizId of quizIds) {
     const quizIndex = data.trash.findIndex(quiz => quiz.quizId === quizId);
+    if (quizIndex !== -1) {
+      if (data.trash[quizIndex].ownerId !== authUserId) {
+        throw HTTPError(403, 'user does not own quiz');
+      }
+    }
+  }
 
+  for (const quizId of quizIds) {
+    const quizIndex = data.trash.findIndex(quiz => quiz.quizId === quizId);
     if (quizIndex === -1) {
-      return {
-        error: `Quiz with ID ${quizId} is not currently in the trash`
-      };
+      throw HTTPError(400, 'quiz does not exist in trash');
     }
   }
   data.trash = data.trash.filter(quiz => !quizIds.includes(quiz.quizId));

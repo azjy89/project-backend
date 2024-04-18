@@ -12,7 +12,6 @@ import {
   createToken,
   removeToken,
   idFromToken,
-  validateToken,
   adminAuthRegister,
   adminAuthLogin,
   adminUserDetails,
@@ -33,7 +32,15 @@ import {
   adminQuizQuestionMove,
   adminQuizTransfer,
   adminQuizQuestionDuplicate,
-  adminQuizThumbnailUpdate
+  adminQuizThumbnailUpdate,
+  adminQuizSessionCreate,
+  sessionsList,
+  sessionStatus,
+  sessionStateUpdate,
+  sessionResults,
+  sessionResultsCsv,
+  playerFinalResults,
+  playerQuestionResults
 } from './quiz';
 
 import {
@@ -41,6 +48,7 @@ import {
 } from './other';
 
 import {
+  Actions,
   AuthUserId
 } from './interfaces';
 
@@ -49,6 +57,27 @@ import {
   trashQuizRestore,
   trashEmpty
 } from './trash';
+
+import {
+  playerJoin
+} from './playerJoin';
+import {
+  playerStatus
+} from './playerStatus';
+
+import {
+  playerSubmitAnswer
+} from './submitAnswer';
+
+import { getData } from './dataStore';
+
+import { messagesList } from './messagesList';
+import { messageSend } from './messageSend';
+import HTTPError from 'http-errors';
+
+import {
+  getQuestionInfo
+} from './getQuestionInfo';
 
 // Set up web app
 const app = express();
@@ -97,11 +126,7 @@ app.post('/v1/admin/auth/register', (req: Request, res: Response) => {
   // Request parameters from body
   const { email, password, nameFirst, nameLast } = req.body;
   // Call adminAuthRegister with parameters
-  const response = adminAuthRegister(email, password, nameFirst, nameLast);
-  if ('error' in response) {
-    // Invalid parameters
-    return res.status(400).json(response);
-  }
+  const response = adminAuthRegister(email, password, nameFirst, nameLast) as AuthUserId;
   // Generate a token for authUserId
   const token = createToken(response.authUserId);
   return res.status(200).json({ token });
@@ -119,10 +144,7 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
   // Request parameters from body
   const { email, password } = req.body;
   // Call adminAuthLogin with parameters
-  const authUserId = adminAuthLogin(email, password);
-  if ('error' in authUserId) {
-    return res.status(400).json(authUserId);
-  }
+  const authUserId = adminAuthLogin(email, password) as AuthUserId;
   // Generate a token for the user
   const token = createToken(authUserId.authUserId);
   // Return the token
@@ -142,8 +164,6 @@ app.post('/v1/admin/auth/login', (req: Request, res: Response) => {
 app.get('/v2/admin/quiz/trash', (req: Request, res: Response) => {
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieves userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -161,8 +181,7 @@ app.get('/v2/admin/quiz/trash', (req: Request, res: Response) => {
 app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
+  idFromToken(token);
   // Token deleted (logged out)
   removeToken(token);
   return res.status(200).json({});
@@ -177,8 +196,6 @@ app.post('/v2/admin/auth/logout', (req: Request, res: Response) => {
 app.get('/v2/admin/user/details', (req: Request, res: Response) => {
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieves userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -198,8 +215,6 @@ app.put('/v2/admin/user/details', (req: Request, res: Response) => {
   const { email, nameFirst, nameLast } = req.body;
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieve userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -219,8 +234,6 @@ app.put('/v2/admin/user/password', (req: Request, res: Response) => {
   const { oldPassword, newPassword } = req.body;
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieve userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -237,8 +250,6 @@ app.put('/v2/admin/user/password', (req: Request, res: Response) => {
 app.post('/v2/admin/quiz', (req: Request, res: Response) => {
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieve userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -257,8 +268,6 @@ app.post('/v2/admin/quiz', (req: Request, res: Response) => {
 app.get('/v2/admin/quiz/list', (req: Request, res: Response) => {
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieve userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -278,8 +287,6 @@ app.delete('/v2/admin/quiz/:quizid', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   // Requests token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieves user for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -298,8 +305,6 @@ app.get('/v2/admin/quiz/:quizid', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   // Requests token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieves user for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -320,8 +325,6 @@ app.put('/v2/admin/quiz/:quizid/description', (req: Request, res: Response) => {
   const { description } = req.body;
   // Requests token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
   // Calls and returns an empty object from adminQuizDescriptionUpdate
@@ -341,8 +344,6 @@ app.put('/v2/admin/quiz/:quizid/name', (req: Request, res: Response) => {
   const { name } = req.body;
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieves userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -361,8 +362,6 @@ app.post('/v2/admin/quiz/:quizid/restore', (req: Request, res: Response) => {
   const quizId = parseInt(req.params.quizid);
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieves userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -383,8 +382,6 @@ app.delete('/v2/admin/quiz/trash/empty', (req: Request, res: Response) => {
   const quizIds = JSON.parse(quizIdString);
   // Requests token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieve userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -405,8 +402,6 @@ app.post('/v2/admin/quiz/:quizid/transfer', (req: Request, res: Response) => {
   const { userEmail } = req.body;
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieves userId for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -427,8 +422,6 @@ app.post('/v2/admin/quiz/:quizid/question', (req: Request, res: Response) => {
   const { questionBody } = req.body;
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -451,8 +444,6 @@ app.put('/v2/admin/quiz/:quizid/question/:questionid', (req: Request, res: Respo
   const { questionBody } = req.body;
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -473,8 +464,6 @@ app.delete('/v2/admin/quiz/:quizid/question/:questionid', (req: Request, res: Re
   const questionId = parseInt(req.params.questionid);
   // Request token as header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -497,8 +486,6 @@ app.put('/v2/admin/quiz/:quizid/question/:questionid/move', (req: Request, res: 
   const { newPosition } = req.body;
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -520,8 +507,6 @@ app.post('/v2/admin/quiz/:quizid/question/:questionid/duplicate', (req: Request,
   const questionId = parseInt(req.params.questionid);
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
@@ -543,13 +528,249 @@ app.put('/v1/admin/quiz/:quizid/thumbnail', (req: Request, res: Response) => {
   const thumbnail = req.body.imgUrl as string;
   // Request token as a header
   const token = req.headers.token as string;
-  // Validates token
-  validateToken(token);
   // Retrieve userid for the token
   const userId = idFromToken(token);
   const authUserId = userId as AuthUserId;
   // Call and return adminQuizThumbnailUpdate
   const response = adminQuizThumbnailUpdate(authUserId.authUserId, quizId, thumbnail);
+  return res.status(200).json(response);
+});
+
+/**
+ * Request for /v1/admin/quiz/:quizid/session/start
+ *
+ * Start a session
+ */
+app.post('/v1/admin/quiz/:quizid/session/start', (req: Request, res: Response) => {
+  // Parse quizId as int
+  const quizId = parseInt(req.params.quizid);
+  // Get autoStartNum from body
+  const startNumString = req.body.autoStartNum as string;
+  const autoStartNum = parseInt(startNumString);
+  // Get token as a header
+  const token = req.headers.token as string;
+  // Retrieve userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+
+  const response = adminQuizSessionCreate(authUserId.authUserId, quizId, autoStartNum);
+  return res.status(200).json(response);
+});
+
+/**
+ * Request for /v1/admin/quiz/:quizid/sessions
+ *
+ * List sessions
+ */
+app.get('/v1/admin/quiz/:quizid/sessions', (req: Request, res: Response) => {
+  // Parse quizId as int
+  const quizId = parseInt(req.params.quizid);
+  // Get token as a header
+  const token = req.headers.token as string;
+  // Retrieve userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+
+  const response = sessionsList(authUserId.authUserId, quizId);
+  return res.status(200).json(response);
+});
+
+/**
+ * Request for /v1/admin/quiz/:quizId/session/:sessionid
+ *
+ * Change state of a session
+ */
+app.put('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Response) => {
+  // Parse quizId as int
+  const quizId = parseInt(req.params.quizid);
+  const sessionId = parseInt(req.params.sessionid);
+  // Get token as a header
+  const token = req.headers.token as string;
+  // Retrieve userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+  const data = getData();
+  const quiz = data.quizzes.find(quiz => quiz.quizId === quizId);
+  if (quiz.ownerId !== authUserId.authUserId) {
+    throw HTTPError(403, 'token is valid but user does not own quiz');
+  }
+  const actionString = req.body.action as string;
+  let action: Actions;
+  switch (actionString) {
+    case 'END':
+      action = Actions.END;
+      break;
+    case 'NEXT_QUESTION':
+      action = Actions.NEXT_QUESTION;
+      break;
+    case 'GO_TO_ANSWER':
+      action = Actions.GO_TO_ANSWER;
+      break;
+    case 'GO_TO_FINAL_RESULTS':
+      action = Actions.GO_TO_FINAL_RESULTS;
+      break;
+    case 'SKIP_COUNTDOWN':
+      action = Actions.SKIP_COUNTDOWN;
+      break;
+    default:
+      throw HTTPError(400, 'Invalid ');
+  }
+
+  const response = sessionStateUpdate(authUserId.authUserId, quizId, sessionId, action);
+  return res.status(200).json(response);
+});
+
+/**
+ * Request for /v1/admin/quiz/:quizid/session/:sessionid
+ *
+ * Get status of a session and its info
+ */
+app.get('/v1/admin/quiz/:quizid/session/:sessionid', (req: Request, res: Response) => {
+  // Parse quizId as int
+  const quizId = parseInt(req.params.quizid);
+  const sessionId = parseInt(req.params.sessionid);
+  // Get token as a header
+  const token = req.headers.token as string;
+  // Retrieve userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+
+  const response = sessionStatus(authUserId.authUserId, quizId, sessionId);
+  return res.status(200).json(response);
+});
+
+/**
+ * Request for /v1/player/:playerid/chat
+ *
+ * Get list of messages for a session a player is in
+ */
+app.get('/v1/player/:playerid/chat', (req: Request, res: Response) => {
+  const playerId = parseInt(req.params.playerid);
+  const response = messagesList(playerId);
+
+  return res.status(200).json(response);
+});
+
+/**
+ * Request for /v1/player/{playerid}/chat
+ *
+ * Send a message for a specified player
+ */
+app.post('/v1/player/:playerid/chat', (req: Request, res: Response) => {
+  const playerId = parseInt(req.params.playerid);
+  const messageBody = req.body.message.messageBody as string;
+  const response = messageSend(playerId, messageBody);
+
+  return res.status(200).json(response);
+});
+
+/** GET
+ * Request for /v1/admin/quiz/:quizid/session/:sessionid/results
+ *
+ * Get the final results for all players for a completed quiz session
+ */
+app.get('/v1/admin/quiz/:quizid/session/:sessionid/results', (req: Request, res: Response) => {
+  // Parse quizId to int
+  const quizId = parseInt(req.params.quizid);
+  // Parse sessionId to int
+  const sessionId = parseInt(req.params.sessionid);
+  // Request token from header
+  const token = req.headers.token as string;
+  // Retrieve userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+  // Call and return sessionResults
+  const response = sessionResults(authUserId.authUserId, quizId, sessionId);
+  return res.status(200).json(response);
+});
+
+/** GET
+ * Route for /v1/admin/quiz/:quizid/session/:sessionid/results/csv
+ *
+ * Get the link to the final results in CSV format for all players
+ */
+app.get('/v1/admin/quiz/:quizid/session/:sessionid/results/csv', (req: Request, res: Response) => {
+  // Parse quizId to int
+  const quizId = parseInt(req.params.quizid);
+  // Parse sessionId to int
+  const sessionId = parseInt(req.params.sessionid);
+  // Get token from header
+  const token = req.headers.token as string;
+  // Retrieve userid for the token
+  const userId = idFromToken(token);
+  const authUserId = userId as AuthUserId;
+  // Call and return sessionResultsCsv
+  const response = sessionResultsCsv(authUserId.authUserId, quizId, sessionId);
+  return res.status(200).json(response);
+});
+
+/** GET
+ * Request for /v1/player/:playerid/question/:questionposition/results
+ *
+ * Get the results for a particular question of the session a player is playing in
+ */
+app.get('/v1/player/:playerid/question/:questionposition/results', (req: Request, res: Response) => {
+  // Parse playerId to int
+  const playerId = parseInt(req.params.playerid);
+  // Parse questionPosition to int
+  const questionPosition = parseInt(req.params.questionposition);
+  // Call and return playerQuestionResults
+  const response = playerQuestionResults(playerId, questionPosition);
+  return res.json(response);
+});
+
+/** GET request for /v1/player/:playerid/results
+ *
+ * Get the final results for a whole session a player is playing in
+ */
+app.get('/v1/player/:playerid/results', (req: Request, res: Response) => {
+  // Parse playerId to int
+  const playerId = parseInt(req.params.playerid);
+  // Call and return playerFinalResults
+  const response = playerFinalResults(playerId);
+  return res.json(response);
+});
+
+/** POST
+ * Request for /v1/player/join
+ *
+ * Allow a guest player to join a session.
+ */
+app.post('/v1/player/join', (req: Request, res: Response) => {
+  // Parse sessionId to int
+  const sessionId = parseInt(req.body.sessionId);
+  // Request name from body
+  const name = req.body.name as string;
+  // Call and return playerJoin
+  const response = playerJoin(sessionId, name);
+  return res.status(200).json(response);
+});
+
+app.get('/v1/player/:playerid/question/:questionposition', (req:Request, res: Response) => {
+  const playerid = parseInt(req.params.playerid);
+  const questionposition = parseInt(req.params.questionposition);
+  const response = getQuestionInfo(playerid, questionposition);
+  return res.status(200).json(response);
+});
+
+app.put('/v1/player/:playerid/question/:questionposition/answer', (req:Request, res: Response) => {
+  const playerid = parseInt(req.params.playerid);
+  const questionposition = parseInt(req.params.questionposition);
+  const answerIds = req.body.answerIds;
+  const response = playerSubmitAnswer(playerid, questionposition, answerIds);
+  return res.status(200).json(response);
+});
+
+/** GET
+ * Request for /v1/player/{playerid}
+ *
+ * Get the status of a guest player that has already joined a session.
+ */
+app.get('/v1/player/:playerid', (req: Request, res: Response) => {
+  // Parse playerId to int
+  const playerId = parseInt(req.params.playerid);
+  // Call and return playerStatus
+  const response = playerStatus(playerId);
   return res.status(200).json(response);
 });
 
