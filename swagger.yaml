@@ -359,10 +359,14 @@ components:
           items:
             type: object
             properties:
+              rank:
+                type: number
+                example: 1
+                description: The rank of the current top 3 player, and my rank.
               name:
                 type: string
                 example: CSgod
-                descriptoin: The name of the player with the respective rank.
+                description: The name of the player with the respective rank.
               score:
                 type: number
                 example: 46
