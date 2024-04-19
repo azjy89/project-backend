@@ -354,7 +354,7 @@ components:
     CurrentRanking:
       type: object
       properties:
-        topThreeUsersRankedByCurrentScore:
+        usersRankedByCurrentScore:
           type: array
           items:
             type: object
@@ -2621,11 +2621,11 @@ paths:
             $ref: '#/components/return/PlayerCurrentRankings'
         400:
           description: |
-          If any of the following are true:
-          - If player ID does not exist
-          - Session is not in CURRENT_RESULTS state
-        schema:
-          $ref: '#/components/return/Error'
+            If any of the following are true:
+            - If player ID does not exist
+            - Session is not in CURRENT_RESULTS state
+          schema:
+            $ref: '#/components/return/Error'
 
 
 
