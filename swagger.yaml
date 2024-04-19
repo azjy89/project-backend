@@ -2608,10 +2608,10 @@ paths:
   /v1/player/{playerid}/results/current:
     get:
       summary: Get quiz session current ranking
-      description: Takes in the quizId and sessionId and find the top 3 players with the highest score, and the user's current score. If only one player, the top player is the only player. Return the data for this top 3 ranking and player's own current ranking.
+      description: Takes in the quizId and sessionId and find the top 3 players with the highest score, and the user's current score. Return the data for the top 3 ranking followed by the player's own current ranking. If there is only one player, return the top ranker, followed by the player's (playerId's) own ranking. Similar case for only two players.
       tags:
       # - "By Topic: Access Management"
-      - "Iter3 Additional Features"
+- "Iter3 Additional Features"
       parameters:
         - $ref: '#/components/path/PlayerId'
       responses:
